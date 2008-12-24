@@ -17,7 +17,7 @@ struct TVWizTSPoint { /* offset 1024, 0x400 */
     char                svcName[256];
     char                evtName[256];
     ushort              mjd;    /* Modified Julian Date */
-    ushort              pad;    /* here or after mjd? */
+    ushort              pad;
     ulong               start;
     ushort              last;
     ushort              sec;    /* play time = last*10 + sec */

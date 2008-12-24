@@ -182,6 +182,14 @@ local time at the start of the recording using C<< gmtime >>
 The local time fields can then be converted into a genuine Unix timestamp
 using C<< Time::Local::timelocal >>.
 
+=item C<<  $h->offset_time($offset) >>
+
+Convert an offset into a time. C<< $h->load(1) >> must have been called,
+otherwise -1 is returned. Interpolates between values in the offset table.
+Returns 0 if C<< $offset <= $self->offsets->[0] >> and
+C<< $self->playtime >> if C<< $offset >= $self->endOffset >>.
+
+
 =item C<< $h->load([$full]) >>
 
 Load the header object from the header on the Beyonwiz.
@@ -427,6 +435,42 @@ sub starttime() {
     return ($self->mjd - 40587) * DAY + $self->start;
 }
 
+sub offset_time($$) {
+    my ($self, $offset) = @_;
+
+    return 0 if($offset <= $self->offsets->[0]);
+    return $self->playtime if($offset >= $self->endOffset);
+    
+    my($low, $high, $dt, $index);
+
+    if($offset >= $self->offsets->[$self->last]) {
+	$low = $self->offsets->[$self->last];
+	$high = $self->endOffset;
+	$dt = $self->sec;
+	$index = $self->last;
+    } else {
+	my ($f, $l) = (0, $#{$self->offsets});
+	my $m;
+	do {
+	    $m = int(($f + $l) / 2);
+	    if($offset < $self->offsets->[$m]) {
+		$l = $m - 1;
+	    } else {
+		$f = $m + 1;
+	    }
+	} until($self->offsets->[$m] == $offset || $f > $l);
+
+	return $m * 10 if($self->offsets->[$m] == $offset);
+
+	$low  = $self->offsets->[$l-1];
+	$high = $self->offsets->[$l];
+	$dt = 10;
+	$index = $l;
+    }
+
+    return $dt * ($index + ($offset - $low) / ($high - $low));
+}
+
 sub load(;$) {
     my ($self, $full) = @_;
     my $hdr_data;
@@ -470,14 +514,14 @@ sub load(;$) {
 	    $self->endOffset(($eo1 << 32) | $eo0);
 	    $self->offsets->[0] = (($so1 << 32) | $so0);
 	    if($full) {
-		my @offsets = unpack '@1564 (V2)' . (MAX_TS_POINT-1),
+		my @offsets = unpack '@1564 (V2)' . ($self->last),
 				    $hdr_data;
 		while((my @o = splice(@offsets,0,2))) {
 		    last if($o[0] == 0 && $o[1] == 0);
 		    push @{$self->offsets}, (($o[1] << 32) | $o[0]);
 		}
 		my $nbkmk = unpack '@79316 v', $hdr_data;
-		@offsets = unpack '@79332 (V2)' . $nbkmk, $hdr_data;
+		@offsets = unpack '@79336 (V2)' . $nbkmk, $hdr_data;
 		for(my $i = 0; $i < $nbkmk; $i++ ) {
 		    push @{$self->bookmarks},
 			(($offsets[$i*2+1] << 32) | $offsets[$i*2]);

@@ -235,11 +235,6 @@ C<XML::DOM>.
 
 =head1 BUGS
 
-There is a problem with the implementation of the WizPnP search function
-and it can take up to 60 seconds (average 30 seconds) to search
-for the WizPnP devices on the network.
-Until this problem is fixed, you may prefer to use the --host option.
-
 File copy progress bar only updates after each (up to)
 32MB recording chunk is copied.
 
@@ -249,11 +244,6 @@ If the B<--ts> flag is given, downloading a recording
 to the same name will overwrite the original;
 if it's not given an error results.
 It's not completely clear what the correct behaviour should be.
-
-Can only download to the current directory.
-
-The implementation of WixPnP search is slow; the Beyonwiz doesn't
-respond to the WizPnP search multicast.
 
 Uses C<bignum> for 64-bit integers, even when the underlying
 Perl integers are 64 bits.
@@ -385,10 +375,6 @@ if($host) {
     die "Host $host isn't device $device_name, it's ", $device->name, "\n",
 	if(defined($device_name) && lc($device_name) ne lc($device->name));
 } else {
-    warn "WizPnP device search is currently slow.\n",
-         "It can take up to 60 seconds to find the WizPnP devices.\n",
-	 "Consider using --host to specify your device.\n";
-
     print "Searching for at most $maxdevs device",
 	    ($maxdevs != 1 ? 's' : ''), "\n"
 	if($verbose >= 1 && $maxdevs > 0);
@@ -411,8 +397,6 @@ if($host) {
 		join(', ', $pnp->device_names), " were found\n"
 	    if(!$device);
     }
-    warn "If you want to use --host,\nthen --host ", $device->base_url->host,
-	" will connect you to this device.\n";
 }
 
 print 'Connecting to ', $device->name, "\n" if($verbose >= 1);
@@ -466,9 +450,11 @@ foreach my $ie (@{$index->entries}) {
 	    if($verbose >= 3) {
 		$hdr->load(1);
 		if($hdr->valid && $hdr->nbookmarks > 0) {
-		    printf "    %4s %14s\n", 'Num', 'Bookmark';
+		    printf "    %4s %7s %14s\n", 'Num', 'Time', 'Bookmark';
 		    for(my $i = 0; $i < $hdr->nbookmarks; $i++) {
-			printf "    %4d %14s\n", $i, $hdr->bookmarks->[$i];
+			my $t = int($hdr->offset_time($hdr->bookmarks->[$i]));
+			printf "    %4d %4d:%02d %14s\n", $i,
+			    int($t/60), $t % 60, $hdr->bookmarks->[$i];
 		    }
 		}
 	    }

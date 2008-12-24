@@ -199,11 +199,6 @@ PREREQUSITES
 
 BUGS
 
-    There is a problem with the implementation of the WizPnP search function
-    and it can take up to 60 seconds (average 30 seconds) to search for the
-    WizPnP devices on the network. Until this problem is fixed, you may
-    prefer to use the --host option.
-
     File copy progress bar only updates after each (up to) 32MB recording
     chunk is copied.
 
@@ -212,11 +207,6 @@ BUGS
     If the --ts flag is given, downloading a recording to the same name will
     overwrite the original; if it's not given an error results. It's not
     completely clear what the correct behaviour should be.
-
-    Can only download to the current directory.
-
-    The implementation of WixPnP search is slow; the Beyonwiz doesn't
-    respond to the WizPnP search multicast.
 
     Uses "bignum" for 64-bit integers, even when the underlying Perl
     integers are 64 bits.
