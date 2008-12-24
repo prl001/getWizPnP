@@ -1,0 +1,324 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Header</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@omen.apple.com" />
+</head>
+
+<body style="background-color: white">
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;Header</span></strong></big>
+</td></tr>
+</table>
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#constants">CONSTANTS</a></li>
+	<li><a href="#methods">METHODS</a></li>
+	<li><a href="#prerequisites">PREREQUISITES</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+    use Beyonwiz::Recording::Header;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Provides access to the Beyonwiz recording file header.</p>
+<p>
+</p>
+<hr />
+<h1><a name="constants">CONSTANTS</a></h1>
+<dl>
+<dt><strong><a name="item_tvhdr"><code>TVHDR</code></a></strong>
+
+<dd>
+<p>The name of the header file for a digital TV recording (<code>header.tvwiz</code>).</p>
+</dd>
+</li>
+<dt><strong><a name="item_radhdr"><code>RADHDR</code></a></strong>
+
+<dd>
+<p>The name of the header file for a digital radio recording (<code>header.radwiz</code>).</p>
+</dd>
+</li>
+<dt><strong><a name="item_day"><code>DAY</code></a></strong>
+
+<dd>
+<p>Number of seconds in a day. Used internally for time conversion.</p>
+</dd>
+</li>
+<dt><strong><a name="item_max_ts_point"><code>MAX_TS_POINT</code></a></strong>
+
+<dd>
+<p>Maximum number of offsets in <em>offsets</em> (8640).</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="methods">METHODS</a></h1>
+<dl>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Header-&gt;new($name, $base, $path)</code></a></strong>
+
+<dd>
+<p>Create a new Beyonwiz recording header object.
+<code>$name</code> is the default name of the recording (usually
+the name in the Beyonwiz recording index, see
+<a href="../html/./Beyonwiz/Recording/Index.html"><code>Beyonwiz::Recording::Index</code></a>).
+<code>$base</code> is the base URL for the Beyonwiz device.
+<code>$path</code> is the path part of the recording URL (usually
+the path in the recording index).</p>
+</dd>
+</li>
+<dt><strong><a name="item_base"><code>$h-&gt;base([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the device base URL.</p>
+</dd>
+</li>
+<dt><strong><a name="item_name"><code>$h-&gt;name([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the default recording name.</p>
+</dd>
+</li>
+<dt><strong><code>$h-&gt;name([$val]);</code></strong>
+
+<dd>
+<p>Returns (sets) the default recording name.</p>
+</dd>
+</li>
+<dt><strong><a name="item_path"><code>$h-&gt;path([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the recording URL path part.</p>
+</dd>
+</li>
+<dt><strong><a name="item_headername"><code>$h-&gt;headerName([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the name of the header document (path part only).</p>
+</dd>
+</li>
+<dt><strong><a name="item_unknown"><code>$h-&gt;unknown([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the array reference of the 5 words in the header file
+whose interpretation has not yet been made public.</p>
+</dd>
+</li>
+<dt><strong><a name="item_lock"><code>$h-&gt;lock([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) lock flag. Possibly the flag that indicates the
+recording has a parental lock set on the Beyonwiz.
+Unused in WizFX.</p>
+</dd>
+</li>
+<dt><strong><a name="item_full"><code>$h-&gt;full([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the full flag.
+Purpose unknown.
+Unused in WizFX.</p>
+</dd>
+</li>
+<dt><strong><a name="item_inrec"><code>$h-&gt;inRec([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the ``currently recording'' flag.</p>
+</dd>
+</li>
+<dt><strong><a name="item_service"><code>$h-&gt;service([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the recording service (LCN) name.</p>
+</dd>
+</li>
+<dt><strong><a name="item_title"><code>$h-&gt;title([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the recording title (event name).</p>
+</dd>
+</li>
+<dt><strong><a name="item_mjd"><code>$h-&gt;mjd([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the recording start date.
+The name suggests that it is the Modified Julian Date, but it
+isn't.</p>
+</dd>
+<dd>
+<p><code>$h-&gt;mjd == int(true_MJD + time_zone_offset_in_minutes/(24*60))</code>
+where <code>time_zone_offset_in_minutes</code> is the time zone setting in
+minutes current at the start of the recording.</p>
+</dd>
+<dd>
+<p>The Beyonwiz appears to keep local time rather than UTC as its internal time.</p>
+</dd>
+</li>
+<dt><strong><a name="item_start"><code>$h-&gt;start([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) number of seconds into the day indicated by <a href="#item_mjd"><code>$h-&gt;mjd</code></a>
+when the recording started.</p>
+</dd>
+</li>
+<dt><strong><a name="item_last"><code>$h-&gt;last([$val]); $h-&gt;sec([$val]);</code></a></strong>
+
+<dd>
+<p>Return (set) two parameters describing the recording duration.
+The recording duration in seconds is: <a href="#item_last"><code>$self-&gt;last*10 + $self-&gt;sec</code></a>.
+<a href="#item_playtime"><code>$h-&gt;playtime</code></a> is a convenience method that calculates the playtime
+from <em>last</em> and <em>sec</em>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_endoffset"><code>$h-&gt;endOffset([$val]);</code></a></strong>
+
+<dd>
+<p>Return the offset of the logical end of the recording.
+Returns a <code>bignum</code>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_offsets"><code>$h-&gt;offsets([$val]);</code></a></strong>
+
+<dd>
+<p>Return (set) the table of offsets (possibly at even time intervals?)
+of logical file offsets (as described in <a href="#item_endoffset"><code>$h-&gt;endOffset([$val]);</code></a>).
+Offsets are returned as <code>bignum</code>s.</p>
+</dd>
+<dd>
+<p>If the offsets are at even intervals, it's probably 10 seconds.</p>
+</dd>
+<dd>
+<p>For efficiency reasons, only populated for <a href="#item_load"><code>$h-&gt;load(1)</code></a>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_noffsets"><code>$h-&gt;noffsets;</code></a></strong>
+
+<dd>
+<p>Returns the number of offsets.</p>
+</dd>
+</li>
+<dt><strong><a name="item_bookmarks"><code>$h-&gt;bookmarks([$val]);</code></a></strong>
+
+<dd>
+<p>Return (set) the table of bookmarks (possibly at even time intervals?)
+of logical file offsets (as described in <a href="#item_endoffset"><code>$h-&gt;endOffset([$val]);</code></a>).
+Offsets are returned as <code>bignum</code>s.</p>
+</dd>
+<dd>
+<p>For efficiency reasons, only populated for <a href="#item_load"><code>$h-&gt;load(1)</code></a>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_nbookmarks"><code>$h-&gt;nbookmarks;</code></a></strong>
+
+<dd>
+<p>Returns the number of bookmarks.</p>
+</dd>
+</li>
+<dt><strong><a name="item_valid"><code>$h-&gt;valid;</code></a></strong>
+
+<dd>
+<p>Returns true if the last <a href="#item_load"><code>$h-&gt;load;</code></a> was successful.</p>
+</dd>
+</li>
+<dt><strong><a name="item_size"><code>$h-&gt;size;</code></a></strong>
+
+<dd>
+<p>Returns the size of the header file (256kB).</p>
+</dd>
+</li>
+<dt><strong><a name="item_istv"><code>$h-&gt;isTV; $h-&gt;isRadio;</code></a></strong>
+
+<dd>
+<p>Returns true if <a href="#item_valid"><code>$h-&gt;valid;</code></a> is true and the recording
+is digital TV (resp digital radio).</p>
+</dd>
+</li>
+<dt><strong><a name="item_playtime"><code>$h-&gt;playtime</code></a></strong>
+
+<dd>
+<p>A convenience method that returns the duration of
+the recording in seconds.</p>
+</dd>
+</li>
+<dt><strong><a name="item_starttime"><code>$h-&gt;starttime</code></a></strong>
+
+<dd>
+<p>Returns a Unix-like timestamp for the start time of the recording
+in local time (rather than in UTC, like a true Unix timestamp).
+More precisely, returns the number of seconds since midnight at the
+start of 1 Jan 1970, <em>plus</em> the number of seconds in the timezone offset
+at the time the recording was started.</p>
+</dd>
+<dd>
+<p>This can be converted into the calender/clock fields for the
+local time at the start of the recording using <code>gmtime</code>
+(<em>not</em> <code>localtime</code>).</p>
+</dd>
+<dd>
+<p>The local time fields can then be converted into a genuine Unix timestamp
+using <code>Time::Local::timelocal</code>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_offset_time"><code>$h-&gt;offset_time($offset)</code></a></strong>
+
+<dd>
+<p>Convert an offset into a time. <a href="#item_load"><code>$h-&gt;load(1)</code></a> must have been called,
+otherwise -1 is returned. Interpolates between values in the offset table.
+Returns 0 if <a href="#item_offsets"><code>$offset &lt;= $self-&gt;offsets-&gt;[0]</code></a> and
+<a href="#item_playtime"><code>$self-&gt;playtime</code></a> if <a href="#item_endoffset"><code>$offset &gt;= $self-&gt;endOffset</code></a>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_load"><code>$h-&gt;load([$full])</code></a></strong>
+
+<dd>
+<p>Load the header object from the header on the Beyonwiz.
+The <em>offsets</em> data is only loaded if <code>$full</code> is present and true.
+If <code>$full</code> is not set, only 2kB is downloaded,
+otherwise 256kB is downloaded.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="prerequisites">PREREQUISITES</a></h1>
+<p>Uses packages:
+<code>File::Basename</code>,
+<code>LWP::Simple</code>,
+<code>URI::Escape</code>,
+<code>URI</code>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<p>Uses <code>bignum</code> for 64-bit integers, even when the underlying
+Perl integers are 64 bits.</p>
+<p>The bugs to do with time are in the Beyonwiz.</p>
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;Header</span></strong></big>
+</td></tr>
+</table>
+
+</body>
+
+</html>

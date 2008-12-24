@@ -1,0 +1,24 @@
+SYNOPSIS
+
+        use Beyonwiz::Recording::IndexEntry;
+
+SYNOPSIS
+
+    Represents an entry in the Beyonwiz recordings index..
+
+METHODS
+
+    "Beyonwiz::Recording::IndexEntry->new($name, $path)"
+        Create a new Beyonwiz recording index entry object. $name is the
+        default name of the recording. $path is the path part of the
+        recording URL.
+
+        Normally constructed from the Beyonwiz recording index by
+        "Beyonwiz::Recording::Index".
+
+    "$ie->name([$val]);"
+        Returns (sets) the default name of the recording.
+
+    "$ie->path([$val]);"
+        Returns (sets) path part of the recording URL.
+

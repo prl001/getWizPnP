@@ -1,0 +1,179 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>WizPnP</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@omen.apple.com" />
+</head>
+
+<body style="background-color: white">
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;WizPnP</span></strong></big>
+</td></tr>
+</table>
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#constants">CONSTANTS</a></li>
+	<li><a href="#methods">METHODS</a></li>
+	<li><a href="#prerequisites">PREREQUISITES</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+    use Beyonwiz::WizPnP;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Provides access data for the Beyonwiz devices on the local
+network using WizPnP.</p>
+<p>
+</p>
+<hr />
+<h1><a name="constants">CONSTANTS</a></h1>
+<dl>
+<dt><strong><a name="item_desc"><code>DESC</code></a></strong>
+
+<dd>
+<p>The URL path part for the WizPnP device descriptor
+document on the Beyonwiz PVR (<code>tvdevicedesc.xml</code>;</p>
+</dd>
+</li>
+<dt><strong><a name="item_ssdpaddr"><code>SSDPADDR</code></a></strong>
+
+<dd>
+<p>The IP multicast address used for Simple Service Discovery Protocol
+(SSDP) used to search for PnP devices (<code>239.255.255.250</code>).</p>
+</dd>
+</li>
+<dt><strong><a name="item_ssdpport"><code>SSDPPORT</code></a></strong>
+
+<dd>
+<p>The IP multicast port number used for Simple Service Discovery Protocol
+(SSDP) used to search for PnP devices (<code>1900</code>);</p>
+</dd>
+</li>
+<dt><strong><a name="item_ssdppeer"><code>SSDPPEER</code></a></strong>
+
+<dd>
+<p><em>SSDPADDR</em>:&lt;SSDPPORT&gt;; <code>239.255.255.250:1900</code></p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="methods">METHODS</a></h1>
+<dl>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::WizPnP-&gt;new</code></a></strong>
+
+<dd>
+<p>Create a new Beyonwiz WizPnP search object.</p>
+</dd>
+</li>
+<dt><strong><a name="item_devices"><code>$wpnp-&gt;devices([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the reference to the hash of discovered devices
+(<a href="../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>),
+indexed by the lower-case version of the device name.</p>
+</dd>
+</li>
+<dt><strong><a name="item_device_names"><code>$wpnp-&gt;device_names;</code></a></strong>
+
+<dd>
+<p>Returns the list of discovered device names.
+All lower-cased. No particular order.</p>
+</dd>
+</li>
+<dt><strong><code>$wpnp-&gt;device_names;</code></strong>
+
+<dd>
+<p>Returns the list of discovered device names.
+All lower-cased. No particular order.</p>
+</dd>
+</li>
+<dt><strong><a name="item_device"><code>$wpnp-&gt;device($name);</code></a></strong>
+
+<dd>
+<p>Return the named device's
+<a href="../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>
+entry.
+Lookup is case-insensitive.</p>
+</dd>
+</li>
+<dt><strong><a name="item_ndevices"><code>$wpnp-&gt;ndevices;</code></a></strong>
+
+<dd>
+<p>Returns the number of discovered devices.</p>
+</dd>
+</li>
+<dt><strong><a name="item_add_device"><code>$wpnp-&gt;add_device($location);</code></a></strong>
+
+<dd>
+<p>Request the device description XML from the URL
+given in <code>$location</code>, and install the
+device <a href="../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a> into <code>$wpnp</code>.
+<code>$location</code> is typically the <code>LOCATION</code> header in the
+response to an SDDP <code>M-SEARCH</code> request.</p>
+</dd>
+</li>
+<dt><strong><a name="item_process"><code>$wpnp-&gt;process($data);</code></a></strong>
+
+<dd>
+<p>Process an SDDP <code>M-SEARCH</code> response
+(or, for now, an SSDP <code>NOTIFY</code> message) in <code>$data</code>,
+and install the device pointed to by the <code>LOCATION</code> header
+in the message.</p>
+</dd>
+<dd>
+<p>Returns true if the message contained an installable SSDP device.</p>
+</dd>
+</li>
+<dt><strong><a name="item_search"><code>$wpnp-&gt;search([$maxdev]);</code></a></strong>
+
+<dd>
+<p>Search the local net for Beyonwiz PnP devices and install
+them in <code>$wpnp</code>.</p>
+</dd>
+<dd>
+<p>If <code>$maxdev</code> is supplied and non-zero, terminate
+the search when <code>$maxdev</code> devices have been installed.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="prerequisites">PREREQUISITES</a></h1>
+<p>Uses packages:</p>
+<p><a href="../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>,
+<code>HTTP::Request</code>,
+<code>HTTP::Response</code>,
+<code>HTTP::Status</code>,
+<code>IO::Select</code>,
+<code>IO::Socket::Multicast</code>,
+<code>LWP::Simple</code>,
+<code>URI</code>,
+<code>XML::DOM</code>.</p>
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;WizPnP</span></strong></big>
+</td></tr>
+</table>
+
+</body>
+
+</html>

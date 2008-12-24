@@ -1,0 +1,175 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Recording</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@omen.apple.com" />
+</head>
+
+<body style="background-color: white">
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;Recording</span></strong></big>
+</td></tr>
+</table>
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#constants">CONSTANTS</a></li>
+	<li><a href="#methods">METHODS</a></li>
+	<li><a href="#prerequisites">PREREQUISITES</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+    use Beyonwiz::Recording::Recording;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Download recordings from the Beyonwiz.</p>
+<p>
+</p>
+<hr />
+<h1><a name="constants">CONSTANTS</a></h1>
+<dl>
+<dt><strong><a name="item_index"><code>INDEX</code></a></strong>
+
+<dd>
+<p>The index url path for the beyonwiz (<code>index.txt</code>).</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="methods">METHODS</a></h1>
+<dl>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Recording-&gt;new($base, $ts, $date)</code></a></strong>
+
+<dd>
+<p>Create a new Beyonwiz recording downloader object.
+<code>$base</code> is the base URL for the Beyonwiz device.
+If <code>$ts</code> is true, the download will be into
+a single <code>.ts</code> file, otherwise the recording will
+be copied as it is on the Beyonwiz.
+If <code>$date</code> is true, the recording date is added to
+the recording name.
+Useful for downloading series recordings.</p>
+</dd>
+</li>
+<dt><strong><a name="item_base"><code>$r-&gt;base([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the device base URL.
+The recording URL path name is set when the recording
+is downloaded.
+The object is intended to allow a sequence of recordings to be downloaded.</p>
+</dd>
+</li>
+<dt><strong><a name="item_ts"><code>$r-&gt;ts([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the single-file TS flag.</p>
+</dd>
+</li>
+<dt><strong><a name="item_date"><code>$r-&gt;date([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the flag controlling whether the recording date
+is added to the recording name.</p>
+</dd>
+</li>
+<dt><strong><a name="item_get_recording_file_chunk"><code>$r-&gt;get_recording_file_chunk($path, $name, $file, $outdir, $append, $off, $size);</code></a></strong>
+
+<dd>
+<p>Download a chunk of a recording corresponding to a single
+<a href="../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>.</p>
+</dd>
+<dd>
+<p><code>$path</code> is the URL path to the folder containing the recording's
+files on the Beyonwiz.
+<code>$name</code> is the name of the recording folder or file
+(if <a href="#item_ts"><code>$r-&gt;ts</code></a> is true).
+<code>$file</code> is the name of the Beyonwiz file containing the chunk.
+<code>$append</code> is false if <code>$file</code> is to be created, true if
+it is to be appended to.
+<code>$off</code> and <code>$size</code> is the chunk to be transferred.
+If <code>$outdir</code> is defined and not the empty string, the record file is
+placed in that directory, rather than the current directory.</p>
+</dd>
+</li>
+<dt><strong><a name="item_get_recording_file"><code>$r-&gt;get_recording_file($path, $name, $outdir, $file, $append);</code></a></strong>
+
+<dd>
+<p>Download a complete 0000, 0001, etc. recording file from the
+Beyonwiz. Note that more than one
+<a href="../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
+may refer to any given file.</p>
+</dd>
+<dd>
+<p><code>$path</code>, <code>$name</code>, <code>$outdir</code>, <code>$file</code> and <code>$append</code> are as
+in <em>get_recording_file_chunk</em>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_get_recording"><code>$r-&gt;get_recording($hdr, $trunc, $path, $outdir, $show_progress);</code></a></strong>
+
+<dd>
+<p>Download a Beyonwiz recording, either as a direct copy from the Beyonwiz, or
+into a single <code>.ts</code> file (if <a href="#item_ts"><code>$r-&gt;ts</code></a> is true).
+<code>$hdr</code> is the recording's header file object,
+<code>$trunc</code> is the recording's trunc file object,
+and <code>$path</code> is the path name from the recording's
+<a href="../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.
+If <code>$outdir</code> is defined and not the empty string, the recording is
+placed in that directory, rather than the current directory.
+The name of the downloaded recording is derived from the recording title
+in the <code>$hdr</code>, with the recording date appended if <a href="#item_date"><code>$r-&gt;date</code></a>
+is true.
+If <code>$show_progress</code> is not <code>undef</code> it is called as a function
+with <code>bignum</code> arguments (<code>$file_size</code>, <code>$done</code>), where <code>$file_size</code>
+is the size of the transfer, and <code>$done</code> is the amount transferred
+already.
+Both in bytes.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="prerequisites">PREREQUISITES</a></h1>
+<p>Uses packages:
+<code>LWP::Simple</code>,
+<code>URI</code>,
+<code>URI::Escape</code>,
+<code>HTTP::Status</code>,
+<code>File::Basename</code>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<p>The progress callback may have inaccuracies when transferring a
+recording as-is from the Beyonwiz if the recording has been edited
+or made from the timeshift buffer.</p>
+<p>Uses <code>bignum</code> for 64-bit integers, even when the underlying
+Perl integers are 64 bits.</p>
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;Recording</span></strong></big>
+</td></tr>
+</table>
+
+</body>
+
+</html>

@@ -1,0 +1,48 @@
+SYNOPSIS
+
+        use Beyonwiz::Recording::Index;
+
+SYNOPSIS
+
+    Provides access to the Beyonwiz recording file index.
+
+CONSTANTS
+
+    "INDEX"
+        The index url path for the beyonwiz ("index.txt").
+
+METHODS
+
+    "Beyonwiz::Recording::Index->new($base)"
+        Create a new Beyonwiz recording index object. $base is the base URL
+        for the Beyonwiz device.
+
+    "$i->base([$val]);"
+        Returns (sets) the device base URL.
+
+    "$i->url([$val]);"
+        Returns (sets) the index URL.
+
+    "$i->entries([$val]);"
+        Returns (sets) the list of "Beyonwiz::Recording::IndexEntry" objects
+        in the index as an array reference.
+
+    "$i->nentries;"
+        Returns the number of index entries.
+
+    "$i->valid;"
+        Returns true if the last "$i->load;" succeeded.
+
+    "$i->load;"
+        Load the index from the Beyonwiz.
+
+PREREQUISITES
+
+    Uses packages: "Beyonwiz::Recording::IndexEntry", "File::Basename",
+    "LWP::Simple", "URI::Escape", "URI".
+
+BUGS
+
+    Uses a fixed value for the path name of the index, rather than deriving
+    it from *locationURL* in "Beyonwiz::WizPnP".
+

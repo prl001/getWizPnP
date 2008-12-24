@@ -1,0 +1,79 @@
+SYNOPSIS
+
+        use Beyonwiz::WizPnP;
+
+SYNOPSIS
+
+    Provides access data for the Beyonwiz devices on the local network using
+    WizPnP.
+
+CONSTANTS
+
+    "DESC"
+        The URL path part for the WizPnP device descriptor document on the
+        Beyonwiz PVR ("tvdevicedesc.xml";
+
+    "SSDPADDR"
+        The IP multicast address used for Simple Service Discovery Protocol
+        (SSDP) used to search for PnP devices (239.255.255.250).
+
+    "SSDPPORT"
+        The IP multicast port number used for Simple Service Discovery
+        Protocol (SSDP) used to search for PnP devices (1900);
+
+    "SSDPPEER"
+        *SSDPADDR*:<SSDPPORT>; "239.255.255.250:1900"
+
+METHODS
+
+    "Beyonwiz::Recording::WizPnP->new"
+        Create a new Beyonwiz WizPnP search object.
+
+    "$wpnp->devices([$val]);"
+        Returns (sets) the reference to the hash of discovered devices
+        ("Beyonwiz::WizPnPDevice"), indexed by the lower-case version of the
+        device name.
+
+    "$wpnp->device_names;"
+        Returns the list of discovered device names. All lower-cased. No
+        particular order.
+
+    "$wpnp->device_names;"
+        Returns the list of discovered device names. All lower-cased. No
+        particular order.
+
+    "$wpnp->device($name);"
+        Return the named device's "Beyonwiz::WizPnPDevice" entry. Lookup is
+        case-insensitive.
+
+    "$wpnp->ndevices;"
+        Returns the number of discovered devices.
+
+    "$wpnp->add_device($location);"
+        Request the device description XML from the URL given in $location,
+        and install the device "Beyonwiz::WizPnPDevice" into $wpnp.
+        $location is typically the "LOCATION" header in the response to an
+        SDDP "M-SEARCH" request.
+
+    "$wpnp->process($data);"
+        Process an SDDP "M-SEARCH" response (or, for now, an SSDP "NOTIFY"
+        message) in $data, and install the device pointed to by the
+        "LOCATION" header in the message.
+
+        Returns true if the message contained an installable SSDP device.
+
+    "$wpnp->search([$maxdev]);"
+        Search the local net for Beyonwiz PnP devices and install them in
+        $wpnp.
+
+        If $maxdev is supplied and non-zero, terminate the search when
+        $maxdev devices have been installed.
+
+PREREQUISITES
+
+    Uses packages:
+
+    "Beyonwiz::WizPnPDevice", "HTTP::Request", "HTTP::Response",
+    "HTTP::Status", "IO::Select", "IO::Socket::Multicast", "LWP::Simple",
+    "URI", "XML::DOM".
+
