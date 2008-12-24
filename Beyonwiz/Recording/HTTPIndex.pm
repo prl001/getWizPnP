@@ -17,10 +17,16 @@ L<C<Beyonwiz::Recording::Index>|Beyonwiz::Recording::Index>
 
 =over
 
-=item C<< Beyonwiz::Recording::HTTPIndex->new($base) >>
+=item C<< Beyonwiz::Recording::HTTPIndex->new($base [, $makeSortTitle]) >>
 
 Create a new Beyonwiz recording index object.
 C<$base> is the base URL for the Beyonwiz device.
+C<$makeSortTitle> takes a single string argument, and
+its return value is used to construct 
+C<< Beyonwiz::Recording::IndexEntry::sortTitle; >>.
+It should transform its input string to the form used
+for comparisons when sorting
+(for example in C<< $i->entries([$val]); >>)
 
 =item C<< $i->base([$val]); >>
 
@@ -70,7 +76,7 @@ our @ISA = qw( Beyonwiz::Recording::Index );
 my $accessorsDone;
 
 sub new() {
-    my ($class, $base) = @_;
+    my ($class, $base, $makeSortTitle) = @_;
     $class = ref($class) if(ref($class));
 
     my %fields = (
@@ -78,7 +84,7 @@ sub new() {
 	url     => undef,
     );
 
-    my $self = Beyonwiz::Recording::Index->new;
+    my $self = Beyonwiz::Recording::Index->new($makeSortTitle);
 
     $self = {
 	%$self,

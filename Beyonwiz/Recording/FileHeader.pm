@@ -98,8 +98,6 @@ sub new() {
     $class = ref($class) if(ref($class));
 
     my %fields = (
-	path       => $path,
-	name       => $name,
     );
 
     unless($accessorsDone) {
@@ -107,7 +105,7 @@ sub new() {
 	$accessorsDone = 1;
     }
 
-    my $self = Beyonwiz::Recording::Header->new;
+    my $self = Beyonwiz::Recording::Header->new($name, $path);
 
     $self = {
 	%$self,

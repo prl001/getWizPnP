@@ -50,11 +50,17 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::FileIndex-&gt;new($base)</code></a></strong>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::FileIndex-&gt;new($base [, $makeSortTitle])</code></a></strong>
 
 <dd>
 <p>Create a new Beyonwiz recording index object.
-<code>$base</code> is the base URL for the Beyonwiz device.</p>
+<code>$base</code> is the base URL for the Beyonwiz device.
+<code>$makeSortTitle</code> takes a single string argument, and
+its return value is used to construct 
+<code>Beyonwiz::Recording::IndexEntry::sortTitle;</code>.
+It should transform its input string to the form used
+for comparisons when sorting
+(for example in <code>$i-&gt;entries([$val]);</code>)</p>
 </dd>
 </li>
 <dt><strong><a name="item_path"><code>$i-&gt;path([$val]);</code></a></strong>

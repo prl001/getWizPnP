@@ -12,9 +12,13 @@ SUPERCLASS
 
 METHODS
 
-    "Beyonwiz::Recording::FileIndex->new($base)"
+    "Beyonwiz::Recording::FileIndex->new($base [, $makeSortTitle])"
         Create a new Beyonwiz recording index object. $base is the base URL
-        for the Beyonwiz device.
+        for the Beyonwiz device. $makeSortTitle takes a single string
+        argument, and its return value is used to construct
+        "Beyonwiz::Recording::IndexEntry::sortTitle;". It should transform
+        its input string to the form used for comparisons when sorting (for
+        example in "$i->entries([$val]);")
 
     "$i->path([$val]);"
         Returns (sets) the recording path.

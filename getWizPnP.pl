@@ -7,16 +7,22 @@ getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network
 
 =head1 SYNOPSIS
 
-    getWizPnP [-h|--help]
-              [-D dev|--device dev] [-m devs|--maxdev=devs]
-              [-H host|--host=host] [-p port|--port=port]
-              [-l|--list] [-L|--List]
-              [-X|--delete]
-              [-d|--date] [-E|--episode] [-t|--ts]
-              [-r|--regexp] [-e|--expression] [-B|-BWName]
-              [-R|--resume] [-f|--force]
-              [-O dir|--outdir=dir] [-I dir|--indir=dir]
-              [-v|--verbose] [-q|--quiet]
+    getWizPnP [--help|-h]
+              [--device dev|-D dev] [--maxdev=devs|-m devs]
+              [--host=host|-H host] [--port=port|-p port]
+              [--list|-l] [--List|-L]
+              [--delete|-X] [--move|-M]
+              [--folder=folderlist|-f folderlist]
+              [--recursive|--all|-a]
+              [--regexp|-r] [--expression|-e] [-BWName|-B]
+              [--sort=sortcode|-s sortcode]
+              [--dictionarySort=ignoretype|-i ignoretype]
+              [--dictStoplist=words|-S word]
+              [--date|-d] [--episode|-E] [--ts|-t]
+              [--resume|-R] [--force|-F]
+              [--outdir=dir|-O dir] [--indir=dir|-I dir]
+              [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
+	      [--index|-x]
               [ patterns... ]
 
 =head1 DESCRIPTION
@@ -137,6 +143,7 @@ List the matching recordings, rather than copying them.
   -X
 
 Delete the matching recordings, rather than copying them.
+Delete uses an undocumented feature of WizPnP. See B<L</BUGS>>.
 
 =item move
 
@@ -145,6 +152,231 @@ Delete the matching recordings, rather than copying them.
 
 Move the specified recordings to the output directory.
 Equivalent to a copy followed by a delete for each matching recording.
+Move uses an undocumented feature of WizPnP. See B<L</BUGS>>.
+
+=item folder
+
+    --folder=foldername
+    -f folder
+
+Restrict the operations to the named folder.
+More that one B<--folder> option may be given, the operations apply to
+all the named folders.
+If no folders are named, operations are on the top level
+recording folder (equivalent to specifying B<--folder=>
+or B<-f "">).
+
+Recordings can be specified with either relative or absolute path names,
+but they have the same meaning. The path separator characters can
+be either the Unix-like B</> or the DOS-like B<\>.
+Case is ignored in folder name comparisone.
+So B<Movies/Comedy>,
+B</movies/CoMeDy>
+and B<movies\comedy>
+all refer to the same folder (on Unix, the B<\> will need to be quoted).
+Unlike Unix and DOS, folder names B<.> and B<..> have
+no special meaning, and will simply cause any folder match to fail.
+
+If the Beyonwiz is running firmware 01.05.261 or earlier, only recordings
+directly in the recordings folder are accessible,
+and using anything but the default folder will mean that
+no recordings are visible.
+
+If B<--indir> is used, then all recordings in that folder will appear
+to be in the top level folder seen by I<getWizPnP>.
+If any foldername except B<--folder=> (or B<--folder=/>)
+is used, no recprdings will be found.
+
+=item recursive
+
+  --recursive
+  --all
+  -a
+  --norecursive
+  --noall
+  --noa
+
+Recursively examine all subfolders under the folders specified
+by B<--folder> for recordings, as well as just the recordings
+directly in the folders.
+
+Has no effect if the Beyonwiz is running firmware 01.05.261 or earlier.
+
+Has no effect if B<--indir> is used.
+
+=item regexp
+
+  --regexp
+  -r
+  --noregexp
+  --nor
+
+Carry out the matches using the argument as a case-insensitive
+Perl regular expression.
+For example:
+
+    getWizPnP --regexp 'ABC|SBS'
+
+will copy all recordings made from either the ABC or SBS.
+
+B<--noregexp> and B<--nor> undo the setting of this option;
+useful if this option is set by default in the user's C<.getwizpnp> file.
+
+=item expression
+
+  --expression
+  -e
+  --noexpression
+  --noe
+
+Evaluates the match arguments as Perl expressions with C<$_> set to
+the I<servicename>B<#>I<title>#I<date> string.
+If any expression evaluates to true (in Perl terms),
+the recording is matched.
+
+    getWizPnp --expression '/ABC|SBS/i'
+
+is equivalent to the B<--regexp> example above.
+Quite powerful; the Swiss Army knife approach.
+
+B<--noexpression> and B<--noe> undo the setting of this option;
+useful if this option is set by default in the user's C<.getwizpnp> file.
+
+=item sort
+
+    --sort=sortcode
+    -s sortcode
+
+Sort the output according to the value of I<sortcode>.
+I<Sortcode> is a string made up of the codes:
+B<uu> (unsorted),
+B<az> (title alphabetic ascending),
+B<za> (title alphabetic descending),
+B<fa> (folder name alphabetic ascending),
+B<fd> (folder name alphabetic descending),
+B<ta> (date and time ascending),
+B<td> (date descending),
+B<da> (date and time ascending) and
+B<dd> (date descending).
+The default I<sortcode> is B<fatd>
+(folder name ascending, time descending).
+Time descending is to match the Beyonwiz default sort order
+(and only sort order in older firmware).
+Later codes in the string are only checked if entries are equal on
+all earlier codes. The default I<sortcode> sorts on folder name,
+then title (not including episode title),
+then from earliest to latest for the same title & folder name.
+
+Case is ignored for the folder name sort order.
+
+If the B<uu> code is used anywhere in the string, the output is unsorted.
+
+Sorting on titles only works correctly with Beyonwiz firmware 01.05.261
+and later.
+Even where it works, sorting by name of recordings on
+the Beyonwiz may differ from the
+strictly ACSII ordering of some punctuation,
+because there's no fast way to get the exact title
+punctuation in some circumstances.
+
+On some earlier firmware, sorting on time won't work if the
+recording ha been renamed.
+
+Sorting is by the last modified time of the folder,
+not on the actual recording time when B<--outdir> is used.
+
+=item dictionarySort
+
+    --dictionarySort=ignoretype
+    -i ignoretype
+
+Specifies the style of sorting on the title.
+I<Ignoretype> is a comma-separated string of
+B<movie> (B<m>),
+B<punctuation> (B<p>),
+B<space> (B<s>),
+B<stoplist> (B<st>),
+B<case> (B<c>),
+B<exact> (B<none>, B<e>, B<n>)
+or
+B<all> (B<a>).
+Either the longer or the shorter S<form(s)> in parentheses may be used.
+
+When sorting the recordings by title (B<--sort=>I<sortcode>):
+
+B<movie> (B<m>)
+
+ignores any B<MOVIE:> substring at the start of a title;
+
+B<punctuation> (B<p>)
+
+ignores all characters except alphanumerics and white space;
+
+B<space> (B<s>)
+
+ignores white space in the title.
+
+B<stoplist> (B<st>)
+
+ignores any words in the I<dictStoplist> when they
+occur at the start of a title;
+
+B<case> (B<c>)
+
+ignores case in alphabetic characters;
+
+B<exact> (B<none>, B<e>, B<n>)
+
+exact match (none of the above);
+
+B<all> (B<a>)
+
+all of the above, except B<exact>
+
+The default is B<exact>.
+
+The kewords are evaluated in order, and added to the default set
+of options, except for B<exact>.
+Using B<exact> clears all options and any  following options
+become the only ones used.
+
+    --dictionarySort=case,punctuation
+
+adds B<case> and B<punctuation> to the current set of options.
+
+    --dictionarySort=exact,case,punctuation
+
+makes the options just B<case> and B<punctuation>.
+
+Multiple B<--dictionarySort> may be used.
+
+    --dictionarySort=exact --dictionarySort=case,punctuation
+
+has the same effect as
+
+    --dictionarySort=exact,case,punctuation
+
+=item dictStoplist
+
+    --dictStoplist=words
+    -S word
+
+Use the word(s) specified by the comma-separated
+list of I<words> as the words ignored
+by B<--dictionarySort> when they appear at the start of a title.
+The default list is B<A>, B<An>, B<The>.
+Specifying any words with B<--dictStoplist>
+overrides the stoplist.
+Multiple instances of B<--dictStoplist> add to the list.
+
+    --dictStoplist=a,an --dictStoplist=the
+
+has the same effect as
+
+    --dictStoplist=a,an,the
+
+Case is ignored checking for these words only
+if B<case> is set in B<--dictionarySort>.
 
 =item date
 
@@ -193,9 +425,9 @@ Allow resumption of downloading of recordings that appear to be incomplete.
 =item resume
 
   --force
-  -f
+  -F
   --noforce
-  --nof
+  --noF
 
 Allow downloads to overwrite existing recordings that appear to be complete.
 
@@ -204,59 +436,59 @@ Allow downloads to overwrite existing recordings that appear to be complete.
   --verbose
   -v
 
-Provide more information. A single B<-v> lists some more details about
+Provide more information. Each B<-v> increases the verbosity level by 1
+from 0.
+
+Verbosity level 1 lists some more details about
 the recordings, and shows a progress indicator when copying.
 The progress indicator shows the transfer rate for the last megabyte
 copied while the transfer is running, and the average transfer rate
 for the copy when the copy completes.
-Two B<-v> options list the sizes of the recording file chunks on the
-Beyonwiz.
+Level 2 includes the program synopsis, if there is one.
+Level 3 includes a display of any bookmarks in the file.
+Level 4 includes information from the C<trunc> header file, and displays
+a list of the file fragments that make up the recording.
+Level 5 includes a listing of the time/recording offset information
+for the file. This is a long listing (one line for every 10 seconds of
+the recording).
+
+See also B<--L<Verbose>>
+
+=item Verbose
+
+  --Verbose=level
+  -V level
+
+Sets the verbosity level to I<level>. This overrides any setting of
+C<$verbose> in C<.getwizpnp>.
+
+B<--Verbose> and B<--verbose> options are processed in order.
+Assuming that C<$verbose> isn't set to non-zero in C<.getwizpnp>,
+C<-vv -V=1> sets the verbosity level to 1, but C<-V=1 -vv> sets it to 3.
+
+Mixing B<--Verbose> and B<--verbose> probably doesn't help with
+clarity in commands.
+
+See also B<--L<verbose>>.
 
 =item quiet
 
   --quiet
   -q
 
-The opposite effect of B<--verbose>.
+The opposite effect of B<--L<verbose>>.
 Useful if C<$verbose> is non-zero in the user's C<.getwizpnp> file.
 
-=item regexp
+=item index
 
-  --regexp
-  -r
-  --noregexp
-  --nor
+  --index
+  -x
 
-Carry out the matches using the argument as a case-insensitive
-Perl regular expression.
-For example:
-
-    getWizPnP --regexp 'ABC|SBS'
-
-will copy all recordings made from either the ABC or SBS.
-
-B<--noregexp> and B<--nor> undo the setting of this option;
-useful if this option is set by default in the user's C<.getwizpnp> file.
-
-=item expression
-
-  --expression
-  -e
-  --noexpression
-  --noe
-
-Evaluates the match arguments as Perl expressions with C<$_> set to
-the I<servicename>B<#>I<title>#I<date> string.
-If any expression evaluates to true (in Perl terms),
-the recording is matched.
-
-    getWizPnp --expression '/ABC|SBS/i'
-
-is equivalent to the B<--regexp> example above.
-Quite powerful; the Swiss Army knife approach.
-
-B<--noexpression> and B<--noe> undo the setting of this option;
-useful if this option is set by default in the user's C<.getwizpnp> file.
+Add the Beyonwiz index name for the recording.
+This is the unique name for the recording used internally by WizPnP
+to refer to a it.
+The index name is also printed for verbosity level 4 or more.
+See B<--L<verbose>>.
 
 =item outdir
 
@@ -350,13 +582,73 @@ exit with an error. In this case, the Beyonwiz device must be specified
 using B<--host> (and B<--port> if necessary).
 
 See README.txt in the distribution for details on how to install
-ant modules that I<getWizPnP> needs to allow it to run on your system.
+any Perl modules that I<getWizPnP> needs to allow it to run on
+your system.
 
 Uses C<bignum> for 64-bit integers, even when the underlying
 Perl integers are 64 bits.
 
 When resuming a download, may fetch up to 32MB more data than is
 necessary.
+
+B<--L<move>> and B<--L<delete>> use undocumented features of WizPnP.
+This has a number of consequences:
+
+=over 4
+
+=item *
+
+A recording can be deleted while it is being played on the Beyonwiz.
+Normally, the playback will simply finish abruptly.
+The same happens if I<getWizPnP> deletes a recording on the
+WizPnP server while another Beyonwiz is playing the recording remotely
+using WizPnP.
+
+=item *
+
+If the Beyonwiz is displaying the name of the deleted recording in the
+file player when it is deleted, the file player view won't be updated.
+Navigating away from that folder and back again will display the folder
+correctly again.
+
+=item *
+
+The WizPnP's index of recordings (see B<--L</index>>) on the Beyonwiz
+doesn't get updated when the recording on the Beyonwiz is deleted
+(directly or after the copy for a move).
+If you view the recordings on the Beyonwiz using WizFX,
+entries for deleted recordings appear in the WizFX list of recordings.
+These entries have no name, a date of 17/11/1858, and a size
+of 256kB. They can't be copied using WizFX.
+A recording deleted using I<getWizPnP> on a Beyonwiz WizPnP server
+will appear normal in the file player on a Beyonwiz WizPnP client,
+but the recording cannot be played.
+
+
+=back
+
+Problems caused by errors in the WizPnP index can be fixed by
+either starting a recording on the Beyonwiz, or by shutting it
+down to standby, then restarting it.
+
+Sorting on titles does not work with Beyonwiz firmware 01.05.261
+and earlier.
+On some earlier firmware, sorting on time won't work if the
+recording has been renamed.
+
+Folder options (including sorting on folder name) do not work
+with Beyonwiz firmware 01.05.261 and earlier.
+
+B<--recursive> has no effect if the Beyonwiz is running firmware
+01.05.261 or earlier.
+
+Folder options don't work properly in conjunction with B<--indir>.
+
+Sorting is by the last modified time of the folder,
+not on the actual recording time when B<--outdir> is used.
+
+Instant recordings will not sort in their correct alphabetic sequence
+(sorting on time or date will work).
 
 =cut
 
@@ -394,39 +686,89 @@ our $port = 49152;
 our $maxdevs = 1;
 our $outdir;
 our $indir;
-our $mode = MODE_COPY;
+our $sortCode = 'faazta';
+our @folderList;
+our @dictionarySort;
+our @defDictStoplist = qw(A An The);
 
 our (
 	$list,
 	$List,
+	$recursive,
+	$regexp,
+	$expression,
+	$bwName,
 	$delete,
 	$move,
 	$date,
 	$episode,
-	$regexp,
-	$expression,
-	$bwName,
 	$verbose,
+	$indexName,
 	$quiet,
 	$ts,
 	$resume,
 	$force,
 	$help,
-    ) = ((0) x 15);
+    ) = ((0) x 16);
 
 $| = 1;
 
+my %sortCmpLookup = (
+    az => sub($$) { $_[0]->sortTitle cmp $_[1]->sortTitle },
+    za => sub($$) { $_[1]->sortTitle cmp $_[0]->sortTitle },
+    fa => sub($$) { $_[0]->sortFolder cmp $_[1]->sortFolder },
+    fd => sub($$) { $_[1]->sortFolder cmp $_[0]->sortFolder },
+    ta => sub($$) { $_[0]->time cmp $_[1]->time },
+    td => sub($$) { $_[1]->time cmp $_[0]->time },
+    da => sub($$) { substr($_[0]->time, 0, 8) cmp substr($_[1]->time, 0, 8) },
+    dd => sub($$) { substr($_[1]->time, 0, 8) cmp substr($_[0]->time, 0, 8) },
+    uu => undef,
+);
+
+my %dictionarySortMap = (
+    all		=> undef,
+    a		=> 'all',
+    case	=> undef,
+    c		=> 'case',
+    exact	=> undef,
+    none	=> 'exact',
+    n		=> 'exact',
+    e		=> 'exact',
+    movie	=> undef,
+    m		=> 'movie',
+    punctuation	=> undef,
+    p		=> 'punctuation',
+    s		=> 'space',
+    st		=> 'stoplist',
+    space	=> undef,
+    stoplist	=> undef,
+);
+
+my $dictStopRe;
+my %dictionarySort;
+my @dictStoplist;
+my @sortCmpFns;
+my $mode = MODE_COPY;
+my $matchType = MATCH_SUBSTR;
+
 sub Usage {
-    die "Usage: $0 [-h|--help]\n",
-	"                  [-D dev|--device dev] [-m devs|--maxdev=devs]\n",
-	"                  [-H host|--host=host] [-p port|--port=port]\n",
-	"                  [-l|--list] [-L|--List]\n",
-	"                  [-X|--delete]\n",
-	"                  [-d|--date] [-E|--episode] [-t|--ts]\n",
-	"                  [-r|--regexp] [-e|--expression] [-B|-BWName]\n",
-	"                  [-R|--resume] [-f|--force]\n",
-	"                  [-O dir|--outdir=dir] [-I dir|--indir=dir]\n",
-	"                  [-v|--verbose] [-q|--quiet]\n",
+    die "Usage: $0 [--help|-h]\n",
+	"                  [--device dev|-D dev] [--maxdev=devs|-m devs]\n",
+	"                  [--host=host|-H host] [--port=port|-p port]\n",
+	"                  [--list|-l] [--List|-L]\n",
+	"                  [--delete|-X] [--move|-M]\n",
+	"                  [--folder=folderlist|-f folderlist]\n",
+	"                  [--recursive|--all|-a]\n",
+	"                  [--regexp|-r] [--expression|-e] [-BWName|-B]\n",
+	"                  [--sort=sortcode|-s sortcode]\n",
+	"                  [--dictionarySort=ignoretype|-i ignoretype]\n",
+	"                  [--dictStoplist=words|-S words]\n",
+	"                  [--date|-d] [--episode|-E] [--ts|-t]\n",
+	"                  [--resume|-R] [--force|-F]\n",
+	"                  [--outdir=dir|-O dir] [--indir=dir|-I dir]\n",
+	"                  [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]\n",
+	"                  [--index|-x]\n",
+
 	"                  [ patterns... ]\n";
 }
 
@@ -437,51 +779,40 @@ my $config = defined $ENV{HOME} && length($ENV{HOME}) > 0
 do $config if(-f $config);
 
 GetOptions(
-	'h|help'        => \$help,
-	'H|host=s'      => \$host,
-	'p|port=i'      => \$port,
-	'D|device=s'    => \$device_name,
-	'm|maxdevs=i'   => \$maxdevs,
-	'l|list'        => \$list,
-	'L|List'        => \$List,
-	'X|delete'	=> \$delete,
-	'M|move'	=> \$move,
-	't|ts!'         => \$ts,
-	'd|date!'       => \$date,
-	'E|episode!'    => \$episode,
-	'R|resume!'     => \$resume,
-	'f|force!'      => \$force,
-	'r|regexp!'     => \$regexp,
-	'e|expression!' => \$expression,
-	'B|BWName!'     => \$bwName,
-	'O|outdir=s'    => \$outdir,
-	'I|indir=s'     => \$indir,
-	'v|verbose+'    => \$verbose,
-	'q|quiet+'      => \$quiet,
+	'h|help'		=> \$help,
+	'H|host=s'		=> \$host,
+	'p|port=i'		=> \$port,
+	'D|device=s'		=> \$device_name,
+	'm|maxdevs=i'		=> \$maxdevs,
+	'l|list'		=> \$list,
+	'L|List'		=> \$List,
+	's|sort=s'		=> \$sortCode,
+	'i|dictionarySort=s'	=> \@dictionarySort,
+	'S|dictStoplist:s'	=> \@dictStoplist,
+	'f|folder:s'		=> \@folderList,
+	'a|recursive|all!'	=> \$recursive,
+	'X|delete'		=> \$delete,
+	'M|move'		=> \$move,
+	't|ts!'			=> \$ts,
+	'd|date!'		=> \$date,
+	'E|episode!'		=> \$episode,
+	'R|resume!'		=> \$resume,
+	'F|force!'		=> \$force,
+	'r|regexp!'		=> \$regexp,
+	'e|expression!'		=> \$expression,
+	'B|BWName!'		=> \$bwName,
+	'O|outdir=s'		=> \$outdir,
+	'I|indir=s'		=> \$indir,
+	'v|verbose+'		=> \$verbose,
+	'V|Verbose=i'		=> \$verbose,
+	'x|index!'		=> \$indexName,
+	'q|quiet+'		=> \$quiet,
     ) or Usage;
-
-Usage if($help);
-
-$verbose = $verbose - $quiet;
-$verbose = 0 if($verbose < 0);
-
-die "Can't set more than one of --regexp, --expression or ---BWName\n"
-    if($regexp + $expression + $bwName > 1);
-
-$mode = MODE_LIST   if(!@ARGV);
-$mode = MODE_DELETE if($delete);
-$mode = MODE_MOVE   if($move);
-$mode = MODE_LIST   if($list);
-$mode = MODE_LISTBW if($List);
-
-my $match_type = MATCH_SUBSTR;
-$match_type = MATCH_REGEXP if($regexp);
-$match_type = MATCH_EXPR   if($expression);
-$match_type = MATCH_BWNAME if($bwName);
 
 # Class implementing a progress bar
 
 {
+
     package ProgressBar;
 
     use Time::HiRes;
@@ -493,15 +824,16 @@ $match_type = MATCH_BWNAME if($bwName);
 	$class = ref($class) if(ref($class));
 
 	my $self = {
-	    total     => undef,
-	    done      => undef,
-	    lastdone  => 0,
-	    lasttime  => Time::HiRes::time,
-	    starttime => Time::HiRes::time,
-	    percen    => 0,
-	    totMb     => 0,
-	    mb        => 0,
-	    display   => '',
+	    total       => undef,
+	    done        => undef,
+	    starttime   => Time::HiRes::time,
+	    percen      => 0,
+	    totMb       => 0,
+	    mb          => 0,
+	    avgBuf      => [],
+	    avgIndex    => 0,
+	    avgBufSz => 21,
+	    display     => '',
 	};
 
 	bless $self, $class;
@@ -522,9 +854,7 @@ $match_type = MATCH_BWNAME if($bwName);
 	if(@_ == 2) {
 	    $self->{total} = $val;
 	    $self->done(0);
-	    $self->lastdone(0),
 	    $self->starttime(Time::HiRes::time);
-	    $self->lasttime($self->starttime);
 	    $self->percen(0);
 	    $self->mb(0);
 	    $self->totMb($val / (1024*1024));
@@ -539,21 +869,30 @@ $match_type = MATCH_BWNAME if($bwName);
     sub rate($) {
 	my ($self) = @_;
         my ($startt, $endt, $startd, $endd);
+	$endt = Time::HiRes::time;
 	if($self->done >= $self->total) {
 	    $startt = $self->starttime;
 	    $startd = 0;
 	    $endd = $self->total;
 	} else {
-	    $startt = $self->lasttime;
-	    $startd = $self->lastdone;
 	    $endd = $self->done;
+	    $self->avgBuf->[$self->avgIndex] = {
+					    time => $endt,
+					    data => $endd,
+					};
+	    $self->avgIndex($self->avgIndex+1);
+	    if($self->avgIndex >= $self->avgBufSz) {
+		$self->avgIndex(0);
+	    }
+	    my $lastIndex = @{$self->avgBuf} < $self->avgBufSz
+				? 0
+				: $self->avgIndex;
+	    $startt = $self->avgBuf->[$lastIndex]{time};
+	    $startd = $self->avgBuf->[$lastIndex]{data};
 	}
-	$endt = Time::HiRes::time;
-	$self->lasttime($endt);
-	$self->lastdone($endd);
 	return $startt != 0 && $endt > $startt 
 		    ? ($endd - $startd)/
-		      (($endt-$startt)*1024*1024)
+		      (($endt - $startt)*1024*1024)
 		    : 0;
     }
 
@@ -576,15 +915,13 @@ $match_type = MATCH_BWNAME if($bwName);
 		my $donestr = '=' x $donechars;
 		my $leftstr = '-' x (50 - $donechars);
 		my $now = Time::HiRes::time;
-		my $dispstr = sprintf "\r|%s%s| %5.1fMB/s %3d%% %.0f/%.0fMB",
+		my $dispstr = sprintf "\r|%s%s|%5.1fMB/s %3d%% %.0f/%.0fMB",
 		    $donestr, $leftstr,
 		    $self->rate,
 		    $percen,
 		    $mb, $self->totMb;
 		$self->percen($percen);
 		$self->mb($mb);
-		$self->lastdone($self->done);
-		$self->lasttime($now);
 		print $dispstr;
 		$self->display($dispstr);
 	    }
@@ -593,6 +930,142 @@ $match_type = MATCH_BWNAME if($bwName);
     }
 
 }
+
+sub expandCommaList($;$$) {
+    my ($list, $lc, $trailing) = @_;
+    $trailing = 0 if(!defined $trailing);
+    foreach my $i (0..$#$list) {
+	my @f = split /,/, ($lc ? lc $$list[$i] : $$list[$i]), -$trailing;
+	if($#f >= 0) {
+	    $$list[$i] = $f[0];
+	    push @$list, @f[1..$#f] if($#f > 0);
+	} else {
+	    $$list[$i] = '';
+	}
+    }
+    return  $list;
+}
+
+sub processOpts() {
+
+    $verbose = $verbose - $quiet;
+    $verbose = 0 if($verbose < 0);
+
+    die "Can't set more than one of --regexp, --expression or ---BWName\n"
+	if($regexp + $expression + $bwName > 1);
+
+    $mode = MODE_LIST   if(!@ARGV);
+    $mode = MODE_DELETE if($delete);
+    $mode = MODE_MOVE   if($move);
+    $mode = MODE_LIST   if($list);
+    $mode = MODE_LISTBW if($List);
+
+    $matchType = MATCH_REGEXP if($regexp);
+    $matchType = MATCH_EXPR   if($expression);
+    $matchType = MATCH_BWNAME if($bwName);
+
+    # Use default stop list if none given
+    @dictStoplist = @defDictStoplist if(!@dictStoplist);
+    @dictStoplist = @{expandCommaList(\@dictStoplist)};
+    $dictStopRe = '^(' . join('|', @dictStoplist) . ') +'
+	if(@dictStoplist);
+
+    # Force folder name options to lower case
+    # and expand comma-separated lists
+
+    @folderList = @{expandCommaList(\@folderList, 1, 1)};
+
+    # Convert '\' in folder names to '/',
+    # and strip leading and trailing '/'s
+    foreach my $f (@folderList) {
+	$f =~ s,\\,/,g;
+	$f =~ s,^/+,,;
+	$f =~ s,/+$,,;
+	$f =~ s,//+,/,g;
+    }
+
+    # If there are no folders, add the root folder.
+
+    if(!@folderList) {
+	push @folderList, '';
+    }
+
+    # Force dictionary sort options to lower case,
+    # expand comma-separated lists, and set values in
+    # %dictionarySort
+
+    my $errs;
+    @dictionarySort = @{expandCommaList(\@dictionarySort, 1)};
+    foreach my $d (@dictionarySort) {
+	if(!exists $dictionarySortMap{$d}) {
+	    warn "Unknown --dictionarySort option $d\n";
+	    $errs++;
+	    next;
+	}
+	$d = $dictionarySortMap{$d} if(defined $dictionarySortMap{$d});
+	if($d eq 'exact') {
+	    %dictionarySort = ();
+	} elsif($d eq 'all') {
+	    foreach my $k (keys %dictionarySortMap) {
+		$dictionarySort{$k} = 1
+		    if($k ne 'exact' && $k ne 'all'
+		    && exists($dictionarySortMap{$k})
+		    && !defined($dictionarySortMap{$k}));
+	    }
+	} else {
+	    $dictionarySort{$d} = 1;
+	}
+    }
+    die "--dictionarySort option errors\n"
+        if($errs);
+}
+
+sub makeSortTitle($) {
+    my ($title) = @_;
+    $title =~ s/^MOVIE_ // if($dictionarySort{movie});
+    if($dictionarySort{movie}) {
+	if($dictionarySort{case}) {
+	    $title =~ s/$dictStopRe//io;
+	} else {
+	    $title =~ s/$dictStopRe//o;
+	}
+    }
+    $title = lc $title if($dictionarySort{case});
+    $title =~ s/[^0-9a-z ]//g if($dictionarySort{punctuation});
+    $title =~ s/ //g if($dictionarySort{space});
+    return $title;
+}
+
+# Construct the ordered list of comparison
+# functions to sort the file index list
+# from the --sort sortcode argument
+
+sub makeSortCmp($$$) {
+    my ($sortCode, $sortCmpLookup, $sortCmp) = @_;
+    die "Sort code must have an even number of characters\n"
+	if(length($sortCode) % 2 != 0);
+    foreach my $code ($sortCode =~ /(..)/g) {
+	die "Unrecognised sort code: $code\n"
+	    if(!exists $sortCmpLookup->{$code});
+	if(!defined $sortCmpLookup->{$code}) {
+	    @$sortCmp = ();
+	    last;
+	}
+	push @$sortCmp, $sortCmpLookup->{$code}
+    }
+}
+
+# Sort compare function using the sort functions in
+# @sortCmp
+
+sub sortCmp($$) {
+    foreach my $cmpFn (@sortCmpFns) {
+	my $cmp = &$cmpFn($_[0], $_[1]);
+	return $cmp if($cmp);
+    }
+    return 0;
+}
+
 
 # Connect to a Beyonwiz WizPnP server and return
 # its WizPnPDevice. If $host is set, use that as the
@@ -657,19 +1130,36 @@ sub testString($) {
 			scalar(gmtime($hdr->starttime)));
 }
 
+sub matchFolder($) {
+    my ($f) = @_;
+    $f = lc $f;
+    foreach my $fe (@folderList) {
+	return 1 if(($recursive ? substr($f, 0, length($fe)) : $f) eq $fe);
+    }
+    return 0;
+}
+
 # Return true if the mode is MODE_LIST and the argument list is empty,
 # or the header matches the user pattern argument,
 # and the recording isn't active, and the mode is not MODE_LIEST
 
-sub matchRecording($$) {
-    my ($hdr, $mode) = @_;
-    return 0 if($hdr->inRec && $mode != MODE_LIST);
-    return 1 if(@ARGV == 0 && $mode == MODE_LIST);
-    $_ = testString($hdr);
+sub matchRecording($$$) {
+    my ($ie, $hdr, $mode) = @_;
+    return 0 unless(matchFolder($ie->sortFolder));
+    return 1 if($mode == MODE_LIST && @ARGV == 0);
+
+    # Force lazy fetch if it hasn't already happened
+    # and test for a valid header
+    $hdr->loadMain if(!$hdr->validMain);
+    return 0 if(!$hdr->validMain);
+
+    return 0 if($mode != MODE_LIST && $hdr->inRec);
+    $_ = testString($hdr)
+	if(@ARGV);
     foreach my $a (@ARGV) {
-	return 1 if($match_type == MATCH_SUBSTR && index(lc($_), lc($a)) >= 0);
-	return 1 if($match_type == MATCH_REGEXP && $_ =~ /$a/i);
-	return 1 if($match_type == MATCH_EXPR && eval($a));
+	return 1 if($matchType == MATCH_SUBSTR && index(lc($_), lc($a)) >= 0);
+	return 1 if($matchType == MATCH_REGEXP && $_ =~ /$a/i);
+	return 1 if($matchType == MATCH_EXPR && eval($a));
     }
     return 0;
 }
@@ -680,8 +1170,12 @@ sub newIndex($$)
 {
     my ($indir, $device) = @_;
     return $indir
-	? Beyonwiz::Recording::FileIndex->new($indir)
-	: Beyonwiz::Recording::HTTPIndex->new($device->baseUrl)
+	? Beyonwiz::Recording::FileIndex->new(
+				$indir, \&makeSortTitle
+			    )
+	: Beyonwiz::Recording::HTTPIndex->new(
+				$device->baseUrl, \&makeSortTitle
+			    )
 }
 
 # Create a new recording object for he recording source, either local or HTTP.
@@ -740,6 +1234,11 @@ sub doRecordingOperation($$$$$$) {
 
     my $trunc;
 
+    # Force lazy fetch if it hasn't already happened
+    # and test for a valid header
+    $hdr->loadMain if(!$hdr->validMain);
+    return if(!$hdr->validMain);
+
     print $hdr->service, ': ', $hdr->longTitle,
 		($hdr->inRec          ? ' *RECORDING NOW' : ''),
 		($mode == MODE_COPY   ? ' - Copy'         : ''),
@@ -747,15 +1246,13 @@ sub doRecordingOperation($$$$$$) {
 		($mode == MODE_MOVE   ? ' - Move'         : ''),
 		"\n";
     if($verbose >= 2) {
-	$hdr->loadExtInfo;
-	if($hdr->validExtInfo
-	&& $hdr->extInfo && length($hdr->extInfo) > 0) {
+    if($hdr->extInfo && length($hdr->extInfo) > 0) {
 	    $info = $hdr->extInfo;
 	    write STDOUT;
 	}
     }
+    print "    Index name: ", $ie->name, "\n" if($verbose >= 3 || $indexName);
     if($verbose >= 1) {
-	print "    Index name: ", $ie->name, "\n";
 	print "    ", scalar(gmtime($hdr->starttime)),
 	    ' - ', scalar(gmtime($hdr->starttime + $hdr->playtime)),
 	    "\n";
@@ -765,6 +1262,16 @@ sub doRecordingOperation($$$$$$) {
 		($hdr->endOffset - $hdr->startOffset)/(1024*1024);
     }
     if($verbose >= 3) {
+	if($hdr->nbookmarks > 0) {
+	    printf "    %4s %7s %14s\n", 'Num', 'Time', 'Bookmark';
+	    for(my $i = 0; $i < $hdr->nbookmarks; $i++) {
+		my $t = int($hdr->offsetTime($hdr->bookmarks->[$i]));
+		printf "    %4d %4d:%02d %14s\n", $i,
+		    int($t/60), $t % 60, $hdr->bookmarks->[$i];
+	    }
+	}
+    }
+    if($verbose >= 4) {
 	$trunc = newTrunc($indir, $device, $ie);
 	$trunc->load;
 
@@ -784,21 +1291,8 @@ sub doRecordingOperation($$$$$$) {
 	    }
 	}
     }
-    if($verbose >= 4) {
-	$hdr->loadOffsets;
-	$hdr->loadBookmarks;
-	if($hdr->validOffsets
-	&& $hdr->validBookmarks && $hdr->nbookmarks > 0) {
-	    printf "    %4s %7s %14s\n", 'Num', 'Time', 'Bookmark';
-	    for(my $i = 0; $i < $hdr->nbookmarks; $i++) {
-		my $t = int($hdr->offsetTime($hdr->bookmarks->[$i]));
-		printf "    %4d %4d:%02d %14s\n", $i,
-		    int($t/60), $t % 60, $hdr->bookmarks->[$i];
-	    }
-	}
-    }
     if($verbose >= 5) {
-	if($hdr->validOffsets && $hdr->noffsets > 0) {
+	if($hdr->noffsets > 0) {
 	    printf "    %4s %7s %14s\n", 'Num', 'Time', 'Rec Offset';
 	    for(my $i = 0; $i < $hdr->noffsets; $i++) {
 		printf "    %4d %4d:%02d %14s\n",
@@ -875,13 +1369,8 @@ sub scanRecordings($$$$$) {
     foreach my $ie (@{$index->entries}) {
 	my $hdr = newHeader($indir, $device, $ie);
 
-	$hdr->loadMain;
-
-	if($hdr->validMain) {
-	    $hdr->loadEpisode;
-	    doRecordingOperation($indir, $device, $hdr, $ie, $rec, $mode)
-		if(matchRecording($hdr, $mode));
-	}
+	doRecordingOperation($indir, $device, $hdr, $ie, $rec, $mode)
+	    if(matchRecording($ie, $hdr, $mode));
     }
 }
 
@@ -899,19 +1388,29 @@ sub scanRecordingsBWName($$$$$) {
 	if($args{$ie->name}) {
 	    my $hdr = newHeader($indir, $device, $ie);
 
-	    $hdr->loadMain;
+	    if(matchFolder($ie->sortFolder)) {
+		# Force lazy fetch if it hasn't already happened
+		# and test for a valid header
+		$hdr->loadMain if(!$hdr->validMain);
+		return if(!$hdr->validMain);
 
-	    if($hdr->validMain
-	    && (!$hdr->inRec || $mode == MODE_LIST)) {
-		doRecordingOperation($indir, $device, $hdr, $ie, $rec, $mode)
+		if($mode == MODE_LIST || !$hdr->inRec) {
+		    doRecordingOperation(
+				$indir, $device, $hdr, $ie, $rec, $mode)
+		}
 	    }
 	}
     }
 }
 
-# Get the connection as a WizPnPDevice in $device
+Usage if($help);
+
+processOpts();
+makeSortCmp($sortCode, \%sortCmpLookup, \@sortCmpFns);
 
 my $device;
+
+# Get the connection as a WizPnPDevice in $device
 
 if(!$indir) {
     my $pnp = Beyonwiz::WizPnP->new;
@@ -929,16 +1428,19 @@ $index->load;
 
 die "Couldn't load index file from $host\n" if(!$index->valid);
 
+$index->sort(\&sortCmp);
+
 # Perform the copy or list operations
 
 my $rec = newRecording($indir, $device, $ts, $date, $episode, $resume, $force);
 
 if($mode == MODE_LISTBW) {
     foreach my $ie (@{$index->entries}) {
-	print $ie->name, "\n";
+	print $ie->name, "\n"
+	    if(matchFolder($ie->sortFolder));
     }
 } else {
-    if($match_type == MATCH_BWNAME) {
+    if($matchType == MATCH_BWNAME) {
 	scanRecordingsBWName($indir, $device, $index, $rec, $mode);
     } else {
 	scanRecordings($indir, $device, $index, $rec, $mode);

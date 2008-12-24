@@ -13,8 +13,18 @@ CONSTANTS
 
 METHODS
 
-    "Beyonwiz::Recording::Index->new"
+    "Beyonwiz::Recording::Index->new([$makeSortTitle]);"
         Create a new Beyonwiz recording index object.
+
+        $makeSortTitle is a function reference passed as the same paramter
+        into "Beyonwiz::Recording::IndexEntry->new($name, $path,
+        [$makeSortTitle]);" for any instances of
+        "Beyonwiz::Recording::IndexEntry" created by instances of this
+        object, by "$i->decode($index_data);" for example. $makeSortTitle
+        takes a single string argument, and its return value is used to
+        construct "Beyonwiz::Recording::IndexEntry::sortTitle;". It should
+        transform its input string to the form used for comparisons when
+        sorting (for example in "$i->entries([$val]);")
 
     "$i->entries([$val]);"
         Returns (sets) the list of "Beyonwiz::Recording::IndexEntry" objects
@@ -25,6 +35,13 @@ METHODS
 
     "$i->valid;"
         Returns true if the last "$i->load;" succeeded.
+
+    "$i->sort($makeSortTitle);"
+        Sorts the values returned by "$i->entries([$val]);" *n situ* and
+        returns them as a list (not a list reference as in
+        "$i->entries([$val]);"). $makeSortTitle is a function reference that
+        will be called directly by Perl's "sort" function, with two
+        "Beyonwiz::Recording::IndexEntry" references as its arguments.
 
     "$i->decode($index_data);"
         Decode the binary index data.

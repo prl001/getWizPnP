@@ -212,7 +212,7 @@ sub getRecordingFileChunk($$$$$$$) {
  
     $progressBar->done($progressBar->done + $progressCount) if($progressBar);
 
-    warn "$name/$file: ", status_message($status), "\n"
+    warn $name, ($self->ts ? "/$file" : ''), ': ', status_message($status), "\n"
 	if(!is_success($status));
     return $status;
 }
@@ -227,7 +227,7 @@ sub getRecordingFile($$$$$$) {
     $name = addDir($outdir, $name);
     $name = '>' . $name if($append);
     my $status = getstore($data_url, $name);
-    warn "$name/$file: ", status_message($status), "\n"
+    warn $name, ($self->ts ? "/$file" : ''), ': ', status_message($status), "\n"
 	if(!is_success($status));
     return $status;
 }

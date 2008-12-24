@@ -5,16 +5,22 @@ NAME
 
 SYNOPSIS
 
-        getWizPnP [-h|--help]
-                  [-D dev|--device dev] [-m devs|--maxdev=devs]
-                  [-H host|--host=host] [-p port|--port=port]
-                  [-l|--list] [-L|--List]
-                  [-X|--delete]
-                  [-d|--date] [-E|--episode] [-t|--ts]
-                  [-r|--regexp] [-e|--expression] [-B|-BWName]
-                  [-R|--resume] [-f|--force]
-                  [-O dir|--outdir=dir] [-I dir|--indir=dir]
-                  [-v|--verbose] [-q|--quiet]
+        getWizPnP [--help|-h]
+                  [--device dev|-D dev] [--maxdev=devs|-m devs]
+                  [--host=host|-H host] [--port=port|-p port]
+                  [--list|-l] [--List|-L]
+                  [--delete|-X] [--move|-M]
+                  [--folder=folderlist|-f folderlist]
+                  [--recursive|--all|-a]
+                  [--regexp|-r] [--expression|-e] [-BWName|-B]
+                  [--sort=sortcode|-s sortcode]
+                  [--dictionarySort=ignoretype|-i ignoretype]
+                  [--dictStoplist=words|-S word]
+                  [--date|-d] [--episode|-E] [--ts|-t]
+                  [--resume|-R] [--force|-F]
+                  [--outdir=dir|-O dir] [--indir=dir|-I dir]
+                  [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
+                  [--index|-x]
                   [ patterns... ]
 
 DESCRIPTION
@@ -118,14 +124,209 @@ ARGUMENTS
           --delete
           -X
 
-        Delete the matching recordings, rather than copying them.
+        Delete the matching recordings, rather than copying them. Delete
+        uses an undocumented feature of WizPnP. See "BUGS".
 
     move
           --move
           -M
 
         Move the specified recordings to the output directory. Equivalent to
-        a copy followed by a delete for each matching recording.
+        a copy followed by a delete for each matching recording. Move uses
+        an undocumented feature of WizPnP. See "BUGS".
+
+    folder
+            --folder=foldername
+            -f folder
+
+        Restrict the operations to the named folder. More that one --folder
+        option may be given, the operations apply to all the named folders.
+        If no folders are named, operations are on the top level recording
+        folder (equivalent to specifying --folder= or -f "").
+
+        Recordings can be specified with either relative or absolute path
+        names, but they have the same meaning. The path separator characters
+        can be either the Unix-like / or the DOS-like \. Case is ignored in
+        folder name comparisone. So Movies/Comedy, /movies/CoMeDy and
+        movies\comedy all refer to the same folder (on Unix, the \ will need
+        to be quoted). Unlike Unix and DOS, folder names . and .. have no
+        special meaning, and will simply cause any folder match to fail.
+
+        If the Beyonwiz is running firmware 01.05.261 or earlier, only
+        recordings directly in the recordings folder are accessible, and
+        using anything but the default folder will mean that no recordings
+        are visible.
+
+        If --indir is used, then all recordings in that folder will appear
+        to be in the top level folder seen by *getWizPnP*. If any foldername
+        except --folder= (or --folder=/) is used, no recprdings will be
+        found.
+
+    recursive
+          --recursive
+          --all
+          -a
+          --norecursive
+          --noall
+          --noa
+
+        Recursively examine all subfolders under the folders specified by
+        --folder for recordings, as well as just the recordings directly in
+        the folders.
+
+        Has no effect if the Beyonwiz is running firmware 01.05.261 or
+        earlier.
+
+        Has no effect if --indir is used.
+
+    regexp
+          --regexp
+          -r
+          --noregexp
+          --nor
+
+        Carry out the matches using the argument as a case-insensitive Perl
+        regular expression. For example:
+
+            getWizPnP --regexp 'ABC|SBS'
+
+        will copy all recordings made from either the ABC or SBS.
+
+        --noregexp and --nor undo the setting of this option; useful if this
+        option is set by default in the user's ".getwizpnp" file.
+
+    expression
+          --expression
+          -e
+          --noexpression
+          --noe
+
+        Evaluates the match arguments as Perl expressions with $_ set to the
+        *servicename*#*title*#*date* string. If any expression evaluates to
+        true (in Perl terms), the recording is matched.
+
+            getWizPnp --expression '/ABC|SBS/i'
+
+        is equivalent to the --regexp example above. Quite powerful; the
+        Swiss Army knife approach.
+
+        --noexpression and --noe undo the setting of this option; useful if
+        this option is set by default in the user's ".getwizpnp" file.
+
+    sort
+            --sort=sortcode
+            -s sortcode
+
+        Sort the output according to the value of *sortcode*. *Sortcode* is
+        a string made up of the codes: uu (unsorted), az (title alphabetic
+        ascending), za (title alphabetic descending), fa (folder name
+        alphabetic ascending), fd (folder name alphabetic descending), ta
+        (date and time ascending), td (date descending), da (date and time
+        ascending) and dd (date descending). The default *sortcode* is fatd
+        (folder name ascending, time descending). Time descending is to
+        match the Beyonwiz default sort order (and only sort order in older
+        firmware). Later codes in the string are only checked if entries are
+        equal on all earlier codes. The default *sortcode* sorts on folder
+        name, then title (not including episode title), then from earliest
+        to latest for the same title & folder name.
+
+        Case is ignored for the folder name sort order.
+
+        If the uu code is used anywhere in the string, the output is
+        unsorted.
+
+        Sorting on titles only works correctly with Beyonwiz firmware
+        01.05.261 and later. Even where it works, sorting by name of
+        recordings on the Beyonwiz may differ from the strictly ACSII
+        ordering of some punctuation, because there's no fast way to get the
+        exact title punctuation in some circumstances.
+
+        On some earlier firmware, sorting on time won't work if the
+        recording ha been renamed.
+
+        Sorting is by the last modified time of the folder, not on the
+        actual recording time when --outdir is used.
+
+    dictionarySort
+            --dictionarySort=ignoretype
+            -i ignoretype
+
+        Specifies the style of sorting on the title. *Ignoretype* is a
+        comma-separated string of movie (m), punctuation (p), space (s),
+        stoplist (st), case (c), exact (none, e, n) or all (a). Either the
+        longer or the shorter form(s) in parentheses may be used.
+
+        When sorting the recordings by title (--sort=*sortcode*):
+
+        movie (m)
+
+        ignores any MOVIE: substring at the start of a title;
+
+        punctuation (p)
+
+        ignores all characters except alphanumerics and white space;
+
+        space (s)
+
+        ignores white space in the title.
+
+        stoplist (st)
+
+        ignores any words in the *dictStoplist* when they occur at the start
+        of a title;
+
+        case (c)
+
+        ignores case in alphabetic characters;
+
+        exact (none, e, n)
+
+        exact match (none of the above);
+
+        all (a)
+
+        all of the above, except exact
+
+        The default is exact.
+
+        The kewords are evaluated in order, and added to the default set of
+        options, except for exact. Using exact clears all options and any
+        following options become the only ones used.
+
+            --dictionarySort=case,punctuation
+
+        adds case and punctuation to the current set of options.
+
+            --dictionarySort=exact,case,punctuation
+
+        makes the options just case and punctuation.
+
+        Multiple --dictionarySort may be used.
+
+            --dictionarySort=exact --dictionarySort=case,punctuation
+
+        has the same effect as
+
+            --dictionarySort=exact,case,punctuation
+
+    dictStoplist
+            --dictStoplist=words
+            -S word
+
+        Use the word(s) specified by the comma-separated list of *words* as
+        the words ignored by --dictionarySort when they appear at the start
+        of a title. The default list is A, An, The. Specifying any words
+        with --dictStoplist overrides the stoplist. Multiple instances of
+        --dictStoplist add to the list.
+
+            --dictStoplist=a,an --dictStoplist=the
+
+        has the same effect as
+
+            --dictStoplist=a,an,the
+
+        Case is ignored checking for these words only if case is set in
+        --dictionarySort.
 
     date
           --date
@@ -169,9 +370,9 @@ ARGUMENTS
 
     resume
           --force
-          -f
+          -F
           --noforce
-          --nof
+          --noF
 
         Allow downloads to overwrite existing recordings that appear to be
         complete.
@@ -180,12 +381,38 @@ ARGUMENTS
           --verbose
           -v
 
-        Provide more information. A single -v lists some more details about
-        the recordings, and shows a progress indicator when copying. The
-        progress indicator shows the transfer rate for the last megabyte
-        copied while the transfer is running, and the average transfer rate
-        for the copy when the copy completes. Two -v options list the sizes
-        of the recording file chunks on the Beyonwiz.
+        Provide more information. Each -v increases the verbosity level by 1
+        from 0.
+
+        Verbosity level 1 lists some more details about the recordings, and
+        shows a progress indicator when copying. The progress indicator
+        shows the transfer rate for the last megabyte copied while the
+        transfer is running, and the average transfer rate for the copy when
+        the copy completes. Level 2 includes the program synopsis, if there
+        is one. Level 3 includes a display of any bookmarks in the file.
+        Level 4 includes information from the "trunc" header file, and
+        displays a list of the file fragments that make up the recording.
+        Level 5 includes a listing of the time/recording offset information
+        for the file. This is a long listing (one line for every 10 seconds
+        of the recording).
+
+        See also --Verbose
+
+    Verbose
+          --Verbose=level
+          -V level
+
+        Sets the verbosity level to *level*. This overrides any setting of
+        $verbose in ".getwizpnp".
+
+        --Verbose and --verbose options are processed in order. Assuming
+        that $verbose isn't set to non-zero in ".getwizpnp", "-vv -V=1" sets
+        the verbosity level to 1, but "-V=1 -vv" sets it to 3.
+
+        Mixing --Verbose and --verbose probably doesn't help with clarity in
+        commands.
+
+        See also --verbose.
 
     quiet
           --quiet
@@ -194,39 +421,14 @@ ARGUMENTS
         The opposite effect of --verbose. Useful if $verbose is non-zero in
         the user's ".getwizpnp" file.
 
-    regexp
-          --regexp
-          -r
-          --noregexp
-          --nor
+    index
+          --index
+          -x
 
-        Carry out the matches using the argument as a case-insensitive Perl
-        regular expression. For example:
-
-            getWizPnP --regexp 'ABC|SBS'
-
-        will copy all recordings made from either the ABC or SBS.
-
-        --noregexp and --nor undo the setting of this option; useful if this
-        option is set by default in the user's ".getwizpnp" file.
-
-    expression
-          --expression
-          -e
-          --noexpression
-          --noe
-
-        Evaluates the match arguments as Perl expressions with $_ set to the
-        *servicename*#*title*#*date* string. If any expression evaluates to
-        true (in Perl terms), the recording is matched.
-
-            getWizPnp --expression '/ABC|SBS/i'
-
-        is equivalent to the --regexp example above. Quite powerful; the
-        Swiss Army knife approach.
-
-        --noexpression and --noe undo the setting of this option; useful if
-        this option is set by default in the user's ".getwizpnp" file.
+        Add the Beyonwiz index name for the recording. This is the unique
+        name for the recording used internally by WizPnP to refer to a it.
+        The index name is also printed for verbosity level 4 or more. See
+        --verbose.
 
     outdir
           --outdir=dir
@@ -303,12 +505,57 @@ BUGS
     an error. In this case, the Beyonwiz device must be specified using
     --host (and --port if necessary).
 
-    See README.txt in the distribution for details on how to install ant
-    modules that *getWizPnP* needs to allow it to run on your system.
+    See README.txt in the distribution for details on how to install any
+    Perl modules that *getWizPnP* needs to allow it to run on your system.
 
     Uses "bignum" for 64-bit integers, even when the underlying Perl
     integers are 64 bits.
 
     When resuming a download, may fetch up to 32MB more data than is
     necessary.
+
+    --move and --delete use undocumented features of WizPnP. This has a
+    number of consequences:
+
+    *   A recording can be deleted while it is being played on the Beyonwiz.
+        Normally, the playback will simply finish abruptly. The same happens
+        if *getWizPnP* deletes a recording on the WizPnP server while
+        another Beyonwiz is playing the recording remotely using WizPnP.
+
+    *   If the Beyonwiz is displaying the name of the deleted recording in
+        the file player when it is deleted, the file player view won't be
+        updated. Navigating away from that folder and back again will
+        display the folder correctly again.
+
+    *   The WizPnP's index of recordings (see --"index") on the Beyonwiz
+        doesn't get updated when the recording on the Beyonwiz is deleted
+        (directly or after the copy for a move). If you view the recordings
+        on the Beyonwiz using WizFX, entries for deleted recordings appear
+        in the WizFX list of recordings. These entries have no name, a date
+        of 17/11/1858, and a size of 256kB. They can't be copied using
+        WizFX. A recording deleted using *getWizPnP* on a Beyonwiz WizPnP
+        server will appear normal in the file player on a Beyonwiz WizPnP
+        client, but the recording cannot be played.
+
+    Problems caused by errors in the WizPnP index can be fixed by either
+    starting a recording on the Beyonwiz, or by shutting it down to standby,
+    then restarting it.
+
+    Sorting on titles does not work with Beyonwiz firmware 01.05.261 and
+    earlier. On some earlier firmware, sorting on time won't work if the
+    recording has been renamed.
+
+    Folder options (including sorting on folder name) do not work with
+    Beyonwiz firmware 01.05.261 and earlier.
+
+    --recursive has no effect if the Beyonwiz is running firmware 01.05.261
+    or earlier.
+
+    Folder options don't work properly in conjunction with --indir.
+
+    Sorting is by the last modified time of the folder, not on the actual
+    recording time when --outdir is used.
+
+    Instant recordings will not sort in their correct alphabetic sequence
+    (sorting on time or date will work).
 

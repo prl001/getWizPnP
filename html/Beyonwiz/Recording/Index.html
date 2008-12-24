@@ -56,10 +56,25 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Index-&gt;new</code></a></strong>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Index-&gt;new([$makeSortTitle]);</code></a></strong>
 
 <dd>
 <p>Create a new Beyonwiz recording index object.</p>
+</dd>
+<dd>
+<p><code>$makeSortTitle</code> is a function reference passed as the same paramter into
+<a href="#item_new"><code>Beyonwiz::Recording::IndexEntry-&gt;new($name, $path, [$makeSortTitle]);</code></a>
+for any instances of
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>
+created by instances of this object,
+by <a href="#item_decode"><code>$i-&gt;decode($index_data);</code></a>
+for example.
+<code>$makeSortTitle</code> takes a single string argument, and
+its return value is used to construct 
+<code>Beyonwiz::Recording::IndexEntry::sortTitle;</code>.
+It should transform its input string to the form used
+for comparisons when sorting
+(for example in <a href="#item_entries"><code>$i-&gt;entries([$val]);</code></a>)</p>
 </dd>
 </li>
 <dt><strong><a name="item_entries"><code>$i-&gt;entries([$val]);</code></a></strong>
@@ -80,6 +95,18 @@ objects in the index as an array reference.</p>
 
 <dd>
 <p>Returns true if the last <code>$i-&gt;load;</code> succeeded.</p>
+</dd>
+</li>
+<dt><strong><a name="item_sort"><code>$i-&gt;sort($makeSortTitle);</code></a></strong>
+
+<dd>
+<p>Sorts the values returned by <a href="#item_entries"><code>$i-&gt;entries([$val]);</code></a>
+<em>n situ</em> and returns them as a list
+(not a list reference as in <a href="#item_entries"><code>$i-&gt;entries([$val]);</code></a>).
+<code>$makeSortTitle</code> is a function reference that will be called
+directly by Perl's <a href="#item_sort"><code>sort</code></a> function, with two
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>
+references as its arguments.</p>
 </dd>
 </li>
 <dt><strong><a name="item_decode"><code>$i-&gt;decode($index_data);</code></a></strong>

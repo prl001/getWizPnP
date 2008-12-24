@@ -17,10 +17,16 @@ L<C<Beyonwiz::Recording::Index>|Beyonwiz::Recording::Index>
 
 =over
 
-=item C<< Beyonwiz::Recording::FileIndex->new($base) >>
+=item C<< Beyonwiz::Recording::FileIndex->new($base [, $makeSortTitle]) >>
 
 Create a new Beyonwiz recording index object.
 C<$base> is the base URL for the Beyonwiz device.
+C<$makeSortTitle> takes a single string argument, and
+its return value is used to construct 
+C<< Beyonwiz::Recording::IndexEntry::sortTitle; >>.
+It should transform its input string to the form used
+for comparisons when sorting
+(for example in C<< $i->entries([$val]); >>)
 
 =item C<< $i->path([$val]); >>
 
@@ -69,15 +75,15 @@ our @ISA = qw( Beyonwiz::Recording::Index );
 
 my $accessorsDone;
 
-sub new($$) {
-    my ($class, $path) = @_;
+sub new($$;$) {
+    my ($class, $path, $makeSortTitle) = @_;
     $class = ref($class) if(ref($class));
 
     my %fields = (
 	path    => $path,
     );
 
-    my $self = Beyonwiz::Recording::Index->new;
+    my $self = Beyonwiz::Recording::Index->new($makeSortTitle);
 
     $self = {
 	%$self,
@@ -91,6 +97,8 @@ sub new($$) {
 
     return bless $self, $class;
 }
+
+my @monNames = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
 
 sub load($) {
     my ($self) = @_;
@@ -109,7 +117,11 @@ sub load($) {
 	# Fake up index.txt lines;
 	my $name = $ent;
 	$name =~ s/\.tvwiz$//;
-	$index_data .= $ent . '|'
+	my $mtime = (stat catfile($self->path, $ent))[9];
+	my ($min,$hour,$mday,$mon,$year) = (localtime)[1..5];
+	$name .= sprintf ' %s.%d.%d_%2d.%2d',
+			    $monNames[$mon], $mday, $year+1900, $hour, $min;
+	$index_data .= $name . '|'
 	            . catfile($self->path, $ent, $ent . '.tvwizts') . "\n";
     }
     closedir DIR;

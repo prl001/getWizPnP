@@ -39,16 +39,22 @@
 <hr />
 <h1><a name="synopsis">SYNOPSIS</a></h1>
 <pre>
-    getWizPnP [-h|--help]
-              [-D dev|--device dev] [-m devs|--maxdev=devs]
-              [-H host|--host=host] [-p port|--port=port]
-              [-l|--list] [-L|--List]
-              [-X|--delete]
-              [-d|--date] [-E|--episode] [-t|--ts]
-              [-r|--regexp] [-e|--expression] [-B|-BWName]
-              [-R|--resume] [-f|--force]
-              [-O dir|--outdir=dir] [-I dir|--indir=dir]
-              [-v|--verbose] [-q|--quiet]
+    getWizPnP [--help|-h]
+              [--device dev|-D dev] [--maxdev=devs|-m devs]
+              [--host=host|-H host] [--port=port|-p port]
+              [--list|-l] [--List|-L]
+              [--delete|-X] [--move|-M]
+              [--folder=folderlist|-f folderlist]
+              [--recursive|--all|-a]
+              [--regexp|-r] [--expression|-e] [-BWName|-B]
+              [--sort=sortcode|-s sortcode]
+              [--dictionarySort=ignoretype|-i ignoretype]
+              [--dictStoplist=words|-S word]
+              [--date|-d] [--episode|-E] [--ts|-t]
+              [--resume|-R] [--force|-F]
+              [--outdir=dir|-O dir] [--indir=dir|-I dir]
+              [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
+              [--index|-x]
               [ patterns... ]</pre>
 <p>
 </p>
@@ -182,7 +188,8 @@ file (see FILES below).
   -X</pre>
 </dd>
 <dd>
-<p>Delete the matching recordings, rather than copying them.</p>
+<p>Delete the matching recordings, rather than copying them.
+Delete uses an undocumented feature of WizPnP. See <strong><a href="#bugs">BUGS</a></strong>.</p>
 </dd>
 <dt><strong><a name="item_move">move</a></strong>
 
@@ -193,7 +200,306 @@ file (see FILES below).
 </dd>
 <dd>
 <p>Move the specified recordings to the output directory.
-Equivalent to a copy followed by a delete for each matching recording.</p>
+Equivalent to a copy followed by a delete for each matching recording.
+Move uses an undocumented feature of WizPnP. See <strong><a href="#bugs">BUGS</a></strong>.</p>
+</dd>
+<dt><strong><a name="item_folder">folder</a></strong>
+
+<dd>
+<pre>
+    --folder=foldername
+    -f folder</pre>
+</dd>
+<dd>
+<p>Restrict the operations to the named folder.
+More that one <strong>--folder</strong> option may be given, the operations apply to
+all the named folders.
+If no folders are named, operations are on the top level
+recording folder (equivalent to specifying <strong>--folder=</strong>
+or <strong>-f ``''</strong>).</p>
+</dd>
+<dd>
+<p>Recordings can be specified with either relative or absolute path names,
+but they have the same meaning. The path separator characters can
+be either the Unix-like <strong>/</strong> or the DOS-like <strong>\</strong>.
+Case is ignored in folder name comparisone.
+So <strong>Movies/Comedy</strong>,
+<strong>/movies/CoMeDy</strong>
+and <strong>movies\comedy</strong>
+all refer to the same folder (on Unix, the <strong>\</strong> will need to be quoted).
+Unlike Unix and DOS, folder names <strong>.</strong> and <strong>..</strong> have
+no special meaning, and will simply cause any folder match to fail.</p>
+</dd>
+<dd>
+<p>If the Beyonwiz is running firmware 01.05.261 or earlier, only recordings
+directly in the recordings folder are accessible,
+and using anything but the default folder will mean that
+no recordings are visible.</p>
+</dd>
+<dd>
+<p>If <strong>--indir</strong> is used, then all recordings in that folder will appear
+to be in the top level folder seen by <em>getWizPnP</em>.
+If any foldername except <strong>--folder=</strong> (or <strong>--folder=/</strong>)
+is used, no recprdings will be found.</p>
+</dd>
+<dt><strong><a name="item_recursive">recursive</a></strong>
+
+<dd>
+<pre>
+  --recursive
+  --all
+  -a
+  --norecursive
+  --noall
+  --noa</pre>
+</dd>
+<dd>
+<p>Recursively examine all subfolders under the folders specified
+by <strong>--folder</strong> for recordings, as well as just the recordings
+directly in the folders.</p>
+</dd>
+<dd>
+<p>Has no effect if the Beyonwiz is running firmware 01.05.261 or earlier.</p>
+</dd>
+<dd>
+<p>Has no effect if <strong>--indir</strong> is used.</p>
+</dd>
+<dt><strong><a name="item_regexp">regexp</a></strong>
+
+<dd>
+<pre>
+  --regexp
+  -r
+  --noregexp
+  --nor</pre>
+</dd>
+<dd>
+<p>Carry out the matches using the argument as a case-insensitive
+Perl regular expression.
+For example:</p>
+</dd>
+<dd>
+<pre>
+    getWizPnP --regexp 'ABC|SBS'</pre>
+</dd>
+<dd>
+<p>will copy all recordings made from either the ABC or SBS.</p>
+</dd>
+<dd>
+<p><strong>--noregexp</strong> and <strong>--nor</strong> undo the setting of this option;
+useful if this option is set by default in the user's <code>.getwizpnp</code> file.</p>
+</dd>
+<dt><strong><a name="item_expression">expression</a></strong>
+
+<dd>
+<pre>
+  --expression
+  -e
+  --noexpression
+  --noe</pre>
+</dd>
+<dd>
+<p>Evaluates the match arguments as Perl expressions with <code>$_</code> set to
+the <em>servicename</em><strong>#</strong><em>title</em>#<em>date</em> string.
+If any expression evaluates to true (in Perl terms),
+the recording is matched.</p>
+</dd>
+<dd>
+<pre>
+    getWizPnp --expression '/ABC|SBS/i'</pre>
+</dd>
+<dd>
+<p>is equivalent to the <strong>--regexp</strong> example above.
+Quite powerful; the Swiss Army knife approach.</p>
+</dd>
+<dd>
+<p><strong>--noexpression</strong> and <strong>--noe</strong> undo the setting of this option;
+useful if this option is set by default in the user's <code>.getwizpnp</code> file.</p>
+</dd>
+<dt><strong><a name="item_sort">sort</a></strong>
+
+<dd>
+<pre>
+    --sort=sortcode
+    -s sortcode</pre>
+</dd>
+<dd>
+<p>Sort the output according to the value of <em>sortcode</em>.
+<em>Sortcode</em> is a string made up of the codes:
+<strong>uu</strong> (unsorted),
+<strong>az</strong> (title alphabetic ascending),
+<strong>za</strong> (title alphabetic descending),
+<strong>fa</strong> (folder name alphabetic ascending),
+<strong>fd</strong> (folder name alphabetic descending),
+<strong>ta</strong> (date and time ascending),
+<strong>td</strong> (date descending),
+<strong>da</strong> (date and time ascending) and
+<strong>dd</strong> (date descending).
+The default <em>sortcode</em> is <strong>fatd</strong>
+(folder name ascending, time descending).
+Time descending is to match the Beyonwiz default sort order
+(and only sort order in older firmware).
+Later codes in the string are only checked if entries are equal on
+all earlier codes. The default <em>sortcode</em> sorts on folder name,
+then title (not including episode title),
+then from earliest to latest for the same title &amp; folder name.</p>
+</dd>
+<dd>
+<p>Case is ignored for the folder name sort order.</p>
+</dd>
+<dd>
+<p>If the <strong>uu</strong> code is used anywhere in the string, the output is unsorted.</p>
+</dd>
+<dd>
+<p>Sorting on titles only works correctly with Beyonwiz firmware 01.05.261
+and later.
+Even where it works, sorting by name of recordings on
+the Beyonwiz may differ from the
+strictly ACSII ordering of some punctuation,
+because there's no fast way to get the exact title
+punctuation in some circumstances.</p>
+</dd>
+<dd>
+<p>On some earlier firmware, sorting on time won't work if the
+recording ha been renamed.</p>
+</dd>
+<dd>
+<p>Sorting is by the last modified time of the folder,
+not on the actual recording time when <strong>--outdir</strong> is used.</p>
+</dd>
+<dt><strong><a name="item_dictionarysort">dictionarySort</a></strong>
+
+<dd>
+<pre>
+    --dictionarySort=ignoretype
+    -i ignoretype</pre>
+</dd>
+<dd>
+<p>Specifies the style of sorting on the title.
+<em>Ignoretype</em> is a comma-separated string of
+<strong>movie</strong> (<strong>m</strong>),
+<strong>punctuation</strong> (<strong>p</strong>),
+<strong>space</strong> (<strong>s</strong>),
+<strong>stoplist</strong> (<strong>st</strong>),
+<strong>case</strong> (<strong>c</strong>),
+<strong>exact</strong> (<strong>none</strong>, <strong>e</strong>, <strong>n</strong>)
+or
+<strong>all</strong> (<strong>a</strong>).
+Either the longer or the shorter form(s) in parentheses may be used.</p>
+</dd>
+<dd>
+<p>When sorting the recordings by title (<strong>--sort=</strong><em>sortcode</em>):</p>
+</dd>
+<dd>
+<p><strong>movie</strong> (<strong>m</strong>)</p>
+</dd>
+<dd>
+<p>ignores any <strong>MOVIE:</strong> substring at the start of a title;</p>
+</dd>
+<dd>
+<p><strong>punctuation</strong> (<strong>p</strong>)</p>
+</dd>
+<dd>
+<p>ignores all characters except alphanumerics and white space;</p>
+</dd>
+<dd>
+<p><strong>space</strong> (<strong>s</strong>)</p>
+</dd>
+<dd>
+<p>ignores white space in the title.</p>
+</dd>
+<dd>
+<p><strong>stoplist</strong> (<strong>st</strong>)</p>
+</dd>
+<dd>
+<p>ignores any words in the <em>dictStoplist</em> when they
+occur at the start of a title;</p>
+</dd>
+<dd>
+<p><strong>case</strong> (<strong>c</strong>)</p>
+</dd>
+<dd>
+<p>ignores case in alphabetic characters;</p>
+</dd>
+<dd>
+<p><strong>exact</strong> (<strong>none</strong>, <strong>e</strong>, <strong>n</strong>)</p>
+</dd>
+<dd>
+<p>exact match (none of the above);</p>
+</dd>
+<dd>
+<p><strong>all</strong> (<strong>a</strong>)</p>
+</dd>
+<dd>
+<p>all of the above, except <strong>exact</strong></p>
+</dd>
+<dd>
+<p>The default is <strong>exact</strong>.</p>
+</dd>
+<dd>
+<p>The kewords are evaluated in order, and added to the default set
+of options, except for <strong>exact</strong>.
+Using <strong>exact</strong> clears all options and any  following options
+become the only ones used.</p>
+</dd>
+<dd>
+<pre>
+    --dictionarySort=case,punctuation</pre>
+</dd>
+<dd>
+<p>adds <strong>case</strong> and <strong>punctuation</strong> to the current set of options.</p>
+</dd>
+<dd>
+<pre>
+    --dictionarySort=exact,case,punctuation</pre>
+</dd>
+<dd>
+<p>makes the options just <strong>case</strong> and <strong>punctuation</strong>.</p>
+</dd>
+<dd>
+<p>Multiple <strong>--dictionarySort</strong> may be used.</p>
+</dd>
+<dd>
+<pre>
+    --dictionarySort=exact --dictionarySort=case,punctuation</pre>
+</dd>
+<dd>
+<p>has the same effect as</p>
+</dd>
+<dd>
+<pre>
+    --dictionarySort=exact,case,punctuation</pre>
+</dd>
+<dt><strong><a name="item_dictstoplist">dictStoplist</a></strong>
+
+<dd>
+<pre>
+    --dictStoplist=words
+    -S word</pre>
+</dd>
+<dd>
+<p>Use the <code>word(s)</code> specified by the comma-separated
+list of <em>words</em> as the words ignored
+by <strong>--dictionarySort</strong> when they appear at the start of a title.
+The default list is <strong>A</strong>, <strong>An</strong>, <strong>The</strong>.
+Specifying any words with <strong>--dictStoplist</strong>
+overrides the stoplist.
+Multiple instances of <strong>--dictStoplist</strong> add to the list.</p>
+</dd>
+<dd>
+<pre>
+    --dictStoplist=a,an --dictStoplist=the</pre>
+</dd>
+<dd>
+<p>has the same effect as</p>
+</dd>
+<dd>
+<pre>
+    --dictStoplist=a,an,the</pre>
+</dd>
+<dd>
+<p>Case is ignored checking for these words only
+if <strong>case</strong> is set in <strong>--dictionarySort</strong>.</p>
 </dd>
 <dt><strong><a name="item_date">date</a></strong>
 
@@ -257,9 +563,9 @@ useful if this option is set by default in the user's <code>.getwizpnp</code> fi
 <dd>
 <pre>
   --force
-  -f
+  -F
   --noforce
-  --nof</pre>
+  --noF</pre>
 </dd>
 <dd>
 <p>Allow downloads to overwrite existing recordings that appear to be complete.</p>
@@ -272,13 +578,48 @@ useful if this option is set by default in the user's <code>.getwizpnp</code> fi
   -v</pre>
 </dd>
 <dd>
-<p>Provide more information. A single <strong>-v</strong> lists some more details about
+<p>Provide more information. Each <strong>-v</strong> increases the verbosity level by 1
+from 0.</p>
+</dd>
+<dd>
+<p>Verbosity level 1 lists some more details about
 the recordings, and shows a progress indicator when copying.
 The progress indicator shows the transfer rate for the last megabyte
 copied while the transfer is running, and the average transfer rate
 for the copy when the copy completes.
-Two <strong>-v</strong> options list the sizes of the recording file chunks on the
-Beyonwiz.</p>
+Level 2 includes the program synopsis, if there is one.
+Level 3 includes a display of any bookmarks in the file.
+Level 4 includes information from the <code>trunc</code> header file, and displays
+a list of the file fragments that make up the recording.
+Level 5 includes a listing of the time/recording offset information
+for the file. This is a long listing (one line for every 10 seconds of
+the recording).</p>
+</dd>
+<dd>
+<p>See also <strong>--<a href="#item_verbose">Verbose</a></strong></p>
+</dd>
+<dt><strong><a name="item_verbose">Verbose</a></strong>
+
+<dd>
+<pre>
+  --Verbose=level
+  -V level</pre>
+</dd>
+<dd>
+<p>Sets the verbosity level to <em>level</em>. This overrides any setting of
+<code>$verbose</code> in <code>.getwizpnp</code>.</p>
+</dd>
+<dd>
+<p><strong>--Verbose</strong> and <strong>--verbose</strong> options are processed in order.
+Assuming that <code>$verbose</code> isn't set to non-zero in <code>.getwizpnp</code>,
+<code>-vv -V=1</code> sets the verbosity level to 1, but <code>-V=1 -vv</code> sets it to 3.</p>
+</dd>
+<dd>
+<p>Mixing <strong>--Verbose</strong> and <strong>--verbose</strong> probably doesn't help with
+clarity in commands.</p>
+</dd>
+<dd>
+<p>See also <strong>--<a href="#item_verbose">verbose</a></strong>.</p>
 </dd>
 <dt><strong><a name="item_quiet">quiet</a></strong>
 
@@ -288,60 +629,22 @@ Beyonwiz.</p>
   -q</pre>
 </dd>
 <dd>
-<p>The opposite effect of <strong>--verbose</strong>.
+<p>The opposite effect of <strong>--<a href="#item_verbose">verbose</a></strong>.
 Useful if <code>$verbose</code> is non-zero in the user's <code>.getwizpnp</code> file.</p>
 </dd>
-<dt><strong><a name="item_regexp">regexp</a></strong>
+<dt><strong><a name="item_index">index</a></strong>
 
 <dd>
 <pre>
-  --regexp
-  -r
-  --noregexp
-  --nor</pre>
+  --index
+  -x</pre>
 </dd>
 <dd>
-<p>Carry out the matches using the argument as a case-insensitive
-Perl regular expression.
-For example:</p>
-</dd>
-<dd>
-<pre>
-    getWizPnP --regexp 'ABC|SBS'</pre>
-</dd>
-<dd>
-<p>will copy all recordings made from either the ABC or SBS.</p>
-</dd>
-<dd>
-<p><strong>--noregexp</strong> and <strong>--nor</strong> undo the setting of this option;
-useful if this option is set by default in the user's <code>.getwizpnp</code> file.</p>
-</dd>
-<dt><strong><a name="item_expression">expression</a></strong>
-
-<dd>
-<pre>
-  --expression
-  -e
-  --noexpression
-  --noe</pre>
-</dd>
-<dd>
-<p>Evaluates the match arguments as Perl expressions with <code>$_</code> set to
-the <em>servicename</em><strong>#</strong><em>title</em>#<em>date</em> string.
-If any expression evaluates to true (in Perl terms),
-the recording is matched.</p>
-</dd>
-<dd>
-<pre>
-    getWizPnp --expression '/ABC|SBS/i'</pre>
-</dd>
-<dd>
-<p>is equivalent to the <strong>--regexp</strong> example above.
-Quite powerful; the Swiss Army knife approach.</p>
-</dd>
-<dd>
-<p><strong>--noexpression</strong> and <strong>--noe</strong> undo the setting of this option;
-useful if this option is set by default in the user's <code>.getwizpnp</code> file.</p>
+<p>Add the Beyonwiz index name for the recording.
+This is the unique name for the recording used internally by WizPnP
+to refer to a it.
+The index name is also printed for verbosity level 4 or more.
+See <strong>--<a href="#item_verbose">verbose</a></strong>.</p>
 </dd>
 <dt><strong><a name="item_outdir">outdir</a></strong>
 
@@ -445,11 +748,57 @@ appear to work with the same code that works with the CPAN version.</p>
 exit with an error. In this case, the Beyonwiz device must be specified
 using <strong>--host</strong> (and <strong>--port</strong> if necessary).</p>
 <p>See README.txt in the distribution for details on how to install
-ant modules that <em>getWizPnP</em> needs to allow it to run on your system.</p>
+any Perl modules that <em>getWizPnP</em> needs to allow it to run on
+your system.</p>
 <p>Uses <code>bignum</code> for 64-bit integers, even when the underlying
 Perl integers are 64 bits.</p>
 <p>When resuming a download, may fetch up to 32MB more data than is
 necessary.</p>
+<p><strong>--<a href="#item_move">move</a></strong> and <strong>--<a href="#item_delete">delete</a></strong> use undocumented features of WizPnP.
+This has a number of consequences:</p>
+<ul>
+<li>
+<p>A recording can be deleted while it is being played on the Beyonwiz.
+Normally, the playback will simply finish abruptly.
+The same happens if <em>getWizPnP</em> deletes a recording on the
+WizPnP server while another Beyonwiz is playing the recording remotely
+using WizPnP.</p>
+</li>
+<li>
+<p>If the Beyonwiz is displaying the name of the deleted recording in the
+file player when it is deleted, the file player view won't be updated.
+Navigating away from that folder and back again will display the folder
+correctly again.</p>
+</li>
+<li>
+<p>The WizPnP's index of recordings (see <strong>--<a href="#item_index">index</a></strong>) on the Beyonwiz
+doesn't get updated when the recording on the Beyonwiz is deleted
+(directly or after the copy for a move).
+If you view the recordings on the Beyonwiz using WizFX,
+entries for deleted recordings appear in the WizFX list of recordings.
+These entries have no name, a date of 17/11/1858, and a size
+of 256kB. They can't be copied using WizFX.
+A recording deleted using <em>getWizPnP</em> on a Beyonwiz WizPnP server
+will appear normal in the file player on a Beyonwiz WizPnP client,
+but the recording cannot be played.</p>
+</li>
+</ul>
+<p>Problems caused by errors in the WizPnP index can be fixed by
+either starting a recording on the Beyonwiz, or by shutting it
+down to standby, then restarting it.</p>
+<p>Sorting on titles does not work with Beyonwiz firmware 01.05.261
+and earlier.
+On some earlier firmware, sorting on time won't work if the
+recording has been renamed.</p>
+<p>Folder options (including sorting on folder name) do not work
+with Beyonwiz firmware 01.05.261 and earlier.</p>
+<p><strong>--recursive</strong> has no effect if the Beyonwiz is running firmware
+01.05.261 or earlier.</p>
+<p>Folder options don't work properly in conjunction with <strong>--indir</strong>.</p>
+<p>Sorting is by the last modified time of the folder,
+not on the actual recording time when <strong>--outdir</strong> is used.</p>
+<p>Instant recordings will not sort in their correct alphabetic sequence
+(sorting on time or date will work).</p>
 <table border="0" width="100%" cellspacing="0" cellpadding="3">
 <tr><td class="block" style="background-color: #cccccc" valign="middle">
 <big><strong><span class="block">&nbsp;getWizPnP</span></strong></big>

@@ -97,9 +97,7 @@ sub new() {
 
     my %fields = (
 	base       => $base,
-	path       => $path,
 	url        => undef,
-	name       => $name,
     );
 
     unless($accessorsDone) {
@@ -107,7 +105,7 @@ sub new() {
 	$accessorsDone = 1;
     }
 
-    my $self = Beyonwiz::Recording::Header->new;
+    my $self = Beyonwiz::Recording::Header->new($name, $path);
 
     $self = {
 	%$self,

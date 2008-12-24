@@ -71,7 +71,8 @@ METHODS
         Returns (sets) the recording service (LCN) name.
 
     "$h->title([$val]);"
-        Returns (sets) the recording title (event name).
+        Returns (sets) the recording title (event name). Returns the
+        non-folder part of recording's index name if it has no title set.
 
     "$h->episode([$val]);"
         Returns (sets) the recording episode name (subtitle).

@@ -22,9 +22,23 @@ The index url path for the beyonwiz (C<index.txt>).
 
 =over
 
-=item C<< Beyonwiz::Recording::Index->new >>
+=item C<< Beyonwiz::Recording::Index->new([$makeSortTitle]); >>
 
 Create a new Beyonwiz recording index object.
+
+C<$makeSortTitle> is a function reference passed as the same paramter into
+C<< Beyonwiz::Recording::IndexEntry->new($name, $path, [$makeSortTitle]); >>
+for any instances of
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>
+created by instances of this object,
+by C<< $i->decode($index_data); >>
+for example.
+C<$makeSortTitle> takes a single string argument, and
+its return value is used to construct 
+C<< Beyonwiz::Recording::IndexEntry::sortTitle; >>.
+It should transform its input string to the form used
+for comparisons when sorting
+(for example in C<< $i->entries([$val]); >>)
 
 =item C<< $i->entries([$val]); >>
 
@@ -39,6 +53,16 @@ Returns the number of index entries.
 =item C<< $i->valid; >>
 
 Returns true if the last C<< $i->load; >> succeeded.
+
+=item C<< $i->sort($makeSortTitle); >>
+
+Sorts the values returned by C<< $i->entries([$val]); >>
+I<n situ> and returns them as a list
+(not a list reference as in C<< $i->entries([$val]); >>).
+C<$makeSortTitle> is a function reference that will be called
+directly by Perl's C<sort> function, with two
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>
+references as its arguments.
 
 =item C<< $i->decode($index_data); >>
 
@@ -81,12 +105,13 @@ our @EXPORT_OK = qw(INDEX);
 
 my $accessorsDone;
 
-sub new($) {
-    my ($class) = @_;
+sub new($;$) {
+    my ($class, $makeSortTitle) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
-	valid   =>  undef,
-	entries => [],
+	valid		=>  undef,
+	makeSortTitle	=> $makeSortTitle,
+	entries		=> [],
     };
     bless $self, $class;
 
@@ -98,14 +123,19 @@ sub new($) {
     return $self;
 }
 
-sub nentries() {
+sub nentries($$) {
     my ($self, $val) = @_;
     return scalar(@{$self->entries});
 }
 
-sub valid() {
+sub valid($) {
     my ($self) = @_;
     return defined $self->{valid};
+}
+
+sub sort($$) {
+    my ($self, $makeSortTitle) = @_;
+    return @{$self->entries} = sort $makeSortTitle @{$self->entries};
 }
 
 sub decode($$) {
@@ -117,10 +147,10 @@ sub decode($$) {
 	foreach my $rec (split /\r?\n/, $index_data) {
 	    my @parts = split /\|/, $rec;
 	    if(@parts == 2) {
-		$parts[1] =~ s,/[^/]*\.(tv|rad)wizts$,,;
+#		$parts[1] =~ s,/[^/]*\.(tv|rad)wizts$,,;
 		push @{$self->entries},
 		    Beyonwiz::Recording::IndexEntry->new(
-			    $parts[0], $parts[1]);
+			    $parts[0], $parts[1], $self->makeSortTitle);
 	    } elsif(@parts == 1 || $parts[0] eq "\tidehdd/contents") {
 		# Can't handle media files in contents folder yet
 		last;

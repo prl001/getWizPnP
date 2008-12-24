@@ -106,6 +106,8 @@ Returns (sets) the recording service (LCN) name.
 =item C<< $h->title([$val]); >>
 
 Returns (sets) the recording title (event name).
+Returns the non-folder part of recording's index name if
+it has no title set.
 
 =item C<< $h->episode([$val]); >>
 
@@ -319,7 +321,7 @@ our @EXPORT_OK = qw(
 my $accessorsDone;
 
 sub new() {
-    my ($class, $name, $base, $path) = @_;
+    my ($class, $name, $path) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
 	validMain      => undef,
@@ -327,6 +329,8 @@ sub new() {
 	validExtInfo   => undef,
 	validBookmarks => undef,
 	validOffsets   => undef,
+	name           => $name,
+	path           => $path,
 	headerName     => undef,
 	unknown        => [],
 	lock           => undef,
@@ -353,6 +357,130 @@ sub new() {
     return bless $self, $class;
 }
 
+sub unknown($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{unknown};
+    $self->{unknown} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub lock($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{lock};
+    $self->{lock} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub full($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{full};
+    $self->{full} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub inRec($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{inRec};
+    $self->{inRec} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub service($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{service};
+    $self->{service} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub title($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{title};
+    if(!defined($self->{title}) || $self->{title} eq '') {
+	$ret = $self->name;
+	$ret =~ s,^.*\/,,;
+    }
+    $self->{title} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub episode($;$) {
+    my ($self, $val) = @_;
+    $self->loadEpisode if(!$self->validEpisode);
+    my $ret = $self->{episode};
+    $self->{episode} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub extInfo($;$) {
+    my ($self, $val) = @_;
+    $self->loadExtInfo if(!$self->validExtInfo);
+    my $ret = $self->{extInfo};
+    $self->{extInfo} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub mjd($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{mjd};
+    $self->{mjd} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub start($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{start};
+    $self->{start} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub last($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{last};
+    $self->{last} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub sec($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{sec};
+    $self->{sec} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub endOffset($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{endOffset};
+    $self->{endOffset} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub offsets($;$) {
+    my ($self, $val) = @_;
+    $self->loadOffsets if(!$self->validOffsets);
+    my $ret = $self->{offsets};
+    $self->{offsets} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub bookmarks($;$) {
+    my ($self, $val) = @_;
+    $self->loadBookmarks if(!$self->validBookmarks);
+    my $ret = $self->{bookmarks};
+    $self->{bookmarks} = $val if(@_ == 2);
+    return $ret;
+}
+
 sub longTitle($) {
     my ($self) = @_;
     return $self->validEpisode && $self->episode
@@ -374,8 +502,9 @@ sub isRadio($) {
 
 sub startOffset($;$) {
     my ($self, $val) = @_;
-    my $ret = $self->offsets->[0];
-    $self->offsets->[0] = $val if(@_ == 2);
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{offsets}->[0];
+    $self->{offsets}->[0] = $val if(@_ == 2);
     return $ret;
 }
 
@@ -435,7 +564,7 @@ sub starttime($) {
 sub offsetTime($$) {
     my ($self, $offset) = @_;
 
-    return 0 if($offset <= $self->offsets->[0]);
+    return 0 if($offset <= $self->startOffset);
     return $self->playtime if($offset >= $self->endOffset);
     
     my($low, $high, $dt, $index);
@@ -494,12 +623,12 @@ sub decodeMain($$) {
 	    $so0, $so1,
 	) = unpack 'v6 C3 @1024 Z256 Z256 v x2 V v v @1548 (V2)2',
 		$hdr_data;
-	$self->endOffset(($eo1 << 32) | $eo0);
-	$self->offsets->[0] = (($so1 << 32) | $so0);
 	$self->{validMain} = 1;
+	$self->endOffset(($eo1 << 32) | $eo0);
+	$self->{offsets}->[0] = (($so1 << 32) | $so0);
     } else {
 	$self->{validMain} = 0;
-	@{$self->unknown} = ();
+	@{$self->{unknown}} = ();
     }
 }
 
@@ -511,8 +640,8 @@ sub decodeEpisode($$) {
 	my $len = unpack 'C', $hdr_data;
 	$len = HDR_EPISODE_SZ if($len > HDR_EPISODE_SZ);
 	my $episode = unpack '@1 Z' . $len, $hdr_data;
-	$self->episode($episode);
 	$self->{validEpisode} = 1;
+	$self->episode($episode);
     } else {
 	$self->{validEpisode} = 0;
 	$self->episode(undef);
@@ -527,8 +656,8 @@ sub decodeExtInfo($$) {
 	my $len = unpack 'v', $hdr_data;
 	$len = HDR_EXTINFO_SZ if($len > HDR_EXTINFO_SZ);
 	my $extInfo = unpack '@2 Z' . $len, $hdr_data;
-	$self->extInfo($extInfo);
 	$self->{validExtInfo} = 1;
+	$self->extInfo($extInfo);
     } else {
 	$self->{validExtInfo} = 0;
 	$self->extInfo(undef);
@@ -560,14 +689,14 @@ sub decodeOffsets($$) {
     && length($hdr_data) >= HDR_OFFSETS_SIZE) {
 	my @offsets = unpack '(V2)' . ($self->last),
 			    $hdr_data;
+	$self->{validOffsets} = 1;
 	while((my @o = splice(@offsets,0,2))) {
 	    last if($o[0] == 0 && $o[1] == 0);
-	    push @{$self->offsets}, (($o[1] << 32) | $o[0]);
+	    push @{$self->{offsets}}, (($o[1] << 32) | $o[0]);
 	}
-	$self->{validOffsets} = 1;
     } else {
 	$self->{validOffsets} = 0;
-	@{$self->offsets} = ();
+	@{$self->{offsets}} = ();
     }
 }
 
