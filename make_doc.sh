@@ -5,13 +5,7 @@
 
 index=html/index.html
 
-podpath=--podpath=.:Beyonwiz/Recording
-
-if [ `uname` = xDarwin ]; then
-    echo "On Mac OS X, using html2pod's --podpath causes ihtml2pod to hang" 1>&2
-    echo "Unsetting --podpath; expect some 'cannot resolve' errors" 1>&2
-    podpath=
-fi
+podpath=--podpath=.:Beyonwiz:Beyonwiz/Recording
 
 # Header for index.html
 
@@ -47,7 +41,7 @@ for i in "$@"; do
 	    $i`
 
     # Convert the Perl POD markup to HTML
-    pod2html --htmlroot=.. --podroot=. $podpath --htmldir=. \
+    pod2html --htmlroot=../html --podroot=. $podpath --htmldir=. \
              --header --title=$j \
              --infile=$i --outfile=html/$d/$j.html
     # Add a line to index.html

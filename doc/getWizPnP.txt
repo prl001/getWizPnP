@@ -5,9 +5,10 @@ NAME
 
 SYNOPSIS
 
-        getWizPnP [-h host|--host=host] [-p port|--port=port]
-                  [-l|--list] [-|--date] [-t|--ts] [-v|--verbose]
-                  [-r|--regexp] [-e|--expression]
+        getWizPnP [-h|--help] [-D dev|--device dev] [-m devs|--maxdev=devs]
+                  [-h host|--host=host] [-p port|--port=port]
+                  [-l|--list] [-d|--date] [-t|--ts] [-v|--verbose]
+                  [-r|--regexp] [-e|--expression] [-O dir|--outdir dir]
                   [ patterns... ]
 
 DESCRIPTION
@@ -25,54 +26,96 @@ DESCRIPTION
 
         SC10 Canberra#MOVIE: Pride & Prejudice#Fri Feb 15 20:28:00 2008
 
-    To upload all recordings, an empty string will match everything:
+    To download all recordings, an empty string will match everything:
 
         wizGetPnP ''
 
-    Recordings are uploaded to a name corresponding to their event name
+    Recordings are downloaded to a name corresponding to their event name
     (title) with any characters that are illegal in the file system changed
     to '_'. The --date option adds the day and date of the recording to the
-    name, helpful for series recordings. Uploaded recordings are placed in
+    name, helpful for series recordings. Downloaded recordings are placed in
     the current directory.
 
 ARGUMENTS
 
     GetWizPnP takes the following arguments:
 
+    help
+          --help
+          -h
+
+        Print a short help message and exit (overrides all other options).
+
+    device
+          --device=dev
+          -D device
+
+        Connect to the WizPnP *device* as named in the Beyonwiz
+        "Setup>Network>WizPnP>Name".
+
+        If no *device* is named and the WizPnP search finds only one WizPnP
+        device, that device is used. Otherwise, if a device is named but
+        isn't found, *getWizPnP* returns with an error. Device name matching
+        is case-insensitive ("MyBeyonwiz" matches "mybeyonwiz").
+
+        Note: There is a problem with the implementation of this function
+        and it can take up to 60 seconds (average 30 seconds) to search for
+        the WizPnP devices on the network. Until this problem is fixed, you
+        may prefer to use the --host option.
+
+
+          --maxdevs=devs
+          -D devs
+
+        In a WizPnP search, stop searching when the number of WizPnP devices
+        found is *devs*, rather than waiting for the search to time out
+        (currently 60 seconds). *Devs* defaults to 1.
+
     host
           --host=host
           -h host
 
         Connect to the *host* (DNS name or dotted-quad IP address) instead
-        of the file default ("beyonwiz"), or the default set in the
-        configuration file (see FILES below).
+        of using WizPnP search to find the Beyonwiz, or instead of the
+        default set in the configuration file (see FILES below).
 
-    host
+        If the device name is specified with --device then the configuration
+        returned by *host* that contains the WizPnP name of the device must
+        match (case insensitive) the device name given by --device.
+
+    port
           --port=port
           -p port
 
         Connect to the *port* instead of the file default (49152), or the
-        default set in the configuration file (see FILES below).
+        default set in the configuration file (see FILES below). *port* is
+        ignored unless --host is set.
 
     list
           --list
           -l
 
-        List the matching recordings, rather than uploading them.
+        List the matching recordings, rather than downloading them.
 
     date
           --date
           -d
 
         Add the recording day and date to the name of the recording when
-        it's uploaded. Useful for uploading series.
+        it's downloaded. Useful for downloading series.
 
     ts
           --ts
           -t
+          --nots
+          --not
 
-        Upload the recordings as single ".ts" (MPEG Transport Stream) files,
-        rather than copying in the Beyonwiz internal recording format.
+        Download the recordings as single ".ts" (MPEG Transport Stream)
+        files, rather than copying in the Beyonwiz internal recording
+        format.
+
+        --nots and --not undo the setting of this option; useful if this
+        option is set by default in the user's ".getwizpnp" file.
 
     verbose
           --verbose
@@ -82,9 +125,18 @@ ARGUMENTS
         the recordings, and shows a progress indicator when copying. Two -v
         options list the sizes of the recording file chunks on the Beyonwiz.
 
+    quiet
+          --quiet
+          -q
+
+        The opposite effect of --verbose. Useful if $verbose is non-zero in
+        the user's ".getwizpnp" file.
+
     regexp
           --regexp
           -r
+          --noregexp
+          --nor
 
         Carry out the matches using the argument as a Perl regular
         expression. For example:
@@ -93,9 +145,14 @@ ARGUMENTS
 
         will copy all recordings made from either the ABC or SBS.
 
+        --noregexp and --nor undo the setting of this option; useful if this
+        option is set by default in the user's ".getwizpnp" file.
+
     expression
           --expression
           -e
+          --noexpression
+          --noe
 
         Evaluates the match arguments as Perl expressions with $_ set to the
         *servicename*#*title*#*date* string. If any expression evaluates to
@@ -106,26 +163,61 @@ ARGUMENTS
         is equivalent to the --regexp example above. Quite powerful; the
         Swiss Army knife approach.
 
+        --noexpression and --noe undo the setting of this option; useful if
+        this option is set by default in the user's ".getwizpnp" file.
+
+    outdir
+          --outdir=dir
+          -O dir
+
+        Save the recordings in *dir* rather than in the current directory.
+
+FILES
+
+    The file ".getwizpnp" is searched for in the user's "HOME" directory, if
+    "HOME" is set, or in the current directory if "HOME" is not set. If
+    ".getwizpnp" exists, it is run as a piece of Perl code by *getWixPnP*
+    just after the program defaults for options are set, and just before
+    command-line options are set.
+
+    It is probably most useful for setting the default --device or --host
+    option.
+
+    An example ".getwizpnp" file is included with *getWizPnP*, in the file
+    "getwizpnp.conf".
+
 PREREQUSITES
 
     Uses packages "Beyonwiz::Recording::Header",
     "Beyonwiz::Recording::Index", "Beyonwiz::Recording::IndexEntry",
-    "Beyonwiz::Recording::Trunc", "Beyonwiz::Recording::TruncEntry",
-    "File::Basename", "Getopt::Long", "HTTP::Status", "LWP::Simple", "URI",
-    "URI::Escape"
+    "Beyonwiz::Recording::Recording", "Beyonwiz::Recording::Trunc",
+    "Beyonwiz::Recording::TruncEntry", "Beyonwiz::WizPnP",
+    "Beyonwiz::WizPnPDevice", "File::Basename", "Getopt::Long",
+    "HTTP::Request", "HTTP::Response", "HTTP::Status", "IO::Select",
+    "IO::Socket::Multicast", "LWP::Simple", "URI::Escape", "URI",
+    "XML::DOM".
 
 BUGS
 
-    File copy progress bar only updates after each (up to) 32MB chunk file
-    is copied.
+    There is a problem with the implementation of the WizPnP search function
+    and it can take up to 60 seconds (average 30 seconds) to search for the
+    WizPnP devices on the network. Until this problem is fixed, you may
+    prefer to use the --host option.
+
+    File copy progress bar only updates after each (up to) 32MB recording
+    chunk is copied.
 
     It's not possible to restart interrupted transfers.
 
-    If the *--ts* flag is given, uploading a recording to the same name will
+    If the --ts flag is given, downloading a recording to the same name will
     overwrite the original; if it's not given an error results. It's not
     completely clear what the correct behaviour should be.
 
-    Can only upload to the current directory.
+    Can only download to the current directory.
 
-    Doesn't use the WizPnP protocol to find WixPnP servers.
+    The implementation of WixPnP search is slow; the Beyonwiz doesn't
+    respond to the WizPnP search multicast.
+
+    Uses "bignum" for 64-bit integers, even when the underlying Perl
+    integers are 64 bits.
 

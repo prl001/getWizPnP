@@ -2,21 +2,25 @@ PREFIX=/usr/local
 BIN=$(PREFIX)/bin
 LIB=$(PREFIX)/lib/perl
 
-MODULEDIR=Beyonwiz/Recording
+BWMODULEDIR=Beyonwiz
+RECMODULEDIR=$(BWMODULEDIR)/Recording
 
 SCRIPTS=getWizPnP.pl
 
-MODULES=$(MODULEDIR)/Header.pm $(MODULEDIR)/Index.pm \
-	$(MODULEDIR)/IndexEntry.pm $(MODULEDIR)/Trunc.pm \
-	$(MODULEDIR)/TruncEntry.pm
+BWMODULES=$(BWMODULEDIR)/WizPnP.pm $(BWMODULEDIR)/WizPnPDevice.pm
+RECMODULES=$(RECMODULEDIR)/Header.pm $(RECMODULEDIR)/Index.pm \
+	$(RECMODULEDIR)/IndexEntry.pm $(RECMODULEDIR)/Recording.pm \
+	$(RECMODULEDIR)/Trunc.pm $(RECMODULEDIR)/TruncEntry.pm
+MODULES=$(BWMODULES) $(RECMODULES)
 
 all:
 
 install: all install_lib install_bin
 
 install_lib:
-	mkdir -p '$(LIB)/$(MODULEDIR)'
-	cp $(MODULES) '$(LIB)/$(MODULEDIR)'
+	mkdir -p '$(LIB)/$(BWMODULEDIR)' '$(LIB)/$(RECMODULEDIR)'
+	cp $(BWMODULES) '$(LIB)/$(BWMODULEDIR)'
+	cp $(RECMODULES) '$(LIB)/$(RECMODULEDIR)'
 
 install_bin:
 	mkdir -p '$(LIB)'
@@ -29,7 +33,7 @@ uninstall_bin:
 	
 uninstall_lib:
 	cd '$(LIB)' && rm -f $(MODULES)
-	-rmdir '$(LIB)/$(MODULEDIR)'
+	-rmdir '$(LIB)/$(RECMODULEDIR)' '$(LIB)/$(BWMODULEDIR)'
 	
 doc::
-	./make_doc.sh $(SCRIPTS) # $(MODULES) # No POD in the modules yet.
+	./make_doc.sh $(SCRIPTS) $(MODULES)

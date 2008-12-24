@@ -1,5 +1,80 @@
 package Beyonwiz::Recording::Index;
 
+=head1 SYNOPSIS
+
+    use Beyonwiz::Recording::Index;
+
+=head1 SYNOPSIS
+
+Provides access to the Beyonwiz recording file index.
+
+=head1 CONSTANTS
+
+=over
+
+=item C<INDEX>
+
+The index url path for the beyonwiz (C<index.txt>).
+
+=back
+
+=head1 METHODS
+
+=over
+
+=item C<< Beyonwiz::Recording::Index->new($base) >>
+
+Create a new Beyonwiz recording index object.
+C<$base> is the base URL for the Beyonwiz device.
+
+=item C<< $i->base([$val]); >>
+
+Returns (sets) the device base URL.
+
+=item C<< $i->url([$val]); >>
+
+Returns (sets) the index URL.
+
+=item C<< $i->entries([$val]); >>
+
+Returns (sets) the list of
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>
+objects in the index as an array reference.
+
+=item C<< $i->nentries; >>
+
+Returns the number of index entries.
+
+=item C<< $i->valid; >>
+
+Returns true if the last C<< $i->load; >> succeeded.
+
+=item C<< $i->load; >>
+
+Load the index from the Beyonwiz.
+
+=back
+
+=head1 PREREQUISITES
+
+Uses packages:
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>,
+C<File::Basename>,
+C<LWP::Simple>,
+C<URI::Escape>,
+C<URI>.
+
+=head1 BUGS
+
+Uses a fixed value for the path name of the index, rather than deriving
+it from I<locationURL> in
+L<C<Beyonwiz::WizPnP>|Beyonwiz::WizPnP>.
+
+=cut
+
+use warnings;
+use strict;
+
 use LWP::Simple;
 use URI;
 use URI::Escape;
@@ -9,11 +84,10 @@ use Beyonwiz::Recording::IndexEntry;
 use constant INDEX => 'index.txt';
 
 sub new() {
-    my ($class, $base, $path) = @_;
+    my ($class, $base) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
 	base    => $base,
-	path    => $path,
 	url     => undef,
 	entries => [],
     };
@@ -29,13 +103,6 @@ sub base($;$) {
     my ($self, $val) = @_;
     my $ret = $self->{base};
     $self->{base} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub path($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{path};
-    $self->{path} = $val if(@_ == 2);
     return $ret;
 }
 
