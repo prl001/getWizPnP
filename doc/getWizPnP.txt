@@ -1,0 +1,131 @@
+NAME
+
+    getWizPnP - list and fetch recordings from a Beyonwiz DP series over the
+    network using the WizPnP interface
+
+SYNOPSIS
+
+        getWizPnP [-h host|--host=host] [-p port|--port=port]
+                  [-l|--list] [-|--date] [-t|--ts] [-v|--verbose]
+                  [-r|--regexp] [-e|--expression]
+                  [ patterns... ]
+
+DESCRIPTION
+
+    List or fetch the recordings on a Beyonwiz DP series PVR over the
+    network using the WizPnP interface.
+
+    If no pattern arguments are given, then all recordings are listed.
+    Otherwise recordings matching any of the patterns are fetched (or
+    listed, with --list).
+
+    In the absence of --regexp or --expression a pattern matches if it is a
+    substring of the string *servicename*#*title*#*date*, case sensitive.
+    For example:
+
+        SC10 Canberra#MOVIE: Pride & Prejudice#Fri Feb 15 20:28:00 2008
+
+    To upload all recordings, an empty string will match everything:
+
+        wizGetPnP ''
+
+    Recordings are uploaded to a name corresponding to their event name
+    (title) with any characters that are illegal in the file system changed
+    to '_'. The --date option adds the day and date of the recording to the
+    name, helpful for series recordings. Uploaded recordings are placed in
+    the current directory.
+
+ARGUMENTS
+
+    GetWizPnP takes the following arguments:
+
+    host
+          --host=host
+          -h host
+
+        Connect to the *host* (DNS name or dotted-quad IP address) instead
+        of the file default ("beyonwiz"), or the default set in the
+        configuration file (see FILES below).
+
+    host
+          --port=port
+          -p port
+
+        Connect to the *port* instead of the file default (49152), or the
+        default set in the configuration file (see FILES below).
+
+    list
+          --list
+          -l
+
+        List the matching recordings, rather than uploading them.
+
+    date
+          --date
+          -d
+
+        Add the recording day and date to the name of the recording when
+        it's uploaded. Useful for uploading series.
+
+    ts
+          --ts
+          -t
+
+        Upload the recordings as single ".ts" (MPEG Transport Stream) files,
+        rather than copying in the Beyonwiz internal recording format.
+
+    verbose
+          --verbose
+          -v
+
+        Provide more information. A single -v lists some more details about
+        the recordings, and shows a progress indicator when copying. Two -v
+        options list the sizes of the recording file chunks on the Beyonwiz.
+
+    regexp
+          --regexp
+          -r
+
+        Carry out the matches using the argument as a Perl regular
+        expression. For example:
+
+            getWizPnP --regexp 'ABC|SBS'
+
+        will copy all recordings made from either the ABC or SBS.
+
+    expression
+          --expression
+          -e
+
+        Evaluates the match arguments as Perl expressions with $_ set to the
+        *servicename*#*title*#*date* string. If any expression evaluates to
+        true (in Perl terms), the recording is matched.
+
+            getWizPnp --expression '/ABC|SBS/'
+
+        is equivalent to the --regexp example above. Quite powerful; the
+        Swiss Army knife approach.
+
+PREREQUSITES
+
+    Uses packages "Beyonwiz::Recording::Header",
+    "Beyonwiz::Recording::Index", "Beyonwiz::Recording::IndexEntry",
+    "Beyonwiz::Recording::Trunc", "Beyonwiz::Recording::TruncEntry",
+    "File::Basename", "Getopt::Long", "HTTP::Status", "LWP::Simple", "URI",
+    "URI::Escape"
+
+BUGS
+
+    File copy progress bar only updates after each (up to) 32MB chunk file
+    is copied.
+
+    It's not possible to restart interrupted transfers.
+
+    If the *--ts* flag is given, uploading a recording to the same name will
+    overwrite the original; if it's not given an error results. It's not
+    completely clear what the correct behaviour should be.
+
+    Can only upload to the current directory.
+
+    Doesn't use the WizPnP protocol to find WixPnP servers.
+

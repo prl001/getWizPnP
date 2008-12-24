@@ -1,0 +1,221 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>getWizPnP</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@omen.apple.com" />
+</head>
+
+<body style="background-color: white">
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;getWizPnP</span></strong></big>
+</td></tr>
+</table>
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#arguments">ARGUMENTS</a></li>
+	<li><a href="#prerequsites">PREREQUSITES</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network using the WizPnP interface</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+    getWizPnP [-h host|--host=host] [-p port|--port=port]
+              [-l|--list] [-|--date] [-t|--ts] [-v|--verbose]
+              [-r|--regexp] [-e|--expression]
+              [ patterns... ]</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>List or fetch the recordings on a Beyonwiz DP series PVR over the network
+using the WizPnP interface.</p>
+<p>If no pattern arguments are given, then all recordings are listed.
+Otherwise recordings matching any of the patterns are fetched
+(or listed, with <strong>--list</strong>).</p>
+<p>In the absence of <strong>--regexp</strong> or <strong>--expression</strong> a pattern matches
+if it is a substring of the string <em>servicename</em><strong>#</strong><em>title</em>#<em>date</em>,
+case sensitive.
+For example:</p>
+<pre>
+    SC10 Canberra#MOVIE: Pride &amp; Prejudice#Fri Feb 15 20:28:00 2008</pre>
+<p>To upload all recordings, an empty string will match everything:</p>
+<pre>
+    wizGetPnP ''</pre>
+<p>Recordings are uploaded to a name corresponding to their event name (title)
+with any characters that are illegal in the file system changed to '_'.
+The <strong>--date</strong> option adds the day and date of the recording to the name,
+helpful for series recordings.
+Uploaded recordings are placed in the current directory.</p>
+<p>
+</p>
+<hr />
+<h1><a name="arguments">ARGUMENTS</a></h1>
+<p><strong>GetWizPnP</strong> takes the following arguments:</p>
+<dl>
+<dt><strong><a name="item_host">host</a></strong>
+
+<dd>
+<pre>
+  --host=host
+  -h host</pre>
+</dd>
+<dd>
+<p>Connect to the <em>host</em> (DNS name or dotted-quad IP address) instead of the
+file default (<code>beyonwiz</code>), or the default set in the configuration
+file (see FILES below).</p>
+</dd>
+<dt><strong>host</strong>
+
+<dd>
+<pre>
+  --port=port
+  -p port</pre>
+</dd>
+<dd>
+<p>Connect to the <em>port</em> instead of the
+file default (<code>49152</code>), or the default set in the configuration
+file (see FILES below).</p>
+</dd>
+<dt><strong><a name="item_list">list</a></strong>
+
+<dd>
+<pre>
+  --list
+  -l</pre>
+</dd>
+<dd>
+<p>List the matching recordings, rather than uploading them.</p>
+</dd>
+<dt><strong><a name="item_date">date</a></strong>
+
+<dd>
+<pre>
+  --date
+  -d</pre>
+</dd>
+<dd>
+<p>Add the recording day and date to the name of the
+recording when it's uploaded.
+Useful for uploading series.</p>
+</dd>
+<dt><strong><a name="item_ts">ts</a></strong>
+
+<dd>
+<pre>
+  --ts
+  -t</pre>
+</dd>
+<dd>
+<p>Upload the recordings as single <code>.ts</code> (MPEG Transport Stream) files,
+rather than copying in the Beyonwiz internal recording format.</p>
+</dd>
+<dt><strong><a name="item_verbose">verbose</a></strong>
+
+<dd>
+<pre>
+  --verbose
+  -v</pre>
+</dd>
+<dd>
+<p>Provide more information. A single <strong>-v</strong> lists some more details about
+the recordings, and shows a progress indicator when copying.
+Two <strong>-v</strong> options list the sizes of the recording file chunks on the
+Beyonwiz.</p>
+</dd>
+<dt><strong><a name="item_regexp">regexp</a></strong>
+
+<dd>
+<pre>
+  --regexp
+  -r</pre>
+</dd>
+<dd>
+<p>Carry out the matches using the argument as a Perl regular expression.
+For example:</p>
+</dd>
+<dd>
+<pre>
+    getWizPnP --regexp 'ABC|SBS'</pre>
+</dd>
+<dd>
+<p>will copy all recordings made from either the ABC or SBS.</p>
+</dd>
+<dt><strong><a name="item_expression">expression</a></strong>
+
+<dd>
+<pre>
+  --expression
+  -e</pre>
+</dd>
+<dd>
+<p>Evaluates the match arguments as Perl expressions with <code>$_</code> set to
+the <em>servicename</em><strong>#</strong><em>title</em>#<em>date</em> string.
+If any expression evaluates to true (in Perl terms),
+the recording is matched.</p>
+</dd>
+<dd>
+<pre>
+    getWizPnp --expression '/ABC|SBS/'</pre>
+</dd>
+<dd>
+<p>is equivalent to the <strong>--regexp</strong> example above.
+Quite powerful; the Swiss Army knife approach.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="prerequsites">PREREQUSITES</a></h1>
+<p>Uses packages 
+<code>Beyonwiz::Recording::Header</code>,
+<code>Beyonwiz::Recording::Index</code>,
+<code>Beyonwiz::Recording::IndexEntry</code>,
+<code>Beyonwiz::Recording::Trunc</code>,
+<code>Beyonwiz::Recording::TruncEntry</code>,
+<code>File::Basename</code>,
+<code>Getopt::Long</code>,
+<code>HTTP::Status</code>,
+<code>LWP::Simple</code>,
+<code>URI</code>,
+<code>URI::Escape</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<p>File copy progress bar only updates after each (up to)
+32MB chunk file is copied.</p>
+<p>It's not possible to restart interrupted transfers.</p>
+<p>If the <em>--ts</em> flag is given, uploading a recording
+to the same name will overwrite the original;
+if it's not given an error results.
+It's not completely clear what the correct behaviour should be.</p>
+<p>Can only upload to the current directory.</p>
+<p>Doesn't use the WizPnP protocol to find WixPnP servers.</p>
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;getWizPnP</span></strong></big>
+</td></tr>
+</table>
+
+</body>
+
+</html>
