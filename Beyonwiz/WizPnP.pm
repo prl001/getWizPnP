@@ -1,6 +1,6 @@
 package Beyonwiz::WizPnP;
 
-=head1 SYNOPSIS
+=head1 NAME
 
     use Beyonwiz::WizPnP;
 
@@ -48,12 +48,12 @@ Returns (sets) the reference to the hash of discovered devices
 (L<C<Beyonwiz::WizPnPDevice>|Beyonwiz::WizPnPDevice>),
 indexed by the lower-case version of the device name.
 
-=item C<< $wpnp->device_names; >>
+=item C<< $wpnp->deviceNames; >>
 
 Returns the list of discovered device names.
 All lower-cased. No particular order.
 
-=item C<< $wpnp->device_names; >>
+=item C<< $wpnp->deviceNames; >>
 
 Returns the list of discovered device names.
 All lower-cased. No particular order.
@@ -69,7 +69,7 @@ Lookup is case-insensitive.
 
 Returns the number of discovered devices.
 
-=item C<< $wpnp->add_device($location); >>
+=item C<< $wpnp->addDevice($location); >>
 
 Request the device description XML from the URL
 given in C<$location>, and install the
@@ -99,13 +99,12 @@ the search when C<$maxdev> devices have been installed.
 =head1 PREREQUISITES
 
 Uses packages:
-
 L<C<Beyonwiz::WizPnPDevice>|Beyonwiz::WizPnPDevice>,
-C<HTTP::Request>,
-C<HTTP::Response>,
-C<HTTP::Status>,
-C<IO::Select>,
 C<IO::Socket::Multicast>,
+C<IO::Select>,
+C<HTTP::Response>,
+C<HTTP::Request>,
+C<HTTP::Status>,
 C<LWP::Simple>,
 C<URI>,
 C<XML::DOM>.
@@ -115,6 +114,7 @@ C<XML::DOM>.
 use warnings;
 use strict;
 
+use Beyonwiz::WizPnPDevice;
 use IO::Socket::Multicast;
 use IO::Select;
 use HTTP::Response;
@@ -124,8 +124,6 @@ use LWP::Simple qw(get);
 use URI;
 use XML::DOM;
 
-use Beyonwiz::WizPnPDevice;
-
 use constant DESC => 'tvdevicedesc.xml';
 
 use constant SSDPADDR => '239.255.255.250';
@@ -134,32 +132,33 @@ use constant SSDPPEER => SSDPADDR . ':' . SSDPPORT;
 
 use constant CRLF => "\015\012";
 
+my $accessorsDone;
+
 sub new($) {
     my ($class) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
 	devices	=> {}
     };
+
+    unless($accessorsDone) {
+	Beyonwiz::Utils::makeAccessors(__PACKAGE__, keys %$self);
+	$accessorsDone = 1;
+    }
+
     bless $self, $class;
 
     return $self;
 }
 
-sub devices($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{devices};
-    $self->{devices} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub device_names($) {
+sub deviceNames($) {
     my ($self) = @_;
     return keys %{$self->devices};
 }
 
 sub ndevices($) {
     my ($self) = @_;
-    return scalar $self->device_names;
+    return scalar $self->deviceNames;
 }
 
 sub device($$) {
@@ -167,7 +166,7 @@ sub device($$) {
     return $self->devices->{lc $name};
 }
 
-sub add_device($$) {
+sub addDevice($$) {
     my ($self, $location) = @_;
 
     my $devdesc = get($location);
@@ -208,7 +207,7 @@ sub process($$) {
     my $st = $resp->header('ST');
     if(defined($st) && $st eq 'wizpnp-upnp-org:device:pvrtvdevice:1') {
 
-	$self->add_device($location);
+	$self->addDevice($location);
 	return 1;
 
     }

@@ -19,16 +19,17 @@
 
 <ul>
 
-	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#name">NAME</a></li>
 	<li><a href="#synopsis">SYNOPSIS</a></li>
 	<li><a href="#methods">METHODS</a></li>
+	<li><a href="#prerequisites">PREREQUISITES</a></li>
 </ul>
 <!-- INDEX END -->
 
 <hr />
 <p>
 </p>
-<h1><a name="synopsis">SYNOPSIS</a></h1>
+<h1><a name="name">NAME</a></h1>
 <pre>
     use Beyonwiz::Recording::IndexEntry;</pre>
 <p>
@@ -46,11 +47,11 @@
 <dd>
 <p>Create a new Beyonwiz recording index entry object.
 <code>$name</code> is the default name of the recording.
-<code>$path</code> is the path part of the recording URL.</p>
+<code>$path</code> is the path part of the recording URL or the file system path.</p>
 </dd>
 <dd>
 <p>Normally constructed from the Beyonwiz recording index by
-<a href="../html/./Beyonwiz/Recording/Index.html"><code>Beyonwiz::Recording::Index</code></a>.</p>
+<a href="../../../html/./Beyonwiz/Recording/Index.html"><code>Beyonwiz::Recording::Index</code></a>.</p>
 </dd>
 </li>
 <dt><strong><a name="item_name"><code>$ie-&gt;name([$val]);</code></a></strong>
@@ -64,7 +65,14 @@
 <dd>
 <p>Returns (sets) path part of the recording URL.</p>
 </dd>
+</li>
 </dl>
+<p>
+</p>
+<hr />
+<h1><a name="prerequisites">PREREQUISITES</a></h1>
+<p>Uses packages:
+<a href="../../../html/./Beyonwiz/Utils.html"><code>Beyonwiz::Utils</code></a>.</p>
 <table border="0" width="100%" cellspacing="0" cellpadding="3">
 <tr><td class="block" style="background-color: #cccccc" valign="middle">
 <big><strong><span class="block">&nbsp;IndexEntry</span></strong></big>

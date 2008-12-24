@@ -1,4 +1,4 @@
-SYNOPSIS
+NAME
 
         use Beyonwiz::Recording::Recording;
 
@@ -6,24 +6,16 @@ SYNOPSIS
 
     Download recordings from the Beyonwiz.
 
-CONSTANTS
-
-    "INDEX"
-        The index url path for the beyonwiz ("index.txt").
-
 METHODS
 
-    "Beyonwiz::Recording::Recording->new($base, $ts, $date)"
-        Create a new Beyonwiz recording downloader object. $base is the base
-        URL for the Beyonwiz device. If $ts is true, the download will be
-        into a single ".ts" file, otherwise the recording will be copied as
-        it is on the Beyonwiz. If $date is true, the recording date is added
-        to the recording name. Useful for downloading series recordings.
-
-    "$r->base([$val]);"
-        Returns (sets) the device base URL. The recording URL path name is
-        set when the recording is downloaded. The object is intended to
-        allow a sequence of recordings to be downloaded.
+    "Beyonwiz::Recording::Recording->new($ts, $date, $resume, $force)"
+        Create a new Beyonwiz recording downloader object. If $ts is true,
+        the download will be into a single ".ts" file, otherwise the
+        recording will be copied as it is on the Beyonwiz. If $date is true,
+        the recording date is added to the recording name. Useful for
+        downloading series recordings. If $resume is true, allow resumption
+        of recording download that appear to be incomplete. If $force is
+        true, allow a download to overwrite an existing download.
 
     "$r->ts([$val]);"
         Returns (sets) the single-file TS flag.
@@ -32,8 +24,20 @@ METHODS
         Returns (sets) the flag controlling whether the recording date is
         added to the recording name.
 
-    "$r->get_recording_file_chunk($path, $name, $file, $outdir, $append,
-    $off, $size);"
+    "$r->resume([$val]);"
+        Returns (sets) the flag controlling whether a recording resume is
+        permitted.
+
+    "$r->force([$val]);"
+        Returns (sets) the flag controlling whether a recording forced
+        overwrite is permitted.
+
+    "addDir($dir, $name);"
+        If $dir is defined and not empty, return $dir prepended to $name,
+        otherwise return $name.
+
+    "$r->getRecordingFileChunk($path, $name, $file, $outdir, $append, $off,
+    $size, $outOff, $progressBar);"
         Download a chunk of a recording corresponding to a single
         "Beyonwiz::Recording::TruncEntry".
 
@@ -44,17 +48,25 @@ METHODS
         true if it is to be appended to. $off and $size is the chunk to be
         transferred. If $outdir is defined and not the empty string, the
         record file is placed in that directory, rather than the current
-        directory.
+        directory. $outoff is the offset to where to write the chunk into
+        the output file. $progressBar is as defined below in
+        "$r->getRecordng(...)".
 
-    "$r->get_recording_file($path, $name, $outdir, $file, $append);"
-        Download a complete 0000, 0001, etc. recording file from the
-        Beyonwiz. Note that more than one "Beyonwiz::Recording::TruncEntry"
-        may refer to any given file.
+        Unimplemented in "Beyonwiz::Recording::Recording", over-ride in
+        derived classes.
+
+    "$r->getRecordingFile($path, $name, $outdir, $file, $append);"
+        Download a complete 0000, 0001, etc. recording file or header file
+        from the Beyonwiz. Note that more than one
+        "Beyonwiz::Recording::TruncEntry" may refer to any given file.
 
         $path, $name, $outdir, $file and $append are as in
-        *get_recording_file_chunk*.
+        *getRecordingFileChunk*.
 
-    "$r->get_recording($hdr, $trunc, $path, $outdir, $show_progress);"
+        Unimplemented in "Beyonwiz::Recording::Recording", over-ride in
+        derived classes.
+
+    "$r->getRecording($hdr, $trunc, $path, $outdir, $showProgress);"
         Download a Beyonwiz recording, either as a direct copy from the
         Beyonwiz, or into a single ".ts" file (if "$r->ts" is true). $hdr is
         the recording's header file object, $trunc is the recording's trunc
@@ -63,14 +75,20 @@ METHODS
         empty string, the recording is placed in that directory, rather than
         the current directory. The name of the downloaded recording is
         derived from the recording title in the $hdr, with the recording
-        date appended if "$r->date" is true. If $show_progress is not
-        "undef" it is called as a function with "bignum" arguments
-        ($file_size, $done), where $file_size is the size of the transfer,
-        and $done is the amount transferred already. Both in bytes.
+        date appended if "$r->date" is true. If $showProgress is not "undef"
+        it must be an object in a class implementing the methods
+        "$showProgress->total([$val])" and "$showProgress->done([$val])".
+        "total" registers the total number of bytes to transfer, and "done"
+        updates the number of bytes transferred in the progress bar.
+
+        Unimplemented in "Beyonwiz::Recording::Recording", over-ride in
+        derived classes.
 
 PREREQUISITES
 
-    Uses packages: "LWP::Simple", "URI", "URI::Escape", "HTTP::Status",
+    Uses packages: "Beyonwiz::Recording::Trunc",
+    "Beyonwiz::Recording::Header", "Beyonwiz::Utils", "LWP::Simple", "URI",
+    "URI::Escape", "HTTP::Status", "File::Spec::Functions",
     "File::Basename".
 
 BUGS

@@ -1,4 +1,4 @@
-SYNOPSIS
+NAME
 
         use Beyonwiz::Recording::Index;
 
@@ -13,15 +13,8 @@ CONSTANTS
 
 METHODS
 
-    "Beyonwiz::Recording::Index->new($base)"
-        Create a new Beyonwiz recording index object. $base is the base URL
-        for the Beyonwiz device.
-
-    "$i->base([$val]);"
-        Returns (sets) the device base URL.
-
-    "$i->url([$val]);"
-        Returns (sets) the index URL.
+    "Beyonwiz::Recording::Index->new"
+        Create a new Beyonwiz recording index object.
 
     "$i->entries([$val]);"
         Returns (sets) the list of "Beyonwiz::Recording::IndexEntry" objects
@@ -33,13 +26,13 @@ METHODS
     "$i->valid;"
         Returns true if the last "$i->load;" succeeded.
 
-    "$i->load;"
-        Load the index from the Beyonwiz.
+    "$i->decode($index_data);"
+        Decode the binary index data.
 
 PREREQUISITES
 
-    Uses packages: "Beyonwiz::Recording::IndexEntry", "File::Basename",
-    "LWP::Simple", "URI::Escape", "URI".
+    Uses packages: "Beyonwiz::Recording::IndexEntry", "Beyonwiz::Utils",
+    "LWP::Simple", "URI", "URI::Escape", "File::Basename".
 
 BUGS
 

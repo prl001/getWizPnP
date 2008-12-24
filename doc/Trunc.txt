@@ -1,4 +1,4 @@
-SYNOPSIS
+NAME
 
         use Beyonwiz::Recording::Trunc;
 
@@ -15,18 +15,10 @@ CONSTANTS
 
 METHODS
 
-    "Beyonwiz::Recording::Trunc->new($name, $base, $path)"
-        Create a new Beyonwiz recording index object. $name is the default
-        name of the recording (usually the name in the Beyonwiz recording
-        index, see "Beyonwiz::Recording::Index"). $base is the base URL for
-        the Beyonwiz device. $path is the path part of the recording URL
-        (usually the path in the recording index).
-
-    "$t->base([$val]);"
-        Returns (sets) the device base URL.
-
-    "$t->path([$val]);"
-        Returns (sets) the recording URL.
+    "Beyonwiz::Recording::Trunc->new($name)"
+        Create a new Beyonwiz recording file index object. $name is the
+        default name of the recording (usually the name in the Beyonwiz
+        recording index, see
 
     "$t->name([$val]);"
         Returns (sets) the default recording name.
@@ -35,23 +27,36 @@ METHODS
         Returns (sets) the array reference containing the
         "Beyonwiz::Recording::TruncEntry" objects in for the recording.
 
-    "$t->size;"
-        Returns the size of the last loaded trunc file.
+    "$t->nentries;"
+        Returns the number of entries in "$t->entries".
 
-    "$t->recording_size;"
+    "$t->size;"
+        Returns the size of the last decoded trunc file.
+
+    "$t->recordingSize;"
         Returns the sum of all the *size* entries in the
         "Beyonwiz::Recording::TruncEntry" objects in for the recording.
 
-    "$i->valid;"
+    "$t->valid;"
         Returns true if the last "$i->load;" succeeded.
 
-    "$i->load;"
-        Load the trunc file from the Beyonwiz.
+    "$t->decode($hdr_data);"
+        Load the contents of $t by decoding the "trunc" file data in
+        $hdr_data.
+
+    "$t->completeTruncs( $offset)"
+        Return the number of complete "Beyonwiz::Recording::TruncEntry"s up
+        to the given $offset in the recording.
+
+    "$t->makeFileTrunc;"
+        Return a new "Beyonwiz::Recording::HTTPTrunc" with a single
+        "Beyonwiz::Recording::TruncEntry" for each file to be downloaded.
+        The sizes and offsets are not particularly meaningful.
 
 PREREQUISITES
 
-    Uses packages: "Beyonwiz::Recording::IndexEntry", "File::Basename",
-    "LWP::Simple", "URI::Escape", "URI".
+    Uses packages: "Beyonwiz::Recording::TruncEntry", "Beyonwiz::Utils",
+    "File::Basename", "LWP::Simple", "URI", "URI::Escape".
 
 BUGS
 

@@ -41,8 +41,10 @@
 <pre>
     getWizPnP [-h|--help] [-D dev|--device dev] [-m devs|--maxdev=devs]
               [-h host|--host=host] [-p port|--port=port]
-              [-l|--list] [-d|--date] [-t|--ts] [-v|--verbose]
-              [-r|--regexp] [-e|--expression] [-O dir|--outdir dir]
+              [-l|--list] [-L|--List] [-d|--date] [-t|--ts] [-v|--verbose]
+              [-R|--resume] [-f|--f]
+              [-r|--regexp] [-e|--expression] [-B|--BWName]
+              [-O dir|--outdir dir] [-I dir |--indir=dir]
               [ patterns... ]</pre>
 <p>
 </p>
@@ -54,19 +56,29 @@ using the WizPnP interface.</p>
 Otherwise recordings matching any of the patterns are fetched
 (or listed, with <strong>--list</strong>).</p>
 <p>In the absence of <strong>--regexp</strong> or <strong>--expression</strong> a pattern matches
-if it is a substring of the string <em>servicename</em><strong>#</strong><em>title</em>#<em>date</em>,
-case sensitive.
-For example:</p>
+if it is a substring of the string <em>servicename</em><strong>#</strong><em>longtitle</em>#<em>date</em>,
+case insensitive.
+The <em>longtitle</em> is just the title if the header has no episode information,
+otherwise it is <em>title</em><strong>/</strong><em>episodename</em>.</p>
+<p>For example:</p>
 <pre>
     SC10 Canberra#MOVIE: Pride &amp; Prejudice#Fri Feb 15 20:28:00 2008</pre>
+<p>or</p>
+<pre>
+    WIN TV Canberra#Underbelly/Team Purana#Wed May  7 20:28:00 2008</pre>
 <p>To download all recordings, an empty string will match everything:</p>
 <pre>
     wizGetPnP ''</pre>
 <p>Recordings are downloaded to a name corresponding to their event name (title)
 with any characters that are illegal in the file system changed to '_'.
+The episode name isn't used.
 The <strong>--date</strong> option adds the day and date of the recording to the name,
 helpful for series recordings.
 Downloaded recordings are placed in the current directory.</p>
+<p>When listing recordings, recordings that are currently recording are flagged
+with <code>*RECORDING NOW</code> next to the recording name.
+The tag is not part of the name for matching.
+<em>GetWizPnP</em> won't fetch recordings that are currently in progress.</p>
 <p>
 </p>
 <hr />
@@ -187,6 +199,30 @@ rather than copying in the Beyonwiz internal recording format.</p>
 <p><strong>--nots</strong> and <strong>--not</strong> undo the setting of this option;
 useful if this option is set by default in the user's <code>.getwizpnp</code> file.</p>
 </dd>
+<dt><strong><a name="item_resume">resume</a></strong>
+
+<dd>
+<pre>
+  --resume
+  -R
+  --noresume
+  --noR</pre>
+</dd>
+<dd>
+<p>Allow resumption of downloading of recordings that appear to be incomplete.</p>
+</dd>
+<dt><strong>resume</strong>
+
+<dd>
+<pre>
+  --force
+  -f
+  --noforce
+  --nof</pre>
+</dd>
+<dd>
+<p>Allow downloads to overwrite existing recordings that appear to be complete.</p>
+</dd>
 <dt><strong><a name="item_verbose">verbose</a></strong>
 
 <dd>
@@ -221,7 +257,8 @@ Useful if <code>$verbose</code> is non-zero in the user's <code>.getwizpnp</code
   --nor</pre>
 </dd>
 <dd>
-<p>Carry out the matches using the argument as a Perl regular expression.
+<p>Carry out the matches using the argument as a case-insensitive
+Perl regular expression.
 For example:</p>
 </dd>
 <dd>
@@ -252,7 +289,7 @@ the recording is matched.</p>
 </dd>
 <dd>
 <pre>
-    getWizPnp --expression '/ABC|SBS/'</pre>
+    getWizPnp --expression '/ABC|SBS/i'</pre>
 </dd>
 <dd>
 <p>is equivalent to the <strong>--regexp</strong> example above.
@@ -271,6 +308,44 @@ useful if this option is set by default in the user's <code>.getwizpnp</code> fi
 </dd>
 <dd>
 <p>Save the recordings in <em>dir</em> rather than in the current directory.</p>
+</dd>
+<dt><strong><a name="item_indir">indir</a></strong>
+
+<dd>
+<pre>
+  --indir=dir
+  -I dir</pre>
+</dd>
+<dd>
+<p>Look for recordings in <em>dir</em> on the local computer rather than on the
+Beyonwiz.</p>
+</dd>
+<dt><strong><a name="item_list">List</a></strong>
+
+<dd>
+<pre>
+  --List
+  -L</pre>
+</dd>
+<dd>
+<p>Produce only a list of the index names of the recordings in the recording
+index file.
+Intended for use by GUIs or other programs calling <em>getWizPnP</em>.</p>
+</dd>
+<dt><strong><a name="item_bwname">BWName</a></strong>
+
+<dd>
+<pre>
+  --BWName
+  -B</pre>
+</dd>
+<dd>
+<p>The pattern arguments are recording index names as listed by <strong>--List</strong>.
+Can find Beyonwiz recordings faster than other matching methods,
+because it doesn't scan the whole file list.
+Unlike the other matching methods, must be an exact string match.
+Not very user-friendly.
+Intended for use by GUIs or other programs calling <em>getWizPnP</em>.</p>
 </dd>
 </dl>
 <p>
@@ -291,38 +366,25 @@ the file <code>getwizpnp.conf</code>.</p>
 <hr />
 <h1><a name="prerequsites">PREREQUSITES</a></h1>
 <p>Uses packages 
-<a href="../html/./Beyonwiz/Recording/Header.html"><code>Beyonwiz::Recording::Header</code></a>,
-<a href="../html/./Beyonwiz/Recording/Index.html"><code>Beyonwiz::Recording::Index</code></a>,
-<a href="../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>,
-<a href="../html/./Beyonwiz/Recording/Recording.html"><code>Beyonwiz::Recording::Recording</code></a>,
-<a href="../html/./Beyonwiz/Recording/Trunc.html"><code>Beyonwiz::Recording::Trunc</code></a>,
-<a href="../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>,
-<a href="../html/./Beyonwiz/WizPnP.html"><code>Beyonwiz::WizPnP</code></a>,
-<a href="../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>,
-<code>File::Basename</code>,
-<code>Getopt::Long</code>,
-<code>HTTP::Request</code>,
-<code>HTTP::Response</code>,
+<a href=".././html/Beyonwiz/WizPnP;.html"><code>Beyonwiz::WizPnP;</code></a>,
+<a href=".././html/./Beyonwiz/Recording/HTTPIndex.html"><code>Beyonwiz::Recording::HTTPIndex</code></a>,
+<a href=".././html/./Beyonwiz/Recording/HTTPHeader.html"><code>Beyonwiz::Recording::HTTPHeader</code></a>,
+<a href=".././html/./Beyonwiz/Recording/HTTPTrunc.html"><code>Beyonwiz::Recording::HTTPTrunc</code></a>,
+<a href=".././html/./Beyonwiz/Recording/HTTPRecording.html"><code>Beyonwiz::Recording::HTTPRecording</code></a>,
+<a href=".././html/./Beyonwiz/Recording/FileIndex.html"><code>Beyonwiz::Recording::FileIndex</code></a>,
+<a href=".././html/./Beyonwiz/Recording/FileHeader.html"><code>Beyonwiz::Recording::FileHeader</code></a>,
+<a href=".././html/./Beyonwiz/Recording/FileTrunc.html"><code>Beyonwiz::Recording::FileTrunc</code></a>,
+<a href=".././html/./Beyonwiz/Recording/FileRecording.html"><code>Beyonwiz::Recording::FileRecording</code></a>,
 <code>HTTP::Status</code>,
-<code>IO::Select</code>,
-<code>IO::Socket::Multicast</code>,
-<code>LWP::Simple</code>,
-<code>URI::Escape</code>,
-<code>URI</code>,
-<code>XML::DOM</code>.</p>
+<code>Getopt::Long</code>.</p>
 <p>
 </p>
 <hr />
 <h1><a name="bugs">BUGS</a></h1>
-<p>File copy progress bar only updates after each (up to)
-32MB recording chunk is copied.</p>
-<p>It's not possible to restart interrupted transfers.</p>
-<p>If the <strong>--ts</strong> flag is given, downloading a recording
-to the same name will overwrite the original;
-if it's not given an error results.
-It's not completely clear what the correct behaviour should be.</p>
 <p>Uses <code>bignum</code> for 64-bit integers, even when the underlying
 Perl integers are 64 bits.</p>
+<p>When resuming a download, may fetch up to 32MB more data than is
+necessary.</p>
 <table border="0" width="100%" cellspacing="0" cellpadding="3">
 <tr><td class="block" style="background-color: #cccccc" valign="middle">
 <big><strong><span class="block">&nbsp;getWizPnP</span></strong></big>

@@ -1,9 +1,8 @@
 package Beyonwiz::Recording::IndexEntry;
 
-=head1 SYNOPSIS
+=head1 NAME
 
     use Beyonwiz::Recording::IndexEntry;
-
 
 =head1 SYNOPSIS
 
@@ -17,7 +16,7 @@ Represents an entry in the Beyonwiz recordings index..
 
 Create a new Beyonwiz recording index entry object.
 C<$name> is the default name of the recording.
-C<$path> is the path part of the recording URL.
+C<$path> is the path part of the recording URL or the file system path.
 
 Normally constructed from the Beyonwiz recording index by
 L<C<Beyonwiz::Recording::Index>|Beyonwiz::Recording::Index>.
@@ -30,10 +29,19 @@ Returns (sets) the default name of the recording.
 
 Returns (sets) path part of the recording URL.
 
+=back
+
+=head1 PREREQUISITES
+
+Uses packages:
+L<C<Beyonwiz::Utils>|Beyonwiz::Utils>.
+
 =cut
 
 use warnings;
 use strict;
+
+my $accessorsDone;
 
 sub new($$$) {
     my ($class, $name, $path) = @_;
@@ -42,21 +50,13 @@ sub new($$$) {
 	name => $name,
 	path => $path,
     };
+
+    unless($accessorsDone) {
+	Beyonwiz::Utils::makeAccessors(__PACKAGE__, keys %$self);
+	$accessorsDone = 1;
+    }
+
     return bless $self, $class;
-}
-
-sub name($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{name};
-    $self->{name} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub path($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{path};
-    $self->{path} = $val if(@_ == 2);
-    return $ret;
 }
 
 1;

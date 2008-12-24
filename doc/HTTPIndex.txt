@@ -1,0 +1,38 @@
+NAME
+
+        use Beyonwiz::Recording::HTTPIndex;
+
+SYNOPSIS
+
+    Provides access to the Beyonwiz recording file index via HTTP.
+
+SUPERCLASS
+
+    Inherits from "Beyonwiz::Recording::Index"
+
+METHODS
+
+    "Beyonwiz::Recording::HTTPIndex->new($base)"
+        Create a new Beyonwiz recording index object. $base is the base URL
+        for the Beyonwiz device.
+
+    "$i->base([$val]);"
+        Returns (sets) the device base URL.
+
+    "$i->url([$val]);"
+        Returns (sets) the index URL.
+
+    "$i->load;"
+        Load the index from the Beyonwiz.
+
+PREREQUISITES
+
+    Uses packages: "Beyonwiz::Recording::Index",
+    "Beyonwiz::Recording::IndexEntry", "Beyonwiz::Utils", LWP::Simple,
+    "URI", "URI::Escape", "File::Basename".
+
+BUGS
+
+    Uses a fixed value for the path name of the index, rather than deriving
+    it from *locationURL* in "Beyonwiz::WizPnP".
+

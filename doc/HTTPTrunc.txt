@@ -1,0 +1,53 @@
+NAME
+
+        use Beyonwiz::Recording::HTTPTrunc;
+
+SYNOPSIS
+
+    Provides access to the Beyonwiz recording trunc file. The trunc file is
+    used to describe exactly which parts of the 0000, 0001, etc. files are
+    included in the viewable recording.
+
+CONSTANTS
+
+    "TRUNC"
+        The trunc url path component for the beyonwiz ("trunc").
+
+SUPERCLASS
+
+    Inherits from "Beyonwiz::Recording::Trunc"
+
+METHODS
+
+    "Beyonwiz::Recording::HTTPTrunc->new($name, $base, $path)"
+        Create a new Beyonwiz recording file index object. $name is the
+        default name of the recording (usually the name in the Beyonwiz
+        recording index, see "Beyonwiz::Recording::Index"). $base is the
+        base URL for the Beyonwiz device. $path is the path part of the
+        recording URL (usually the path in the recording index).
+
+    "$t->base([$val]);"
+        Returns (sets) the device base URL.
+
+    "$t->path([$val]);"
+        Returns (sets) the path part of the recording URL.
+
+    "$t->url([$val]);"
+        Returns (sets) the recording URL.
+
+    "$t->load;"
+        Load the trunc file from the Beyonwiz.
+
+PREREQUISITES
+
+    Uses packages: "Beyonwiz::Recording::Trunc", "Beyonwiz::Utils",
+    "File::Basename", "LWP::Simple", "URI", "URI::Escape".
+
+BUGS
+
+    Uses "bignum" for 64-bit integers, even when the underlying Perl
+    integers are 64 bits.
+
+    Uses a fixed value for the path name of the index, rather than deriving
+    it from *locationURL* in "Beyonwiz::WizPnP".
+

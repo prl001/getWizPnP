@@ -19,7 +19,7 @@
 
 <ul>
 
-	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#name">NAME</a></li>
 	<li><a href="#synopsis">SYNOPSIS</a></li>
 	<li><a href="#constants">CONSTANTS</a></li>
 	<li><a href="#methods">METHODS</a></li>
@@ -31,7 +31,7 @@
 <hr />
 <p>
 </p>
-<h1><a name="synopsis">SYNOPSIS</a></h1>
+<h1><a name="name">NAME</a></h1>
 <pre>
     use Beyonwiz::Recording::Trunc;</pre>
 <p>
@@ -58,28 +58,12 @@ The trunc file is used to describe exactly which parts of the
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Trunc-&gt;new($name, $base, $path)</code></a></strong>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Trunc-&gt;new($name)</code></a></strong>
 
 <dd>
-<p>Create a new Beyonwiz recording index object.
+<p>Create a new Beyonwiz recording file index object.
 <code>$name</code> is the default name of the recording (usually
-the name in the Beyonwiz recording index, see
-<a href="../html/./Beyonwiz/Recording/Index.html"><code>Beyonwiz::Recording::Index</code></a>).
-<code>$base</code> is the base URL for the Beyonwiz device.
-<code>$path</code> is the path part of the recording URL (usually
-the path in the recording index).</p>
-</dd>
-</li>
-<dt><strong><a name="item_base"><code>$t-&gt;base([$val]);</code></a></strong>
-
-<dd>
-<p>Returns (sets) the device base URL.</p>
-</dd>
-</li>
-<dt><strong><a name="item_path"><code>$t-&gt;path([$val]);</code></a></strong>
-
-<dd>
-<p>Returns (sets) the recording URL.</p>
+the name in the Beyonwiz recording index, see</p>
 </dd>
 </li>
 <dt><strong><a name="item_name"><code>$t-&gt;name([$val]);</code></a></strong>
@@ -92,34 +76,60 @@ the path in the recording index).</p>
 
 <dd>
 <p>Returns (sets) the array reference containing the
-<a href="../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
+<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
 objects in for the recording.</p>
+</dd>
+</li>
+<dt><strong><a name="item_nentries"><code>$t-&gt;nentries;</code></a></strong>
+
+<dd>
+<p>Returns the number of entries in <a href="#item_entries"><code>$t-&gt;entries</code></a>.</p>
 </dd>
 </li>
 <dt><strong><a name="item_size"><code>$t-&gt;size;</code></a></strong>
 
 <dd>
-<p>Returns the size of the last loaded trunc file.</p>
+<p>Returns the size of the last decoded trunc file.</p>
 </dd>
 </li>
-<dt><strong><a name="item_recording_size"><code>$t-&gt;recording_size;</code></a></strong>
+<dt><strong><a name="item_recordingsize"><code>$t-&gt;recordingSize;</code></a></strong>
 
 <dd>
 <p>Returns the sum of all the <em>size</em> entries in the
-<a href="../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
+<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
 objects in for the recording.</p>
 </dd>
 </li>
-<dt><strong><a name="item_valid"><code>$i-&gt;valid;</code></a></strong>
+<dt><strong><a name="item_valid"><code>$t-&gt;valid;</code></a></strong>
 
 <dd>
-<p>Returns true if the last <a href="#item_load"><code>$i-&gt;load;</code></a> succeeded.</p>
+<p>Returns true if the last <code>$i-&gt;load;</code> succeeded.</p>
 </dd>
 </li>
-<dt><strong><a name="item_load"><code>$i-&gt;load;</code></a></strong>
+<dt><strong><a name="item_decode"><code>$t-&gt;decode($hdr_data);</code></a></strong>
 
 <dd>
-<p>Load the trunc file from the Beyonwiz.</p>
+<p>Load the contents of <code>$t</code> by decoding the <code>trunc</code> file data in
+<code>$hdr_data</code>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_completetruncs"><code>$t-&gt;completeTruncs( $offset)</code></a></strong>
+
+<dd>
+<p>Return the number of complete
+<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>s
+up to the given <code>$offset</code> in the recording.</p>
+</dd>
+</li>
+<dt><strong><a name="item_makefiletrunc"><code>$t-&gt;makeFileTrunc;</code></a></strong>
+
+<dd>
+<p>Return a new
+<a href="../../../html/./Beyonwiz/Recording/HTTPTrunc.html"><code>Beyonwiz::Recording::HTTPTrunc</code></a>
+with a single
+<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
+for each file to be downloaded.
+The sizes and offsets are not particularly meaningful.</p>
 </dd>
 </li>
 </dl>
@@ -128,11 +138,12 @@ objects in for the recording.</p>
 <hr />
 <h1><a name="prerequisites">PREREQUISITES</a></h1>
 <p>Uses packages:
-<a href="../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>,
+<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>,
+<a href="../../../html/./Beyonwiz/Utils.html"><code>Beyonwiz::Utils</code></a>,
 <code>File::Basename</code>,
 <code>LWP::Simple</code>,
-<code>URI::Escape</code>,
-<code>URI</code>.</p>
+<code>URI</code>,
+<code>URI::Escape</code>.</p>
 <p>
 </p>
 <hr />
@@ -140,7 +151,7 @@ objects in for the recording.</p>
 <p>Uses <code>bignum</code> for 64-bit integers, even when the underlying
 Perl integers are 64 bits.</p>
 <p>Uses a fixed value for the path name of the index, rather than deriving
-it from <em>locationURL</em> in <a href="../html/./Beyonwiz/WizPnP.html"><code>Beyonwiz::WizPnP</code></a>.</p>
+it from <em>locationURL</em> in <a href="../../../html/./Beyonwiz/WizPnP.html"><code>Beyonwiz::WizPnP</code></a>.</p>
 <table border="0" width="100%" cellspacing="0" cellpadding="3">
 <tr><td class="block" style="background-color: #cccccc" valign="middle">
 <big><strong><span class="block">&nbsp;Trunc</span></strong></big>

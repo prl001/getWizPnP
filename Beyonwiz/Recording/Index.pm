@@ -1,6 +1,6 @@
 package Beyonwiz::Recording::Index;
 
-=head1 SYNOPSIS
+=head1 NAME
 
     use Beyonwiz::Recording::Index;
 
@@ -22,18 +22,9 @@ The index url path for the beyonwiz (C<index.txt>).
 
 =over
 
-=item C<< Beyonwiz::Recording::Index->new($base) >>
+=item C<< Beyonwiz::Recording::Index->new >>
 
 Create a new Beyonwiz recording index object.
-C<$base> is the base URL for the Beyonwiz device.
-
-=item C<< $i->base([$val]); >>
-
-Returns (sets) the device base URL.
-
-=item C<< $i->url([$val]); >>
-
-Returns (sets) the index URL.
 
 =item C<< $i->entries([$val]); >>
 
@@ -49,9 +40,9 @@ Returns the number of index entries.
 
 Returns true if the last C<< $i->load; >> succeeded.
 
-=item C<< $i->load; >>
+=item C<< $i->decode($index_data); >>
 
-Load the index from the Beyonwiz.
+Decode the binary index data.
 
 =back
 
@@ -59,10 +50,11 @@ Load the index from the Beyonwiz.
 
 Uses packages:
 L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>,
-C<File::Basename>,
+L<C<Beyonwiz::Utils>|Beyonwiz::Utils>,
 C<LWP::Simple>,
+C<URI>,
 C<URI::Escape>,
-C<URI>.
+C<File::Basename>.
 
 =head1 BUGS
 
@@ -75,49 +67,35 @@ L<C<Beyonwiz::WizPnP>|Beyonwiz::WizPnP>.
 use warnings;
 use strict;
 
+use Beyonwiz::Recording::IndexEntry;
 use LWP::Simple;
 use URI;
 use URI::Escape;
 use File::Basename;
-use Beyonwiz::Recording::IndexEntry;
 
 use constant INDEX => 'index.txt';
 
-sub new() {
-    my ($class, $base) = @_;
+use Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT_OK = qw(INDEX);
+
+my $accessorsDone;
+
+sub new($) {
+    my ($class) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
-	base    => $base,
-	url     => undef,
+	valid   =>  undef,
 	entries => [],
     };
     bless $self, $class;
 
-    $self->url($self->base->clone);
-    $self->url->path(uri_escape(INDEX));
+    unless($accessorsDone) {
+	Beyonwiz::Utils::makeAccessors(__PACKAGE__, keys %$self);
+	$accessorsDone = 1;
+    }
 
     return $self;
-}
-
-sub base($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{base};
-    $self->{base} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub url($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{url};
-    $self->{url} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub entries($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{entries};
-    $self->{entries} = $val if(@_ == 2);
-    return $ret;
 }
 
 sub nentries() {
@@ -127,31 +105,28 @@ sub nentries() {
 
 sub valid() {
     my ($self) = @_;
-    return defined $self->url;
+    return defined $self->{valid};
 }
 
-sub uri_path_escape($) {
-    my ($path) = @_;
-    return uri_escape($path, "^A-Za-z0-9\-_.!~*'()/");
-}
-
-sub load($) {
-    my ($self) = @_;
+sub decode($$) {
+    my ($self, $index_data) = @_;
 
     @{$self->entries} = ();
 
-    my $recs = get($self->url) or die "Fetch of ", $self->url, " failed\n";
-
-    foreach my $rec (split /\n/, $recs) {
-	my @parts = split /\|/, $rec;
-	if(@parts == 2) {
-	    push @{$self->entries},
-		Beyonwiz::Recording::IndexEntry->new(
-			$parts[0], uri_path_escape(dirname $parts[1]));
-
-	} else {
-	    warn "Unrecognised index entry: $rec\n";
+    if(defined $index_data) {
+	foreach my $rec (split /\r?\n/, $index_data) {
+	    my @parts = split /\|/, $rec;
+	    if(@parts == 2) {
+		push @{$self->entries},
+		    Beyonwiz::Recording::IndexEntry->new(
+			    $parts[0], dirname $parts[1]);
+	    } else {
+		warn "Unrecognised index entry: $rec\n";
+	    }
 	}
+	$self->{valid} = 1;
+    } else {
+	$self->{valid} = undef;
     }
     return $self->nentries;
 }

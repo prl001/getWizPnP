@@ -1,4 +1,4 @@
-SYNOPSIS
+NAME
 
         use Beyonwiz::WizPnP;
 
@@ -34,11 +34,11 @@ METHODS
         ("Beyonwiz::WizPnPDevice"), indexed by the lower-case version of the
         device name.
 
-    "$wpnp->device_names;"
+    "$wpnp->deviceNames;"
         Returns the list of discovered device names. All lower-cased. No
         particular order.
 
-    "$wpnp->device_names;"
+    "$wpnp->deviceNames;"
         Returns the list of discovered device names. All lower-cased. No
         particular order.
 
@@ -49,7 +49,7 @@ METHODS
     "$wpnp->ndevices;"
         Returns the number of discovered devices.
 
-    "$wpnp->add_device($location);"
+    "$wpnp->addDevice($location);"
         Request the device description XML from the URL given in $location,
         and install the device "Beyonwiz::WizPnPDevice" into $wpnp.
         $location is typically the "LOCATION" header in the response to an
@@ -71,9 +71,7 @@ METHODS
 
 PREREQUISITES
 
-    Uses packages:
-
-    "Beyonwiz::WizPnPDevice", "HTTP::Request", "HTTP::Response",
-    "HTTP::Status", "IO::Select", "IO::Socket::Multicast", "LWP::Simple",
-    "URI", "XML::DOM".
+    Uses packages: "Beyonwiz::WizPnPDevice", "IO::Socket::Multicast",
+    "IO::Select", "HTTP::Response", "HTTP::Request", "HTTP::Status",
+    "LWP::Simple", "URI", "XML::DOM".
 

@@ -19,7 +19,7 @@
 
 <ul>
 
-	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#name">NAME</a></li>
 	<li><a href="#synopsis">SYNOPSIS</a></li>
 	<li><a href="#constants">CONSTANTS</a></li>
 	<li><a href="#methods">METHODS</a></li>
@@ -30,7 +30,7 @@
 <hr />
 <p>
 </p>
-<h1><a name="synopsis">SYNOPSIS</a></h1>
+<h1><a name="name">NAME</a></h1>
 <pre>
     use Beyonwiz::WizPnP;</pre>
 <p>
@@ -87,18 +87,18 @@ document on the Beyonwiz PVR (<code>tvdevicedesc.xml</code>;</p>
 
 <dd>
 <p>Returns (sets) the reference to the hash of discovered devices
-(<a href="../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>),
+(<a href="../../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>),
 indexed by the lower-case version of the device name.</p>
 </dd>
 </li>
-<dt><strong><a name="item_device_names"><code>$wpnp-&gt;device_names;</code></a></strong>
+<dt><strong><a name="item_devicenames"><code>$wpnp-&gt;deviceNames;</code></a></strong>
 
 <dd>
 <p>Returns the list of discovered device names.
 All lower-cased. No particular order.</p>
 </dd>
 </li>
-<dt><strong><code>$wpnp-&gt;device_names;</code></strong>
+<dt><strong><code>$wpnp-&gt;deviceNames;</code></strong>
 
 <dd>
 <p>Returns the list of discovered device names.
@@ -109,7 +109,7 @@ All lower-cased. No particular order.</p>
 
 <dd>
 <p>Return the named device's
-<a href="../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>
+<a href="../../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>
 entry.
 Lookup is case-insensitive.</p>
 </dd>
@@ -120,12 +120,12 @@ Lookup is case-insensitive.</p>
 <p>Returns the number of discovered devices.</p>
 </dd>
 </li>
-<dt><strong><a name="item_add_device"><code>$wpnp-&gt;add_device($location);</code></a></strong>
+<dt><strong><a name="item_adddevice"><code>$wpnp-&gt;addDevice($location);</code></a></strong>
 
 <dd>
 <p>Request the device description XML from the URL
 given in <code>$location</code>, and install the
-device <a href="../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a> into <code>$wpnp</code>.
+device <a href="../../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a> into <code>$wpnp</code>.
 <code>$location</code> is typically the <code>LOCATION</code> header in the
 response to an SDDP <code>M-SEARCH</code> request.</p>
 </dd>
@@ -158,13 +158,13 @@ the search when <code>$maxdev</code> devices have been installed.</p>
 </p>
 <hr />
 <h1><a name="prerequisites">PREREQUISITES</a></h1>
-<p>Uses packages:</p>
-<p><a href="../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>,
-<code>HTTP::Request</code>,
-<code>HTTP::Response</code>,
-<code>HTTP::Status</code>,
-<code>IO::Select</code>,
+<p>Uses packages:
+<a href="../../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>,
 <code>IO::Socket::Multicast</code>,
+<code>IO::Select</code>,
+<code>HTTP::Response</code>,
+<code>HTTP::Request</code>,
+<code>HTTP::Status</code>,
 <code>LWP::Simple</code>,
 <code>URI</code>,
 <code>XML::DOM</code>.</p>

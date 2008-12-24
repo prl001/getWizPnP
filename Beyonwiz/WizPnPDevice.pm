@@ -1,9 +1,8 @@
 package Beyonwiz::WizPnPDevice;
 
-=head1 SYNOPSIS
+=head1 NAME
 
     use Beyonwiz::Recording::WizPnPDevice;
-
 
 =head1 SYNOPSIS
 
@@ -19,7 +18,7 @@ Create a new WizPnP device object.
 C<$location> is the URL for the device's XML description,
 and C<$dom> us the C<XML::DOM> tree for the description.
 Normally constructed by
-L<C<Beyonwiz::WizPnP>|Beyonwiz::WizPnP> in I<search> or I<add_device>.
+L<C<Beyonwiz::WizPnP>|Beyonwiz::WizPnP> in I<search> or I<addDevice>.
 
 =item C<< $wpnpd->location([$val]); >>
 
@@ -29,15 +28,15 @@ Returns (sets) the URL for the device's XML description.
 
 Returns (sets) the device description DOM tree.
 
-=item C<< $wpnpd->base_url; >>
+=item C<< $wpnpd->baseUrl; >>
 
 Returns the base URL for the device.
 
-=item C<< $wpnpd->index_url; >>
+=item C<< $wpnpd->indexUrl; >>
 
 Returns the URL of the the device recording index document.
 
-=item C<< $wpnpd->device_dom; >>
+=item C<< $wpnpd->deviceDom; >>
 
 Returns the C<< <device> >> DOM subtree of the description.
 
@@ -51,6 +50,14 @@ Returns the device's WizPnP presentationURL.
 
 =back
 
+=head1 PREREQUISITES
+
+Uses packages:
+C<URI>,
+C<XML::DOM>,
+C<File::Basename>.
+
+
 =cut
 
 use strict;
@@ -60,6 +67,8 @@ use URI;
 use XML::DOM;
 use File::Basename;
 
+my $accessorsDone;
+
 sub new($$$) {
     my ($class, $location, $dom) = @_;
     $class = ref($class) if(ref($class));
@@ -67,33 +76,25 @@ sub new($$$) {
 	location	=> URI->new($location),
 	dom		=> $dom,
     };
+
+    unless($accessorsDone) {
+	Beyonwiz::Utils::makeAccessors(__PACKAGE__, keys %$self);
+	$accessorsDone = 1;
+    }
+
     bless $self, $class;
 
     return $self;
 }
 
-sub location($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{location};
-    $self->{location} = URI->new($val) if(@_ == 2);
-    return $ret;
-}
-
-sub dom($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{dom};
-    $self->{dom} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub base_url($) {
+sub baseUrl($) {
     my ($self) = @_;
     my $url = $self->location->clone;
     $url->path('');
     return $url;
 }
 
-sub index_url($) {
+sub indexUrl($) {
     my ($self) = @_;
     my $url = $self->location->clone;
     my $index = $self->presentationURL;
@@ -103,7 +104,7 @@ sub index_url($) {
     return $url;
 }
 
-sub device_dom($) {
+sub deviceDom($) {
     my ($self) = @_;
     my $dom = $self->dom;
     return undef if(!defined $dom);

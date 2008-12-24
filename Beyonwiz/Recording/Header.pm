@@ -1,9 +1,8 @@
 package Beyonwiz::Recording::Header;
 
-=head1 SYNOPSIS
+=head1 NAME
 
     use Beyonwiz::Recording::Header;
-
 
 =head1 SYNOPSIS
 
@@ -29,41 +28,55 @@ Number of seconds in a day. Used internally for time conversion.
 
 Maximum number of offsets in I<offsets> (8640).
 
+=item C<HDR_SIZE>
+
+Total size of the header (256kiB).
+
+=item C<HDR_MAIN_OFF>
+
+=item C<HDR_MAIN_SIZE>
+
+=item C<HDR_OFFSETS_OFF>
+
+=item C<HDR_OFFSETS_SIZE>
+
+=item C<HDR_BOOKMARKS_OFF>
+
+=item C<HDR_BOOKMARKS_SZ>
+
+=item C<HDR_EPISODE_OFF>
+
+=item C<HDR_EPISODE_SZ>
+
+=item C<HDR_EXTINFO_OFF>
+
+=item C<HDR_EXTINFO_SZ>
+
+Offsets in the header and sizes for the sections of the header file.
+
 =back
 
 =head1 METHODS
 
 =over
 
-=item C<< Beyonwiz::Recording::Header->new($name, $base, $path) >>
+=item C<< Beyonwiz::Recording::Header->new() >>
 
 Create a new Beyonwiz recording header object.
-C<$name> is the default name of the recording (usually
-the name in the Beyonwiz recording index, see
-L<C<Beyonwiz::Recording::Index>|Beyonwiz::Recording::Index>).
-C<$base> is the base URL for the Beyonwiz device.
-C<$path> is the path part of the recording URL (usually
-the path in the recording index).
-
-=item C<< $h->base([$val]); >>
-
-Returns (sets) the device base URL.
-
-=item C<< $h->name([$val]); >>
-
-Returns (sets) the default recording name.
-
-=item C<< $h->name([$val]); >>
-
-Returns (sets) the default recording name.
-
-=item C<< $h->path([$val]); >>
-
-Returns (sets) the recording URL path part.
 
 =item C<< $h->headerName([$val]); >>
 
 Returns (sets) the name of the header document (path part only).
+
+=item C<< $h->headerName([$val]); >>
+
+Returns (sets) the name of the header document (path part only).
+
+=item C<< $h->isTV; $h->isRadio; >>
+
+Returns true if C<< $h->validMain; >> is true and the recording
+is digital TV (resp digital radio). Both can return false if
+C<< $h->headerName >> has not been set.
 
 =item C<< $h->unknown([$val]); >>
 
@@ -93,6 +106,16 @@ Returns (sets) the recording service (LCN) name.
 =item C<< $h->title([$val]); >>
 
 Returns (sets) the recording title (event name).
+
+=item C<< $h->episode([$val]); >>
+
+Returns (sets) the recording episode name (subtitle).
+
+=item C<< $h->longTitle; >>
+
+Returns C<< $h->title . '/' $h->episode >> if the episode name
+has been loaded and is non-empty, otherwise returns
+C<< $h->title >>.
 
 =item C<< $h->mjd([$val]); >>
 
@@ -149,18 +172,26 @@ For efficiency reasons, only populated for C<< $h->load(1) >>.
 
 Returns the number of bookmarks.
 
-=item C<< $h->valid; >>
+=item C<< $h->validMain; >>
 
-Returns true if the last C<< $h->load; >> was successful.
+=item C<< $h->validEpisode; >>
+
+=item C<< $h->validExtInfo; >>
+
+=item C<< $h->validBookmarks; >>
+
+=item C<< $h->validOffsets; >>
+
+Returns true if the last C<< $h->loadMain; >>
+(resp. C<< $h->loadEpisode >>,
+C<< $h->loadExtInfo >>,
+C<< $h->loadBookmarks >>,
+or  C<< $h->loadOffsets >>)
+was successful.
 
 =item C<< $h->size; >>
 
 Returns the size of the header file (256kB).
-
-=item C<< $h->isTV; $h->isRadio; >>
-
-Returns true if C<< $h->valid; >> is true and the recording
-is digital TV (resp digital radio).
 
 =item C<< $h->playtime >>
 
@@ -182,30 +213,60 @@ local time at the start of the recording using C<< gmtime >>
 The local time fields can then be converted into a genuine Unix timestamp
 using C<< Time::Local::timelocal >>.
 
-=item C<<  $h->offset_time($offset) >>
+=item C<<  $h->offsetTime($offset) >>
 
-Convert an offset into a time. C<< $h->load(1) >> must have been called,
+Convert an offset into a time. C<< $h->loadOffsets >> must have been called,
 otherwise -1 is returned. Interpolates between values in the offset table.
 Returns 0 if C<< $offset <= $self->offsets->[0] >> and
 C<< $self->playtime >> if C<< $offset >= $self->endOffset >>.
 
 
-=item C<< $h->load([$full]) >>
+=item C<< $h->loadMain; >>
 
-Load the header object from the header on the Beyonwiz.
-The I<offsets> data is only loaded if C<$full> is present and true.
-If C<$full> is not set, only 2kB is downloaded,
-otherwise 256kB is downloaded.
+=item C<< $h->loadEpisode; >>
+
+=item C<< $h->loadExtInfo; >>
+
+=item C<< $h->loadBookmarks; >>
+
+=item C<< $h->loadOffsets; >>
+
+Load parts of the header object from the header on the Beyonwiz.
+C<< $h->loadMain >> loads the basics,
+C<< $h->loadEpisode >> loads the episode name/subtitle informtion,
+C<< $h->loadExtInfo >> loads the extended event informtion,
+C<< $h->loadBookmarks >> loads the bookmark information
+and C<< $h->loadOffsets >> loads the 10-second offset data.
+
+=item C<< $h->decodeMain($hdr_data) >>
+
+=item C<< $h->decodeEpisode($hdr_data) >>
+
+=item C<< $h->decodeExtInfo($hdr_data) >>
+
+=item C<< $h->decodeBookmarks($hdr_data) >>
+
+=item C<< $h->decodeOffsets($hdr_data) >>
+
+Decodes parts of the header object from C<$hdr_data> on the Beyonwiz.
+The data for each part is assumed to satart at the beginning
+of the respective C<$hdr_data>.
+
+C<< $h->decodeMain >> decodes the basics,
+C<< $h->decodeEpisode >> decodes the episode name/subtitle informtion,
+C<< $h->decodeExtInfo >> decodes the extended event informtion,
+C<< $h->decodeBookmarks >> decodes the bookmark information
+and C<< $h->decodeOffsets >> decodes the 10-second offset data.
 
 =back
 
 =head1 PREREQUISITES
 
 Uses packages:
-C<File::Basename>,
+L<C<Beyonwiz::Utils>|Beyonwiz::Utils>,
 C<LWP::Simple>,
-C<URI::Escape>,
-C<URI>.
+C<URI>,
+C<URI::Escape>.
 
 =head1 BUGS
 
@@ -221,154 +282,94 @@ use warnings;
 use strict;
 use bignum;
 
-use File::Basename;
+use Beyonwiz::Utils;
 use LWP::Simple qw(get $ua);
 use URI;
 use URI::Escape;
 
-use constant DAY => 24*60*60; # Seconds in a day
-use constant TVHDR => 'header.tvwiz';
-use constant RADHDR => 'header.radwiz';
+use constant DAY          => 24*60*60; # Seconds in a day
+use constant TVHDR        => 'header.tvwiz';
+use constant RADHDR       => 'header.radwiz';
 
 use constant MAX_TS_POINT => 8640;
+use constant HDR_SIZE     => 256 * 1024;
+
+use constant HDR_MAIN_OFF      => 0;
+use constant HDR_MAIN_SZ     => 1564;
+use constant HDR_OFFSETS_OFF   => 1564;
+use constant HDR_OFFSETS_SIZE  => (MAX_TS_POINT-1) * 8;
+use constant HDR_BOOKMARKS_OFF => 79316;
+use constant HDR_BOOKMARKS_SZ  => 20 + 64 * 8;
+use constant HDR_EPISODE_OFF   => 79856;
+use constant HDR_EPISODE_SZ   => 1 + 255;
+use constant HDR_EXTINFO_OFF  => 80114;
+use constant HDR_EXTINFO_SZ   => 2 + 1024;
+
+use Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT_OK = qw(
+	DAY TVHDR RADHDR MAX_TS_POINT HDR_SIZE
+	HDR_MAIN_OFF HDR_MAIN_SZ
+	HDR_OFFSETS_OFF HDR_OFFSETS_SIZE
+	HDR_BOOKMARKS_OFF HDR_BOOKMARKS_SZ
+	HDR_EPISODE_OFF HDR_EPISODE_SZ
+	HDR_EXTINFO_OFF HDR_EXTINFO_SZ
+    );
+
+my $accessorsDone;
 
 sub new() {
     my ($class, $name, $base, $path) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
-	base       => $base,
-	path       => $path,
-	url        => undef,
-	name       => $name,
-	headerName => undef,
-	unknown    => [],
-	lock       => undef,
-	full       => undef,
-	inRec      => undef,
-	service    => undef,
-	title      => undef,
-	mjd        => undef,
-	start      => undef,
-	last       => undef,
-	sec        => undef,
-	endOffset  => undef,
-	offsets    => [],
-	bookmarks  => [],
+	validMain      => undef,
+	validEpisode   => undef,
+	validExtInfo   => undef,
+	validBookmarks => undef,
+	validOffsets   => undef,
+	headerName     => undef,
+	unknown        => [],
+	lock           => undef,
+	full           => undef,
+	inRec          => undef,
+	service        => undef,
+	title          => undef,
+	episode        => undef,
+	extInfo        => undef,
+	mjd            => undef,
+	start          => undef,
+	last           => undef,
+	sec            => undef,
+	endOffset      => undef,
+	offsets        => [],
+	bookmarks      => [],
     };
+
+    unless($accessorsDone) {
+	Beyonwiz::Utils::makeAccessors(__PACKAGE__, keys %$self);
+	$accessorsDone = 1;
+    }
 
     return bless $self, $class;
 }
 
-sub base($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{base};
-    $self->{base} = $val if(@_ == 2);
-    return $ret;
+sub longTitle($) {
+    my ($self) = @_;
+    return $self->validEpisode && $self->episode
+		? $self->title . '/' . $self->episode
+		: $self->title;
 }
 
-sub path($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{path};
-    $self->{path} = $val if(@_ == 2);
-    return $ret;
+sub isTV($) {
+    my ($self) = @_;
+    return defined($self->headerName)
+        && $self->headerName eq Beyonwiz::Recording::Header::TVHDR;
 }
 
-sub url($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{url};
-    $self->{url} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub name($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{name};
-    $self->{name} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub headerName($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{headerName};
-    $self->{headerName} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub unknown($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{unknown};
-    $self->{unknown} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub lock($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{lock};
-    $self->{lock} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub full($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{full};
-    $self->{full} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub inRec($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{inRec};
-    $self->{inRec} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub service($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{service};
-    $self->{service} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub title($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{title};
-    $self->{title} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub mjd($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{mjd};
-    $self->{mjd} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub start($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{start};
-    $self->{start} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub last($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{last};
-    $self->{last} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub sec($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{sec};
-    $self->{sec} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub endOffset($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{endOffset};
-    $self->{endOffset} = $val if(@_ == 2);
-    return $ret;
+sub isRadio($) {
+    my ($self) = @_;
+    return defined($self->headerName)
+        && $self->headerName eq Beyonwiz::Recording::Header::RADHDR;
 }
 
 sub startOffset($;$) {
@@ -378,23 +379,9 @@ sub startOffset($;$) {
     return $ret;
 }
 
-sub offsets($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{offsets};
-    $self->{offsets} = $val if(@_ == 2);
-    return $ret;
-}
-
 sub noffsets($) {
     my ($self) = @_;
     return scalar @{$self->offsets};
-}
-
-sub bookmarks($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{bookmarks};
-    $self->{bookmarks} = $val if(@_ == 2);
-    return $ret;
 }
 
 sub nbookmarks($) {
@@ -402,40 +389,50 @@ sub nbookmarks($) {
     return scalar @{$self->bookmarks};
 }
 
-sub valid() {
+sub validMain($) {
     my ($self) = @_;
-    return defined $self->url;
+    return $self->{validMain};
 }
 
-sub size() {
+sub validEpisode($) {
     my ($self) = @_;
-    return 256 * 1024;
+    return $self->{validEpisode};
 }
 
-sub isTV() {
+sub validExtInfo($) {
     my ($self) = @_;
-    return defined($self->headerName) && $self->headerName eq TVHDR;
+    return $self->{validExtInfo};
 }
 
-sub isRadio() {
+sub validBookmarks($) {
     my ($self) = @_;
-    return defined($self->headerName) && $self->headerName eq RADHDR;
+    return $self->{validBookmarks};
 }
 
-sub playtime() {
+sub validOffsets($) {
+    my ($self) = @_;
+    return $self->{validOffsets};
+}
+
+sub size($) {
+    my ($self) = @_;
+    return HDR_SIZE;
+}
+
+sub playtime($) {
     my ($self) = @_;
     # Magic formula from WizFX code
     return $self->last*10 + $self->sec;
 }
 
-sub starttime() {
+sub starttime($) {
     my ($self) = @_;
     # Unix epoch, 00:00 1 Jan 1970 UTC, is 40587 days after MJD epoch,
     # 00:00 17 Nov 1858.
     return ($self->mjd - 40587) * DAY + $self->start;
 }
 
-sub offset_time($$) {
+sub offsetTime($$) {
     my ($self, $offset) = @_;
 
     return 0 if($offset <= $self->offsets->[0]);
@@ -471,75 +468,142 @@ sub offset_time($$) {
     return $dt * ($index + ($offset - $low) / ($high - $low));
 }
 
-sub load(;$) {
-    my ($self, $full) = @_;
-    my $hdr_data;
-    foreach my $h (TVHDR, RADHDR) {
-	my $url = $self->base->clone;
-	$url->path($self->path . '/' . uri_escape($h));
+sub decodeMain($$) {
+    my ($self, $hdr_data) = @_;
 
-	my $old_max;
-	if(!$full) {
-	    $old_max = $ua->max_size;
-	    $ua->max_size(2048);
-	}
-
-	$hdr_data = get($url);
-
-	$ua->max_size($old_max) if(!$full);
-
-	if(defined $hdr_data) {
-	    $self->url($url);
-	    $self->headerName($h);
-	    my ($so0, $so1, $eo0, $eo1);
-	    (
-		$self->{unknown}[0],
-		$self->{unknown}[1],
-		$self->{unknown}[2],
-		$self->{unknown}[3],
-		$self->{unknown}[4],
-		$self->{lock},
-		$self->{full},
-		$self->{inRec},
-		$self->{service},
-		$self->{title},
-		$self->{mjd},
-		$self->{start},
-		$self->{last},
-		$self->{sec},
-		$eo0, $eo1,
-		$so0, $so1,
-	    ) = unpack 'v5 C3 @1024 Z256 Z256 v x2 V v v @1548 (V2)2',
-		    $hdr_data;
-	    $self->endOffset(($eo1 << 32) | $eo0);
-	    $self->offsets->[0] = (($so1 << 32) | $so0);
-	    if($full) {
-		my @offsets = unpack '@1564 (V2)' . ($self->last),
-				    $hdr_data;
-		while((my @o = splice(@offsets,0,2))) {
-		    last if($o[0] == 0 && $o[1] == 0);
-		    push @{$self->offsets}, (($o[1] << 32) | $o[0]);
-		}
-		my $nbkmk = unpack '@79316 v', $hdr_data;
-		@offsets = unpack '@79336 (V2)' . $nbkmk, $hdr_data;
-		for(my $i = 0; $i < $nbkmk; $i++ ) {
-		    push @{$self->bookmarks},
-			(($offsets[$i*2+1] << 32) | $offsets[$i*2]);
-		}
-	    }
-	    return;
-	}
+    if(defined $hdr_data
+    && length($hdr_data) >= HDR_MAIN_SZ) {
+	my ($so0, $so1, $eo0, $eo1);
+	(
+	    $self->{unknown}[0],
+	    $self->{unknown}[1],
+	    $self->{unknown}[2],
+	    $self->{unknown}[3],
+	    $self->{unknown}[4],
+	    $self->{unknown}[5],
+	    $self->{lock},
+	    $self->{full},
+	    $self->{inRec},
+	    $self->{service},
+	    $self->{title},
+	    $self->{mjd},
+	    $self->{start},
+	    $self->{last},
+	    $self->{sec},
+	    $eo0, $eo1,
+	    $so0, $so1,
+	) = unpack 'v6 C3 @1024 Z256 Z256 v x2 V v v @1548 (V2)2',
+		$hdr_data;
+	$self->endOffset(($eo1 << 32) | $eo0);
+	$self->offsets->[0] = (($so1 << 32) | $so0);
+	$self->{validMain} = 1;
+    } else {
+	$self->{validMain} = 0;
+	@{$self->unknown} = ();
     }
+}
 
-    $self->url(undef);
-    @{$self->unknown} = ();
+sub decodeEpisode($$) {
+    my ($self, $hdr_data) = @_;
 
-    foreach my $f (qw(url lock full inRec service
-			title mjd start last sec)) {
-	$_->{$f} = undef;
+    if(defined $hdr_data
+    && length($hdr_data) >= HDR_EPISODE_SZ) {
+	my $len = unpack 'C', $hdr_data;
+	$len = HDR_EPISODE_SZ if($len > HDR_EPISODE_SZ);
+	my $episode = unpack '@1 Z' . $len, $hdr_data;
+	$self->episode($episode);
+	$self->{validEpisode} = 1;
+    } else {
+	$self->{validEpisode} = 0;
+	$self->episode(undef);
     }
+}
 
-    warn "Can't get header for ", $self->name, "\n";
+sub decodeExtInfo($$) {
+    my ($self, $hdr_data) = @_;
+
+    if(defined $hdr_data
+    && length($hdr_data) >= HDR_EXTINFO_SZ) {
+	my $len = unpack 'v', $hdr_data;
+	$len = HDR_EXTINFO_SZ if($len > HDR_EXTINFO_SZ);
+	my $extInfo = unpack '@2 Z' . $len, $hdr_data;
+	$self->extInfo($extInfo);
+	$self->{validExtInfo} = 1;
+    } else {
+	$self->{validExtInfo} = 0;
+	$self->extInfo(undef);
+    }
+}
+
+sub decodeBookmarks($$) {
+    my ($self, $hdr_data) = @_;
+
+    if(defined $hdr_data
+    && length($hdr_data) >= HDR_BOOKMARKS_SZ) {
+	my $nbkmk = unpack 'v', $hdr_data;
+	my @offsets = unpack '@20 (V2)' . $nbkmk, $hdr_data;
+	for(my $i = 0; $i < $nbkmk; $i++ ) {
+	    push @{$self->bookmarks},
+		(($offsets[$i*2+1] << 32) | $offsets[$i*2]);
+	}
+	$self->{validBookmarks} = 1;
+    } else {
+	$self->{validBookmarks} = 0;
+	@{$self->bookmarks} = ();
+    }
+}
+
+sub decodeOffsets($$) {
+    my ($self, $hdr_data) = @_;
+
+    if(defined $hdr_data
+    && length($hdr_data) >= HDR_OFFSETS_SIZE) {
+	my @offsets = unpack '(V2)' . ($self->last),
+			    $hdr_data;
+	while((my @o = splice(@offsets,0,2))) {
+	    last if($o[0] == 0 && $o[1] == 0);
+	    push @{$self->offsets}, (($o[1] << 32) | $o[0]);
+	}
+	$self->{validOffsets} = 1;
+    } else {
+	$self->{validOffsets} = 0;
+	@{$self->offsets} = ();
+    }
+}
+
+sub loadMain($) {
+    my ($self) = @_;
+    $self->decodeMain(
+	    $self->readHdrChunk(HDR_MAIN_OFF, HDR_MAIN_SZ)
+	);
+}
+
+sub loadEpisode($) {
+    my ($self) = @_;
+    $self->decodeEpisode(
+	    $self->readHdrChunk(HDR_EPISODE_OFF, HDR_EPISODE_SZ)
+	);
+}
+
+sub loadExtInfo($) {
+    my ($self) = @_;
+    $self->decodeExtInfo(
+	    $self->readHdrChunk(HDR_EXTINFO_OFF, HDR_EXTINFO_SZ)
+	);
+}
+
+sub loadBookmarks($) {
+    my ($self) = @_;
+    $self->decodeBookmarks(
+	    $self->readHdrChunk(HDR_BOOKMARKS_OFF, HDR_BOOKMARKS_SZ)
+	);
+}
+
+sub loadOffsets($) {
+    my ($self) = @_;
+    $self->decodeOffsets(
+	    $self->readHdrChunk(HDR_OFFSETS_OFF, HDR_OFFSETS_SIZE)
+	);
 }
 
 1;

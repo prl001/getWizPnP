@@ -7,8 +7,10 @@ SYNOPSIS
 
         getWizPnP [-h|--help] [-D dev|--device dev] [-m devs|--maxdev=devs]
                   [-h host|--host=host] [-p port|--port=port]
-                  [-l|--list] [-d|--date] [-t|--ts] [-v|--verbose]
-                  [-r|--regexp] [-e|--expression] [-O dir|--outdir dir]
+                  [-l|--list] [-L|--List] [-d|--date] [-t|--ts] [-v|--verbose]
+                  [-R|--resume] [-f|--f]
+                  [-r|--regexp] [-e|--expression] [-B|--BWName]
+                  [-O dir|--outdir dir] [-I dir |--indir=dir]
                   [ patterns... ]
 
 DESCRIPTION
@@ -21,10 +23,17 @@ DESCRIPTION
     listed, with --list).
 
     In the absence of --regexp or --expression a pattern matches if it is a
-    substring of the string *servicename*#*title*#*date*, case sensitive.
+    substring of the string *servicename*#*longtitle*#*date*, case
+    insensitive. The *longtitle* is just the title if the header has no
+    episode information, otherwise it is *title*/*episodename*.
+
     For example:
 
         SC10 Canberra#MOVIE: Pride & Prejudice#Fri Feb 15 20:28:00 2008
+
+    or
+
+        WIN TV Canberra#Underbelly/Team Purana#Wed May  7 20:28:00 2008
 
     To download all recordings, an empty string will match everything:
 
@@ -32,9 +41,14 @@ DESCRIPTION
 
     Recordings are downloaded to a name corresponding to their event name
     (title) with any characters that are illegal in the file system changed
-    to '_'. The --date option adds the day and date of the recording to the
-    name, helpful for series recordings. Downloaded recordings are placed in
-    the current directory.
+    to '_'. The episode name isn't used. The --date option adds the day and
+    date of the recording to the name, helpful for series recordings.
+    Downloaded recordings are placed in the current directory.
+
+    When listing recordings, recordings that are currently recording are
+    flagged with "*RECORDING NOW" next to the recording name. The tag is not
+    part of the name for matching. *GetWizPnP* won't fetch recordings that
+    are currently in progress.
 
 ARGUMENTS
 
@@ -117,6 +131,24 @@ ARGUMENTS
         --nots and --not undo the setting of this option; useful if this
         option is set by default in the user's ".getwizpnp" file.
 
+    resume
+          --resume
+          -R
+          --noresume
+          --noR
+
+        Allow resumption of downloading of recordings that appear to be
+        incomplete.
+
+    resume
+          --force
+          -f
+          --noforce
+          --nof
+
+        Allow downloads to overwrite existing recordings that appear to be
+        complete.
+
     verbose
           --verbose
           -v
@@ -138,8 +170,8 @@ ARGUMENTS
           --noregexp
           --nor
 
-        Carry out the matches using the argument as a Perl regular
-        expression. For example:
+        Carry out the matches using the argument as a case-insensitive Perl
+        regular expression. For example:
 
             getWizPnP --regexp 'ABC|SBS'
 
@@ -158,7 +190,7 @@ ARGUMENTS
         *servicename*#*title*#*date* string. If any expression evaluates to
         true (in Perl terms), the recording is matched.
 
-            getWizPnp --expression '/ABC|SBS/'
+            getWizPnp --expression '/ABC|SBS/i'
 
         is equivalent to the --regexp example above. Quite powerful; the
         Swiss Army knife approach.
@@ -171,6 +203,32 @@ ARGUMENTS
           -O dir
 
         Save the recordings in *dir* rather than in the current directory.
+
+    indir
+          --indir=dir
+          -I dir
+
+        Look for recordings in *dir* on the local computer rather than on
+        the Beyonwiz.
+
+    List
+          --List
+          -L
+
+        Produce only a list of the index names of the recordings in the
+        recording index file. Intended for use by GUIs or other programs
+        calling *getWizPnP*.
+
+    BWName
+          --BWName
+          -B
+
+        The pattern arguments are recording index names as listed by --List.
+        Can find Beyonwiz recordings faster than other matching methods,
+        because it doesn't scan the whole file list. Unlike the other
+        matching methods, must be an exact string match. Not very
+        user-friendly. Intended for use by GUIs or other programs calling
+        *getWizPnP*.
 
 FILES
 
@@ -188,26 +246,17 @@ FILES
 
 PREREQUSITES
 
-    Uses packages "Beyonwiz::Recording::Header",
-    "Beyonwiz::Recording::Index", "Beyonwiz::Recording::IndexEntry",
-    "Beyonwiz::Recording::Recording", "Beyonwiz::Recording::Trunc",
-    "Beyonwiz::Recording::TruncEntry", "Beyonwiz::WizPnP",
-    "Beyonwiz::WizPnPDevice", "File::Basename", "Getopt::Long",
-    "HTTP::Request", "HTTP::Response", "HTTP::Status", "IO::Select",
-    "IO::Socket::Multicast", "LWP::Simple", "URI::Escape", "URI",
-    "XML::DOM".
+    Uses packages "Beyonwiz::WizPnP;", "Beyonwiz::Recording::HTTPIndex",
+    "Beyonwiz::Recording::HTTPHeader", "Beyonwiz::Recording::HTTPTrunc",
+    "Beyonwiz::Recording::HTTPRecording", "Beyonwiz::Recording::FileIndex",
+    "Beyonwiz::Recording::FileHeader", "Beyonwiz::Recording::FileTrunc",
+    "Beyonwiz::Recording::FileRecording", "HTTP::Status", "Getopt::Long".
 
 BUGS
 
-    File copy progress bar only updates after each (up to) 32MB recording
-    chunk is copied.
-
-    It's not possible to restart interrupted transfers.
-
-    If the --ts flag is given, downloading a recording to the same name will
-    overwrite the original; if it's not given an error results. It's not
-    completely clear what the correct behaviour should be.
-
     Uses "bignum" for 64-bit integers, even when the underlying Perl
     integers are 64 bits.
+
+    When resuming a download, may fetch up to 32MB more data than is
+    necessary.
 

@@ -1,0 +1,45 @@
+NAME
+
+        use Beyonwiz::Recording::HTTPRecording;
+
+SYNOPSIS
+
+    Download recordings from the Beyonwiz.
+
+SUPERCLASS
+
+    Inherits from "Beyonwiz::Recording::Index"
+
+METHODS
+
+    "Beyonwiz::Recording::HTTPRecording->new($base, $ts, $date, $resume,
+    $force)"
+        Create a new Beyonwiz recording downloader object. $base is the base
+        URL for the Beyonwiz device. If $ts is true, the download will be
+        into a single ".ts" file, otherwise the recording will be copied as
+        it is on the Beyonwiz. If $date is true, the recording date is added
+        to the recording name. Useful for downloading series recordings. If
+        $resume is true, allow resumption of recording download that appear
+        to be incomplete. If $force is true, allow a download to overwrite
+        an existing download.
+
+    "$r->base([$val]);"
+        Returns (sets) the device base URL. The recording URL path name is
+        set when the recording is downloaded. The object is intended to
+        allow a sequence of recordings to be downloaded.
+
+PREREQUISITES
+
+    Uses packages: "Beyonwiz::Recording::Recording",
+    "Beyonwiz::Recording::Trunc", "Beyonwiz::Utils", "LWP::Simple", "URI",
+    "URI::Escape", "HTTP::Status", "POSIX".
+
+BUGS
+
+    The progress callback may have inaccuracies when transferring a
+    recording as-is from the Beyonwiz if the recording has been edited or
+    made from the timeshift buffer.
+
+    Uses "bignum" for 64-bit integers, even when the underlying Perl
+    integers are 64 bits.
+

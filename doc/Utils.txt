@@ -1,0 +1,19 @@
+NAME
+
+        use Beyonwiz::Utils;
+
+SYNOPSIS
+
+    Some utilities that don't belong anywhere else.
+
+FUNCTIONS
+
+    "makeAccessors($package, @fields)"
+        Make accessor methods in a class in $package for the fields listed
+        in @fields.
+
+        If a method of the same name as the field already exists, don't make
+        an automatic accessor for it. Because of this, calling
+        *makeAccessors* multiple times for the same class and fields is
+        save, but inefficient.
+

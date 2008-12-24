@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>Index</title>
+<title>HTTPIndex</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rev="made" href="mailto:root@omen.apple.com" />
 </head>
@@ -10,7 +10,7 @@
 <body style="background-color: white">
 <table border="0" width="100%" cellspacing="0" cellpadding="3">
 <tr><td class="block" style="background-color: #cccccc" valign="middle">
-<big><strong><span class="block">&nbsp;Index</span></strong></big>
+<big><strong><span class="block">&nbsp;HTTPIndex</span></strong></big>
 </td></tr>
 </table>
 
@@ -21,7 +21,7 @@
 
 	<li><a href="#name">NAME</a></li>
 	<li><a href="#synopsis">SYNOPSIS</a></li>
-	<li><a href="#constants">CONSTANTS</a></li>
+	<li><a href="#superclass">SUPERCLASS</a></li>
 	<li><a href="#methods">METHODS</a></li>
 	<li><a href="#prerequisites">PREREQUISITES</a></li>
 	<li><a href="#bugs">BUGS</a></li>
@@ -33,59 +33,46 @@
 </p>
 <h1><a name="name">NAME</a></h1>
 <pre>
-    use Beyonwiz::Recording::Index;</pre>
+    use Beyonwiz::Recording::HTTPIndex;</pre>
 <p>
 </p>
 <hr />
 <h1><a name="synopsis">SYNOPSIS</a></h1>
-<p>Provides access to the Beyonwiz recording file index.</p>
+<p>Provides access to the Beyonwiz recording file index via HTTP.</p>
 <p>
 </p>
 <hr />
-<h1><a name="constants">CONSTANTS</a></h1>
-<dl>
-<dt><strong><a name="item_index"><code>INDEX</code></a></strong>
-
-<dd>
-<p>The index url path for the beyonwiz (<code>index.txt</code>).</p>
-</dd>
-</li>
-</dl>
+<h1><a name="superclass">SUPERCLASS</a></h1>
+<p>Inherits from
+<a href="../../../html/./Beyonwiz/Recording/Index.html"><code>Beyonwiz::Recording::Index</code></a></p>
 <p>
 </p>
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Index-&gt;new</code></a></strong>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::HTTPIndex-&gt;new($base)</code></a></strong>
 
 <dd>
-<p>Create a new Beyonwiz recording index object.</p>
+<p>Create a new Beyonwiz recording index object.
+<code>$base</code> is the base URL for the Beyonwiz device.</p>
 </dd>
 </li>
-<dt><strong><a name="item_entries"><code>$i-&gt;entries([$val]);</code></a></strong>
+<dt><strong><a name="item_base"><code>$i-&gt;base([$val]);</code></a></strong>
 
 <dd>
-<p>Returns (sets) the list of
-<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>
-objects in the index as an array reference.</p>
+<p>Returns (sets) the device base URL.</p>
 </dd>
 </li>
-<dt><strong><a name="item_nentries"><code>$i-&gt;nentries;</code></a></strong>
+<dt><strong><a name="item_url"><code>$i-&gt;url([$val]);</code></a></strong>
 
 <dd>
-<p>Returns the number of index entries.</p>
+<p>Returns (sets) the index URL.</p>
 </dd>
 </li>
-<dt><strong><a name="item_valid"><code>$i-&gt;valid;</code></a></strong>
+<dt><strong><a name="item_load"><code>$i-&gt;load;</code></a></strong>
 
 <dd>
-<p>Returns true if the last <code>$i-&gt;load;</code> succeeded.</p>
-</dd>
-</li>
-<dt><strong><a name="item_decode"><code>$i-&gt;decode($index_data);</code></a></strong>
-
-<dd>
-<p>Decode the binary index data.</p>
+<p>Load the index from the Beyonwiz.</p>
 </dd>
 </li>
 </dl>
@@ -94,9 +81,10 @@ objects in the index as an array reference.</p>
 <hr />
 <h1><a name="prerequisites">PREREQUISITES</a></h1>
 <p>Uses packages:
+<a href="../../../html/./Beyonwiz/Recording/Index.html"><code>Beyonwiz::Recording::Index</code></a>,
 <a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>,
 <a href="../../../html/./Beyonwiz/Utils.html"><code>Beyonwiz::Utils</code></a>,
-<code>LWP::Simple</code>,
+<a href="../../../html/LWP/Simple.html">the LWP::Simple manpage</a>,
 <code>URI</code>,
 <code>URI::Escape</code>,
 <code>File::Basename</code>.</p>
@@ -109,7 +97,7 @@ it from <em>locationURL</em> in
 <a href="../../../html/./Beyonwiz/WizPnP.html"><code>Beyonwiz::WizPnP</code></a>.</p>
 <table border="0" width="100%" cellspacing="0" cellpadding="3">
 <tr><td class="block" style="background-color: #cccccc" valign="middle">
-<big><strong><span class="block">&nbsp;Index</span></strong></big>
+<big><strong><span class="block">&nbsp;HTTPIndex</span></strong></big>
 </td></tr>
 </table>
 

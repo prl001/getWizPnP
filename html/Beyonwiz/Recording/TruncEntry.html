@@ -19,9 +19,10 @@
 
 <ul>
 
-	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#name">NAME</a></li>
 	<li><a href="#synopsis">SYNOPSIS</a></li>
 	<li><a href="#methods">METHODS</a></li>
+	<li><a href="#prerequisites">PREREQUISITES</a></li>
 	<li><a href="#bugs">BUGS</a></li>
 </ul>
 <!-- INDEX END -->
@@ -29,7 +30,7 @@
 <hr />
 <p>
 </p>
-<h1><a name="synopsis">SYNOPSIS</a></h1>
+<h1><a name="name">NAME</a></h1>
 <pre>
     use Beyonwiz::Recording::TruncEntry;</pre>
 <p>
@@ -53,12 +54,12 @@ The file name is this number printed in <code>printf</code> <code>%04d</code> fo
 <code>$flags</code> - flags for the entry - unknown purpose.
 <code>$offset</code> - offset of the recording data chunk in the file (<code>bignum</code>).
 <code>$size</code> - size of the recodding data chunk in the file.
-More than one <a href="../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::Index</code></a>
+More than one <a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::Index</code></a>
 can refer to a given file.</p>
 </dd>
 <dd>
 <p>Normally constructed from the Beyonwiz trunc file by
-<a href="../html/./Beyonwiz/Recording/Trunc.html"><code>Beyonwiz::Recording::Trunc</code></a>.</p>
+<a href="../../../html/./Beyonwiz/Recording/Trunc.html"><code>Beyonwiz::Recording::Trunc</code></a>.</p>
 </dd>
 </li>
 <dt><strong><a name="item_wizoffset"><code>$te-&gt;wizOffset([$val]);</code></a></strong>
@@ -92,6 +93,12 @@ can refer to a given file.</p>
 </dd>
 </li>
 </dl>
+<p>
+</p>
+<hr />
+<h1><a name="prerequisites">PREREQUISITES</a></h1>
+<p>Uses packages:
+<a href="../../../html/./Beyonwiz/Utils.html"><code>Beyonwiz::Utils</code></a>.</p>
 <p>
 </p>
 <hr />

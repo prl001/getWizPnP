@@ -1,9 +1,8 @@
 package Beyonwiz::Recording::TruncEntry;
 
-=head1 SYNOPSIS
+=head1 NAME
 
     use Beyonwiz::Recording::TruncEntry;
-
 
 =head1 SYNOPSIS
 
@@ -51,6 +50,11 @@ Returns (sets) the size of the recodding data chunk in the file.
 
 =back
 
+=head1 PREREQUISITES
+
+Uses packages:
+L<C<Beyonwiz::Utils>|Beyonwiz::Utils>.
+
 =head1 BUGS
 
 Uses C<bignum> for 64-bit integers, even when the underlying
@@ -60,6 +64,8 @@ Perl integers are 64 bits.
 
 use warnings;
 use strict;
+
+my $accessorsDone;
 
 sub new($$$) {
     my ($class, $wizOffset, $fileNum, $flags, $offset, $size) = @_;
@@ -71,43 +77,13 @@ sub new($$$) {
 	offset    => $offset,
 	size      => $size,
     };
+
+    unless($accessorsDone) {
+	Beyonwiz::Utils::makeAccessors(__PACKAGE__, keys %$self);
+	$accessorsDone = 1;
+    }
+
     return bless $self, $class;
 }
-
-sub wizOffset($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{wizOffset};
-    $self->{wizOffset} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub fileNum($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{fileNum};
-    $self->{fileNum} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub flags($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{flags};
-    $self->{flags} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub offset($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{offset};
-    $self->{offset} = $val if(@_ == 2);
-    return $ret;
-}
-
-sub size($;$) {
-    my ($self, $val) = @_;
-    my $ret = $self->{size};
-    $self->{size} = $val if(@_ == 2);
-    return $ret;
-}
-
 
 1;

@@ -1,4 +1,4 @@
-SYNOPSIS
+NAME
 
         use Beyonwiz::Recording::Header;
 
@@ -22,29 +22,36 @@ CONSTANTS
     "MAX_TS_POINT"
         Maximum number of offsets in *offsets* (8640).
 
+    "HDR_SIZE"
+        Total size of the header (256kiB).
+
+    "HDR_MAIN_OFF"
+    "HDR_MAIN_SIZE"
+    "HDR_OFFSETS_OFF"
+    "HDR_OFFSETS_SIZE"
+    "HDR_BOOKMARKS_OFF"
+    "HDR_BOOKMARKS_SZ"
+    "HDR_EPISODE_OFF"
+    "HDR_EPISODE_SZ"
+    "HDR_EXTINFO_OFF"
+    "HDR_EXTINFO_SZ"
+        Offsets in the header and sizes for the sections of the header file.
+
 METHODS
 
-    "Beyonwiz::Recording::Header->new($name, $base, $path)"
-        Create a new Beyonwiz recording header object. $name is the default
-        name of the recording (usually the name in the Beyonwiz recording
-        index, see "Beyonwiz::Recording::Index"). $base is the base URL for
-        the Beyonwiz device. $path is the path part of the recording URL
-        (usually the path in the recording index).
-
-    "$h->base([$val]);"
-        Returns (sets) the device base URL.
-
-    "$h->name([$val]);"
-        Returns (sets) the default recording name.
-
-    "$h->name([$val]);"
-        Returns (sets) the default recording name.
-
-    "$h->path([$val]);"
-        Returns (sets) the recording URL path part.
+    "Beyonwiz::Recording::Header->new()"
+        Create a new Beyonwiz recording header object.
 
     "$h->headerName([$val]);"
         Returns (sets) the name of the header document (path part only).
+
+    "$h->headerName([$val]);"
+        Returns (sets) the name of the header document (path part only).
+
+    "$h->isTV; $h->isRadio;"
+        Returns true if "$h->validMain;" is true and the recording is
+        digital TV (resp digital radio). Both can return false if
+        "$h->headerName" has not been set.
 
     "$h->unknown([$val]);"
         Returns (sets) the array reference of the 5 words in the header file
@@ -65,6 +72,13 @@ METHODS
 
     "$h->title([$val]);"
         Returns (sets) the recording title (event name).
+
+    "$h->episode([$val]);"
+        Returns (sets) the recording episode name (subtitle).
+
+    "$h->longTitle;"
+        Returns "$h->title . '/' $h->episode" if the episode name has been
+        loaded and is non-empty, otherwise returns "$h->title".
 
     "$h->mjd([$val]);"
         Returns (sets) the recording start date. The name suggests that it
@@ -113,15 +127,17 @@ METHODS
     "$h->nbookmarks;"
         Returns the number of bookmarks.
 
-    "$h->valid;"
-        Returns true if the last "$h->load;" was successful.
+    "$h->validMain;"
+    "$h->validEpisode;"
+    "$h->validExtInfo;"
+    "$h->validBookmarks;"
+    "$h->validOffsets;"
+        Returns true if the last "$h->loadMain;" (resp. "$h->loadEpisode",
+        "$h->loadExtInfo", "$h->loadBookmarks", or "$h->loadOffsets") was
+        successful.
 
     "$h->size;"
         Returns the size of the header file (256kB).
-
-    "$h->isTV; $h->isRadio;"
-        Returns true if "$h->valid;" is true and the recording is digital TV
-        (resp digital radio).
 
     "$h->playtime"
         A convenience method that returns the duration of the recording in
@@ -141,20 +157,41 @@ METHODS
         The local time fields can then be converted into a genuine Unix
         timestamp using "Time::Local::timelocal".
 
-    "$h->offset_time($offset)"
-        Convert an offset into a time. "$h->load(1)" must have been called,
-        otherwise -1 is returned. Interpolates between values in the offset
-        table. Returns 0 if "$offset <= $self->offsets->[0]" and
+    "$h->offsetTime($offset)"
+        Convert an offset into a time. "$h->loadOffsets" must have been
+        called, otherwise -1 is returned. Interpolates between values in the
+        offset table. Returns 0 if "$offset <= $self->offsets->[0]" and
         "$self->playtime" if "$offset >= $self->endOffset".
 
-    "$h->load([$full])"
-        Load the header object from the header on the Beyonwiz. The
-        *offsets* data is only loaded if $full is present and true. If $full
-        is not set, only 2kB is downloaded, otherwise 256kB is downloaded.
+    "$h->loadMain;"
+    "$h->loadEpisode;"
+    "$h->loadExtInfo;"
+    "$h->loadBookmarks;"
+    "$h->loadOffsets;"
+        Load parts of the header object from the header on the Beyonwiz.
+        "$h->loadMain" loads the basics, "$h->loadEpisode" loads the episode
+        name/subtitle informtion, "$h->loadExtInfo" loads the extended event
+        informtion, "$h->loadBookmarks" loads the bookmark information and
+        "$h->loadOffsets" loads the 10-second offset data.
+
+    "$h->decodeMain($hdr_data)"
+    "$h->decodeEpisode($hdr_data)"
+    "$h->decodeExtInfo($hdr_data)"
+    "$h->decodeBookmarks($hdr_data)"
+    "$h->decodeOffsets($hdr_data)"
+        Decodes parts of the header object from $hdr_data on the Beyonwiz.
+        The data for each part is assumed to satart at the beginning of the
+        respective $hdr_data.
+
+        "$h->decodeMain" decodes the basics, "$h->decodeEpisode" decodes the
+        episode name/subtitle informtion, "$h->decodeExtInfo" decodes the
+        extended event informtion, "$h->decodeBookmarks" decodes the
+        bookmark information and "$h->decodeOffsets" decodes the 10-second
+        offset data.
 
 PREREQUISITES
 
-    Uses packages: "File::Basename", "LWP::Simple", "URI::Escape", "URI".
+    Uses packages: "Beyonwiz::Utils", "LWP::Simple", "URI", "URI::Escape".
 
 BUGS
 

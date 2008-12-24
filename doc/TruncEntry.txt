@@ -1,4 +1,4 @@
-SYNOPSIS
+NAME
 
         use Beyonwiz::Recording::TruncEntry;
 
@@ -38,6 +38,10 @@ METHODS
 
     "$te->size([$val]);"
         Returns (sets) the size of the recodding data chunk in the file.
+
+PREREQUISITES
+
+    Uses packages: "Beyonwiz::Utils".
 
 BUGS
 
