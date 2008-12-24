@@ -146,9 +146,7 @@ use File::Basename;
 
 use constant STAT => 'stat';
 
-use constant BADCHARS => $^O eq 'MSWin32' || $^O eq 'cygwin'
-				? '\\/:*?"<>|'	# Windows or Windows inside
-				: '\/';		# For Unix & HFS+ filesystems
+use constant BADCHARS => '\\/:*?"<>|';
 
 use Exporter;
 our @ISA = qw(Exporter);
@@ -228,6 +226,7 @@ sub getRecording($$$$$$) {
 	$name .= '.ts';
     } else {
 	$trunc = $trunc->makeFileTrunc;
+	$name .= '.tvwiz';
     }
 
     my $size = $trunc->recordingSize;

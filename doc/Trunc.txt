@@ -51,7 +51,9 @@ METHODS
     "$t->makeFileTrunc;"
         Return a new "Beyonwiz::Recording::HTTPTrunc" with a single
         "Beyonwiz::Recording::TruncEntry" for each file to be downloaded.
-        The sizes and offsets are not particularly meaningful.
+        The chunk file sizes and offsets are adjusted to have a single trunc
+        representing the whole file. The "wizOffset" values are not
+        particularly meaningful.
 
 PREREQUISITES
 

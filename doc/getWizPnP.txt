@@ -246,7 +246,7 @@ FILES
 
 PREREQUSITES
 
-    Uses packages "Beyonwiz::WizPnP;", "Beyonwiz::Recording::HTTPIndex",
+    Uses packages "Beyonwiz::WizPnP", "Beyonwiz::Recording::HTTPIndex",
     "Beyonwiz::Recording::HTTPHeader", "Beyonwiz::Recording::HTTPTrunc",
     "Beyonwiz::Recording::HTTPRecording", "Beyonwiz::Recording::FileIndex",
     "Beyonwiz::Recording::FileHeader", "Beyonwiz::Recording::FileTrunc",

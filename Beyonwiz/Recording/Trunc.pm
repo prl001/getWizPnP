@@ -76,7 +76,9 @@ L<C<Beyonwiz::Recording::HTTPTrunc>|Beyonwiz::Recording::HTTPTrunc>
 with a single
 L<C<Beyonwiz::Recording::TruncEntry>|Beyonwiz::Recording::TruncEntry>
 for each file to be downloaded.
-The sizes and offsets are not particularly meaningful.
+The chunk file sizes and offsets are adjusted to have a single trunc
+representing the whole file. The C<wizOffset> values are not particularly
+meaningful.
 
 =back
 
@@ -188,13 +190,13 @@ sub makeFileTrunc($) {
 				    $tr->wizOffset,
 				    $tr->fileNum,
 				    $tr->flags,
-				    $tr->offset,
-				    $tr->size
+				    0,
+				    $tr->offset+$tr->size
 				)
 			    );
 	} else {
 	    my $ent = $fileTrunc->entries->[$fileTrunc->nentries-1];
-	    $ent->size($ent->size+$tr->size);
+	    $ent->size($tr->offset+$tr->size);
 	}
 	$lastfile = $tr->fileNum;
     }

@@ -276,7 +276,7 @@ the file C<getwizpnp.conf>.
 =head1 PREREQUSITES
 
 Uses packages 
-L<C<Beyonwiz::WizPnP;>|Beyonwiz::WizPnP;>,
+L<C<Beyonwiz::WizPnP>|Beyonwiz::WizPnP>,
 L<C<Beyonwiz::Recording::HTTPIndex>|Beyonwiz::Recording::HTTPIndex>,
 L<C<Beyonwiz::Recording::HTTPHeader>|Beyonwiz::Recording::HTTPHeader>,
 L<C<Beyonwiz::Recording::HTTPTrunc>|Beyonwiz::Recording::HTTPTrunc>,
