@@ -109,13 +109,21 @@ C<LWP::Simple>,
 C<URI>,
 C<XML::DOM>.
 
+=head1 BUGS
+
+C<IO::Socket::Multicast> is not available in ActivePerl's
+PPM for Windows. 
+
+C<< Beyonwiz::Recording::WizPnP->new >> will die with a
+message suggesting workarounds if C<IO::Socket::Multicast>
+can't be loaded.
+
 =cut
 
 use warnings;
 use strict;
 
 use Beyonwiz::WizPnPDevice;
-use IO::Socket::Multicast;
 use IO::Select;
 use HTTP::Response;
 use HTTP::Request;
@@ -123,6 +131,21 @@ use HTTP::Status;
 use LWP::Simple qw(get);
 use URI;
 use XML::DOM;
+
+# Test at runtime whether IO::Socket::Multicast exists,
+# and if it doesn't make new() die by setting $hasMulticast to fales.
+
+my $hasMulticast;
+
+BEGIN {
+    eval 'require IO::Socket::Multicast';
+    if($@) {
+	$hasMulticast = 0;
+    } else {
+	$hasMulticast = 1;
+	IO::Socket::Multicast->import;
+    }
+}
 
 use constant DESC => 'tvdevicedesc.xml';
 
@@ -138,7 +161,7 @@ sub new($) {
     my ($class) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
-	devices	=> {}
+	devices	=> {},
     };
 
     unless($accessorsDone) {
@@ -215,6 +238,13 @@ sub process($$) {
 
 sub search($;$) {
     my ($self, $maxdev) = @_;
+
+    die "Your system doesn't support multicast to discover WizPnP devices.\n",
+	    "Either install Perl package IO::Socket::Multicast, or\n",
+	    "use the --host option to specify your Beyonwiz's IP address ",
+	    "or name.\n"
+	unless($hasMulticast);
+
     my $sout = IO::Socket::Multicast->new(Proto => 'udp',
 					  PeerAddr => SSDPPEER,
 					  ReuseAddr => 1)

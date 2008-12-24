@@ -5,22 +5,28 @@ NAME
 
 SYNOPSIS
 
-        getWizPnP [-h|--help] [-D dev|--device dev] [-m devs|--maxdev=devs]
-                  [-h host|--host=host] [-p port|--port=port]
-                  [-l|--list] [-L|--List] [-d|--date] [-t|--ts] [-v|--verbose]
-                  [-R|--resume] [-f|--f]
-                  [-r|--regexp] [-e|--expression] [-B|--BWName]
-                  [-O dir|--outdir dir] [-I dir |--indir=dir]
+        getWizPnP [-h|--help]
+                  [-D dev|--device dev] [-m devs|--maxdev=devs]
+                  [-H host|--host=host] [-p port|--port=port]
+                  [-l|--list] [-L|--List]
+                  [-X|--delete]
+                  [-d|--date] [-E|--episode] [-t|--ts]
+                  [-r|--regexp] [-e|--expression] [-B|-BWName]
+                  [-R|--resume] [-f|--force]
+                  [-O dir|--outdir=dir] [-I dir|--indir=dir]
+                  [-v|--verbose] [-q|--quiet]
                   [ patterns... ]
 
 DESCRIPTION
 
-    List or fetch the recordings on a Beyonwiz DP series PVR over the
-    network using the WizPnP interface.
+    List, fetch, move or delete the recordings on a Beyonwiz DP series PVR
+    over the network using the *WizPnP* interface. If --indir is specified,
+    perform the same operations on the computer where *getWizPnP* is
+    running. --indir is most useful in combination with --ts.
 
     If no pattern arguments are given, then all recordings are listed.
     Otherwise recordings matching any of the patterns are fetched (or
-    listed, with --list).
+    listed, moved or deleted, with --list, --move or --delete respectively).
 
     In the absence of --regexp or --expression a pattern matches if it is a
     substring of the string *servicename*#*longtitle*#*date*, case
@@ -39,11 +45,13 @@ DESCRIPTION
 
         wizGetPnP ''
 
-    Recordings are downloaded to a name corresponding to their event name
-    (title) with any characters that are illegal in the file system changed
-    to '_'. The episode name isn't used. The --date option adds the day and
-    date of the recording to the name, helpful for series recordings.
-    Downloaded recordings are placed in the current directory.
+    Recordings are copied or moved to a name corresponding to their event
+    name (title) with any characters that are illegal in the file system
+    changed to '_'. The --date option adds the day and date of the recording
+    to the name, and the --episode option adds the episode name to the
+    recording name (if there is one set) -- helpful for series recordings.
+    Downloaded recordings are placed in the current directory unless
+    --outdir has been specified.
 
     When listing recordings, recordings that are currently recording are
     flagged with "*RECORDING NOW" next to the recording name. The tag is not
@@ -71,11 +79,6 @@ ARGUMENTS
         device, that device is used. Otherwise, if a device is named but
         isn't found, *getWizPnP* returns with an error. Device name matching
         is case-insensitive ("MyBeyonwiz" matches "mybeyonwiz").
-
-        Note: There is a problem with the implementation of this function
-        and it can take up to 60 seconds (average 30 seconds) to search for
-        the WizPnP devices on the network. Until this problem is fixed, you
-        may prefer to use the --host option.
 
 
           --maxdevs=devs
@@ -109,14 +112,38 @@ ARGUMENTS
           --list
           -l
 
-        List the matching recordings, rather than downloading them.
+        List the matching recordings, rather than copying them.
+
+    delete
+          --delete
+          -X
+
+        Delete the matching recordings, rather than copying them.
+
+    move
+          --move
+          -M
+
+        Move the specified recordings to the output directory. Equivalent to
+        a copy followed by a delete for each matching recording.
 
     date
           --date
           -d
+          --nodate
+          --nod
 
         Add the recording day and date to the name of the recording when
         it's downloaded. Useful for downloading series.
+
+    episode
+          --episode
+          -E
+          --noepisode
+          --noE
+
+        Add the recording episode name (if there is one) to the name of the
+        recording when it's downloaded. Useful for downloading series.
 
     ts
           --ts
@@ -154,8 +181,11 @@ ARGUMENTS
           -v
 
         Provide more information. A single -v lists some more details about
-        the recordings, and shows a progress indicator when copying. Two -v
-        options list the sizes of the recording file chunks on the Beyonwiz.
+        the recordings, and shows a progress indicator when copying. The
+        progress indicator shows the transfer rate for the last megabyte
+        copied while the transfer is running, and the average transfer rate
+        for the copy when the copy completes. Two -v options list the sizes
+        of the recording file chunks on the Beyonwiz.
 
     quiet
           --quiet
@@ -239,7 +269,7 @@ FILES
     command-line options are set.
 
     It is probably most useful for setting the default --device or --host
-    option.
+    option, or making "--episode" set by default.
 
     An example ".getwizpnp" file is included with *getWizPnP*, in the file
     "getwizpnp.conf".
@@ -253,6 +283,28 @@ PREREQUSITES
     "Beyonwiz::Recording::FileRecording", "HTTP::Status", "Getopt::Long".
 
 BUGS
+
+    Although a limited amount of testing has not found any problems, it is
+    uncertain whether deleting a recording on the Beyonwiz while it is
+    currently being watched can cause any malfunction on the Beyonwiz.
+    Normally, the playback of the recording is stopped with an error message
+    shortly after the recording is deleted. This may be impolite to he
+    person watching, but so far does not appear to affect the Beyonwiz
+    beyond that.
+
+    The WizPnP search requires the use of the Perl package
+    "IO::Socket::Multicast". This is available for download from CPAN for
+    Mac OS X, Linux and Cygwin running under Windows. It is available only
+    through and alternative PPM ActivePerl archive for Windows.
+    Unfortunately, that version of "IO::Socket::Multicast" does not appear
+    to work with the same code that works with the CPAN version.
+
+    If "IO::Socket::Multicast" is not available, *getWizPnP* will exit with
+    an error. In this case, the Beyonwiz device must be specified using
+    --host (and --port if necessary).
+
+    See README.txt in the distribution for details on how to install ant
+    modules that *getWizPnP* needs to allow it to run on your system.
 
     Uses "bignum" for 64-bit integers, even when the underlying Perl
     integers are 64 bits.

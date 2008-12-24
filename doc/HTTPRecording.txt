@@ -12,13 +12,15 @@ SUPERCLASS
 
 METHODS
 
-    "Beyonwiz::Recording::HTTPRecording->new($base, $ts, $date, $resume,
-    $force)"
+    "Beyonwiz::Recording::HTTPRecording->new($base, $ts, $date, $episode,
+    $resume, $force)"
         Create a new Beyonwiz recording downloader object. $base is the base
         URL for the Beyonwiz device. If $ts is true, the download will be
         into a single ".ts" file, otherwise the recording will be copied as
         it is on the Beyonwiz. If $date is true, the recording date is added
-        to the recording name. Useful for downloading series recordings. If
+        to the recording name. If $episode is true, the recording episode
+        name is added to the recording name if the episode name contains any
+        non-blank characters. Useful for downloading series recordings. If
         $resume is true, allow resumption of recording download that appear
         to be incomplete. If $force is true, allow a download to overwrite
         an existing download.
@@ -27,6 +29,48 @@ METHODS
         Returns (sets) the device base URL. The recording URL path name is
         set when the recording is downloaded. The object is intended to
         allow a sequence of recordings to be downloaded.
+
+    "$r->getRecordingFileChunk($path, $name, $file, $outdir, $append, $off,
+    $size, $outOff, $progressBar);"
+        Download a chunk of a recording corresponding to a single
+        "Beyonwiz::Recording::TruncEntry".
+
+        $path is the URL path to the folder containing the recording's files
+        on the Beyonwiz. $name is the name of the recording folder or file
+        (if "$r->ts" is true). $file is the name of the Beyonwiz file
+        containing the chunk. $append is false if $file is to be created,
+        true if it is to be appended to. $off and $size is the chunk to be
+        transferred. If $outdir is defined and not the empty string, the
+        record file is placed in that directory, rather than the current
+        directory. $outoff is the offset to where to write the chunk into
+        the output file. $progressBar is as defined below in
+        "$r->getRecordng(...)".
+
+        Returns "RC_OK" if successful. Otherwise it will print a warning
+        with the HTTP status message of the HTTP operation that failed, and
+        return that status.
+
+    "$r->getRecordingFile($path, $name, $outdir, $file, $append);"
+        Download a complete 0000, 0001, etc. recording file or header file
+        from the Beyonwiz. Note that more than one
+        "Beyonwiz::Recording::TruncEntry" may refer to any given file.
+
+        $path, $name, $outdir, $file and $append are as in
+        *getRecordingFileChunk*.
+
+        Returns "RC_OK" if successful. Otherwise it will print a warning
+        with the HTTP status message of the HTTP operation that failed, and
+        return that status.
+
+    "$r->deleteRecordingFile($path, $name, $file)"
+        Delete a recording file. $path is the path name from the recording's
+        "Beyonwiz::Recording::IndexEntry". $name is the name of the
+        recording, and $file is the name of the file within the recording to
+        delete.
+
+        Returns "RC_OK" if successful. Otherwise it will print a warning
+        with the HTTP status message of the HTTP operation that failed, and
+        return that status.
 
 PREREQUISITES
 

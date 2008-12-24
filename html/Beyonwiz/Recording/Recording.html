@@ -43,7 +43,7 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Recording-&gt;new($ts, $date, $resume, $force)</code></a></strong>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Recording-&gt;new($ts, $date, $episode, $resume, $force)</code></a></strong>
 
 <dd>
 <p>Create a new Beyonwiz recording downloader object.
@@ -52,6 +52,8 @@ a single <code>.ts</code> file, otherwise the recording will
 be copied as it is on the Beyonwiz.
 If <code>$date</code> is true, the recording date is added to
 the recording name.
+If <code>$episode</code> is true, the recording episode name is added to
+the recording name if the episode name contains any non-blank characters.
 Useful for downloading series recordings.
 If <code>$resume</code> is true, allow resumption of recording download
 that appear to be incomplete.
@@ -146,17 +148,53 @@ and <code>$path</code> is the path name from the recording's
 If <code>$outdir</code> is defined and not the empty string, the recording is
 placed in that directory, rather than the current directory.
 The name of the downloaded recording is derived from the recording title
-in the <code>$hdr</code>, with the recording date appended if <a href="#item_date"><code>$r-&gt;date</code></a>
-is true.
+in the <code>$hdr</code>, with the episode name appended if <code>$r-&gt;episode</code>
+is true, and there are any non-whitespace characters in the episode name
+and with the recording date appended if <a href="#item_date"><code>$r-&gt;date</code></a> is true.
 If <code>$showProgress</code> is not <code>undef</code> it must be an object in a class
 implementing the methods <code>$showProgress-&gt;total([$val])</code> and
 <code>$showProgress-&gt;done([$val])</code>. <code>total</code> registers the total
 number of bytes to transfer, and <code>done</code> updates the number of
 bytes transferred in the progress bar.</p>
 </dd>
+</li>
+<dt><strong><a name="item_renamerecording"><code>$r-&gt;renameRecording($hdr, $path, $outdir)</code></a></strong>
+
 <dd>
-<p>Unimplemented in <code>Beyonwiz::Recording::Recording</code>, over-ride in
-derived classes.</p>
+<p>Move a recording described by <code>$hdr</code> and the given
+source <code>$path</code> (from the recording's
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>)
+to <code>$outdir</code> by renaming the recording directory.
+Returns <code>RC_OK</code> if successful.</p>
+</dd>
+<dd>
+<p>On <code>Unix(-like)</code> systems, <a href="#item_renamerecording"><code>renameRecording</code></a> will  fail if the source
+and destinations for the move are on different file systems.
+It will also fail if <a href="#item_ts"><code>$r-&gt;ts</code></a> is true and it will fail if
+the source recording is on the Beyonwiz.
+In all these cases, it will return <code>RC_NOT_IMPLEMENTED</code>,
+and not print a warning.</p>
+</dd>
+<dd>
+<p>For other errors it will print a warning with the system error message,
+and return one of
+<code>RC_FORBIDDEN</code>,
+<code>RC_NOT_FOUND</code>
+or <code>RC_INTERNAL_SERVER_ERROR</code>;</p>
+</dd>
+<dd>
+<p>Returns <code>RC_NOT_IMPLEMENTED</code>, must be overridden in any
+derived class that can provide this function.</p>
+</dd>
+</li>
+<dt><strong><a name="item_deleterecording"><code>$r-&gt;deleteRecording($hdr, $trunc, $path)</code></a></strong>
+
+<dd>
+<p>Delete a recording.
+<code>$hdr</code> is the recording's header file object,
+<code>$trunc</code> is the recording's trunc file object,
+and <code>$path</code> is the path name from the recording's
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.</p>
 </dd>
 </li>
 </dl>

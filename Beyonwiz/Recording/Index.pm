@@ -117,9 +117,13 @@ sub decode($$) {
 	foreach my $rec (split /\r?\n/, $index_data) {
 	    my @parts = split /\|/, $rec;
 	    if(@parts == 2) {
+		$parts[1] =~ s,/[^/]*\.(tv|rad)wizts$,,;
 		push @{$self->entries},
 		    Beyonwiz::Recording::IndexEntry->new(
-			    $parts[0], dirname $parts[1]);
+			    $parts[0], $parts[1]);
+	    } elsif(@parts == 1 || $parts[0] eq "\tidehdd/contents") {
+		# Can't handle media files in contents folder yet
+		last;
 	    } else {
 		warn "Unrecognised index entry: $rec\n";
 	    }

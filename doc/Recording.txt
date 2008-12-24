@@ -8,11 +8,14 @@ SYNOPSIS
 
 METHODS
 
-    "Beyonwiz::Recording::Recording->new($ts, $date, $resume, $force)"
+    "Beyonwiz::Recording::Recording->new($ts, $date, $episode, $resume,
+    $force)"
         Create a new Beyonwiz recording downloader object. If $ts is true,
         the download will be into a single ".ts" file, otherwise the
         recording will be copied as it is on the Beyonwiz. If $date is true,
-        the recording date is added to the recording name. Useful for
+        the recording date is added to the recording name. If $episode is
+        true, the recording episode name is added to the recording name if
+        the episode name contains any non-blank characters. Useful for
         downloading series recordings. If $resume is true, allow resumption
         of recording download that appear to be incomplete. If $force is
         true, allow a download to overwrite an existing download.
@@ -74,15 +77,37 @@ METHODS
         "Beyonwiz::Recording::IndexEntry". If $outdir is defined and not the
         empty string, the recording is placed in that directory, rather than
         the current directory. The name of the downloaded recording is
-        derived from the recording title in the $hdr, with the recording
-        date appended if "$r->date" is true. If $showProgress is not "undef"
-        it must be an object in a class implementing the methods
+        derived from the recording title in the $hdr, with the episode name
+        appended if "$r->episode" is true, and there are any non-whitespace
+        characters in the episode name and with the recording date appended
+        if "$r->date" is true. If $showProgress is not "undef" it must be an
+        object in a class implementing the methods
         "$showProgress->total([$val])" and "$showProgress->done([$val])".
         "total" registers the total number of bytes to transfer, and "done"
         updates the number of bytes transferred in the progress bar.
 
-        Unimplemented in "Beyonwiz::Recording::Recording", over-ride in
-        derived classes.
+    "$r->renameRecording($hdr, $path, $outdir)"
+        Move a recording described by $hdr and the given source $path (from
+        the recording's "Beyonwiz::Recording::IndexEntry") to $outdir by
+        renaming the recording directory. Returns "RC_OK" if successful.
+
+        On Unix(-like) systems, "renameRecording" will fail if the source
+        and destinations for the move are on different file systems. It will
+        also fail if "$r->ts" is true and it will fail if the source
+        recording is on the Beyonwiz. In all these cases, it will return
+        "RC_NOT_IMPLEMENTED", and not print a warning.
+
+        For other errors it will print a warning with the system error
+        message, and return one of "RC_FORBIDDEN", "RC_NOT_FOUND" or
+        "RC_INTERNAL_SERVER_ERROR";
+
+        Returns "RC_NOT_IMPLEMENTED", must be overridden in any derived
+        class that can provide this function.
+
+    "$r->deleteRecording($hdr, $trunc, $path)"
+        Delete a recording. $hdr is the recording's header file object,
+        $trunc is the recording's trunc file object, and $path is the path
+        name from the recording's "Beyonwiz::Recording::IndexEntry".
 
 PREREQUISITES
 

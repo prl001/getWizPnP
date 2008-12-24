@@ -12,7 +12,7 @@ Download recordings from the Beyonwiz.
 
 =over 4
 
-=item C<< Beyonwiz::Recording::Recording->new($ts, $date, $resume, $force) >>
+=item C<< Beyonwiz::Recording::Recording->new($ts, $date, $episode, $resume, $force) >>
 
 Create a new Beyonwiz recording downloader object.
 If C<$ts> is true, the download will be into
@@ -20,6 +20,8 @@ a single C<.ts> file, otherwise the recording will
 be copied as it is on the Beyonwiz.
 If C<$date> is true, the recording date is added to
 the recording name.
+If C<$episode> is true, the recording episode name is added to
+the recording name if the episode name contains any non-blank characters.
 Useful for downloading series recordings.
 If C<$resume> is true, allow resumption of recording download
 that appear to be incomplete.
@@ -94,16 +96,47 @@ L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
 If C<$outdir> is defined and not the empty string, the recording is
 placed in that directory, rather than the current directory.
 The name of the downloaded recording is derived from the recording title
-in the C<$hdr>, with the recording date appended if C<< $r->date >>
-is true.
+in the C<$hdr>, with the episode name appended if C<< $r->episode >>
+is true, and there are any non-whitespace characters in the episode name
+and with the recording date appended if C<< $r->date >> is true.
 If C<$showProgress> is not C<undef> it must be an object in a class
 implementing the methods C<< $showProgress->total([$val]) >> and
 C<< $showProgress->done([$val]) >>. C<total> registers the total
 number of bytes to transfer, and C<done> updates the number of
 bytes transferred in the progress bar.
 
-Unimplemented in C<Beyonwiz::Recording::Recording>, over-ride in
-derived classes.
+
+=item C<< $r->renameRecording($hdr, $path, $outdir) >>
+
+Move a recording described by C<$hdr> and the given
+source C<$path> (from the recording's
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>)
+to C<$outdir> by renaming the recording directory.
+Returns C<RC_OK> if successful.
+
+On Unix(-like) systems, C<renameRecording> will  fail if the source
+and destinations for the move are on different file systems.
+It will also fail if C<< $r->ts >> is true and it will fail if
+the source recording is on the Beyonwiz.
+In all these cases, it will return C<RC_NOT_IMPLEMENTED>,
+and not print a warning.
+
+For other errors it will print a warning with the system error message,
+and return one of
+C<RC_FORBIDDEN>,
+C<RC_NOT_FOUND>
+or C<RC_INTERNAL_SERVER_ERROR>;
+
+Returns C<RC_NOT_IMPLEMENTED>, must be overridden in any
+derived class that can provide this function.
+
+=item C<< $r->deleteRecording($hdr, $trunc, $path) >>
+
+Delete a recording.
+C<$hdr> is the recording's header file object,
+C<$trunc> is the recording's trunc file object,
+and C<$path> is the path name from the recording's
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
 
 =back
 
@@ -154,12 +187,13 @@ our @EXPORT_OK = qw(STAT addDir);
 
 my $accessorsDone;
 
-sub new($$$$$) {
-    my ($class, $ts, $date, $resume, $force) = @_;
+sub new($$$$$$) {
+    my ($class, $ts, $date, $episode, $resume, $force) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
 	ts	=> $ts,
 	date	=> $date,
+	episode => $episode,
 	resume	=> $resume,
 	force	=> $force,
     };
@@ -206,27 +240,40 @@ sub addDir($$) {
     return $dir ? catfile($dir, $name) : $name;
 }
 
+sub getRecordingName($$$$) {
+    my ($self, $hdr, $path) = @_;
+    my $name = basename($path);
+    if(defined($hdr->title) && length($hdr->title) > 0) {
+	$name = $hdr->title;
+	if($self->episode && defined($hdr->episode)
+	&& ($hdr->episode !~ /^\s*$/)) {
+	    $name .= ' - ' . $hdr->episode;
+	}
+	if($self->date) {
+	    my $d = gmtime($hdr->starttime);
+	    substr $d, 11, 9, '';
+	    $name .= ' - ' . $d;
+	}
+    }
+    # Strip the leading '*' from the name if there is one, and it's not
+    # the only character
+    $name =~ s/^\*(.)/$1/;
+    # Some ugliness to interpolate BADCHARS into the character class
+    $name =~ s/[${\(BADCHARS)}]/_/g;
+    return $name;
+}
+
 sub getRecording($$$$$$) {
     my ($self, $hdr, $trunc, $path, $outdir, $progressBar) = @_;
     my $status;
 
-    my $name = basename($path);
-    if(defined($hdr->title) && length($hdr->title) > 0) {
-	$name = $hdr->title;
-	if($self->date) {
-	    my $d = gmtime($hdr->starttime);
-	    substr $d, 11, 9, '';
-	    $name .= ' ' . $d;
-	}
-    }
-    # Some ugliness to interpolate BADCHARS into the character class
-    $name =~ s/[${\(BADCHARS)}]/_/g;
+    my $name = $self->getRecordingName($hdr, $path);
     if($self->ts) {
 	$name =~ s/.(tv|rad)wiz$//;
 	$name .= '.ts';
     } else {
 	$trunc = $trunc->makeFileTrunc;
-	$name .= '.tvwiz';
+	$name .= $hdr->isRadio ? '.radwiz' : '.tvwiz';
     }
 
     my $size = $trunc->recordingSize;
@@ -364,6 +411,39 @@ sub getRecording($$$$$$) {
 	$progressBar->done($done) if($progressBar);
 
     }
+    return $status;
+}
+
+sub renameRecording($$$$$$) {
+    my ($self, $hdr, $path, $outdir) = @_;
+
+    return RC_NOT_IMPLEMENTED;
+}
+
+sub deleteRecording($$$$$$) {
+    my ($self, $hdr, $trunc, $path) = @_;
+    my $status;
+
+    my $name = $self->getRecordingName($hdr, $path);
+
+    $status = $self->deleteRecordingFile($path, $name, $hdr->headerName);
+    return $status if(!is_success($status));
+
+    $status = $self->deleteRecordingFile($path, $name, TRUNC);
+    return $status if(!is_success($status));
+
+    $status = $self->deleteRecordingFile($path, $name, STAT);
+    return $status if(!is_success($status));
+
+    foreach my $tr (@{$trunc->entries}[0..$trunc->nentries-1]) {
+	my $fn = sprintf "%04d", $tr->fileNum;
+
+        $status = $self->deleteRecordingFile($path, $name, $fn);
+    }
+
+    $status = $self->deleteRecordingFile($path, $name, undef);
+    return $status if(!is_success($status));
+
     return $status;
 }
 

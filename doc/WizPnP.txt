@@ -75,3 +75,11 @@ PREREQUISITES
     "IO::Select", "HTTP::Response", "HTTP::Request", "HTTP::Status",
     "LWP::Simple", "URI", "XML::DOM".
 
+BUGS
+
+    "IO::Socket::Multicast" is not available in ActivePerl's PPM for
+    Windows.
+
+    "Beyonwiz::Recording::WizPnP->new" will die with a message suggesting
+    workarounds if "IO::Socket::Multicast" can't be loaded.
+

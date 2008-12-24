@@ -24,6 +24,7 @@
 	<li><a href="#constants">CONSTANTS</a></li>
 	<li><a href="#methods">METHODS</a></li>
 	<li><a href="#prerequisites">PREREQUISITES</a></li>
+	<li><a href="#bugs">BUGS</a></li>
 </ul>
 <!-- INDEX END -->
 
@@ -168,6 +169,15 @@ the search when <code>$maxdev</code> devices have been installed.</p>
 <code>LWP::Simple</code>,
 <code>URI</code>,
 <code>XML::DOM</code>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<p><code>IO::Socket::Multicast</code> is not available in ActivePerl's
+PPM for Windows.</p>
+<p><a href="#item_new"><code>Beyonwiz::Recording::WizPnP-&gt;new</code></a> will die with a
+message suggesting workarounds if <code>IO::Socket::Multicast</code>
+can't be loaded.</p>
 <table border="0" width="100%" cellspacing="0" cellpadding="3">
 <tr><td class="block" style="background-color: #cccccc" valign="middle">
 <big><strong><span class="block">&nbsp;WizPnP</span></strong></big>

@@ -7,22 +7,30 @@ getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network
 
 =head1 SYNOPSIS
 
-    getWizPnP [-h|--help] [-D dev|--device dev] [-m devs|--maxdev=devs]
-              [-h host|--host=host] [-p port|--port=port]
-              [-l|--list] [-L|--List] [-d|--date] [-t|--ts] [-v|--verbose]
-	      [-R|--resume] [-f|--f]
-              [-r|--regexp] [-e|--expression] [-B|--BWName]
-	      [-O dir|--outdir dir] [-I dir |--indir=dir]
+    getWizPnP [-h|--help]
+              [-D dev|--device dev] [-m devs|--maxdev=devs]
+              [-H host|--host=host] [-p port|--port=port]
+              [-l|--list] [-L|--List]
+              [-X|--delete]
+              [-d|--date] [-E|--episode] [-t|--ts]
+              [-r|--regexp] [-e|--expression] [-B|-BWName]
+              [-R|--resume] [-f|--force]
+              [-O dir|--outdir=dir] [-I dir|--indir=dir]
+              [-v|--verbose] [-q|--quiet]
               [ patterns... ]
 
 =head1 DESCRIPTION
 
-List or fetch the recordings on a Beyonwiz DP series PVR over the network
-using the WizPnP interface.
+List, fetch, move or delete the recordings on a Beyonwiz DP series
+PVR over the network using the I<WizPnP> interface.
+If B<--indir> is specified, perform the same operations on
+the computer where I<getWizPnP> is running.
+B<--indir> is most useful in combination with B<--ts>.
 
 If no pattern arguments are given, then all recordings are listed.
 Otherwise recordings matching any of the patterns are fetched
-(or listed, with B<--list>).
+(or listed, moved or deleted, with B<--list>, B<--move> or B<--delete>
+respectively).
 
 In the absence of B<--regexp> or B<--expression> a pattern matches
 if it is a substring of the string I<servicename>B<#>I<longtitle>#I<date>,
@@ -42,12 +50,14 @@ To download all recordings, an empty string will match everything:
 
     wizGetPnP ''
 
-Recordings are downloaded to a name corresponding to their event name (title)
-with any characters that are illegal in the file system changed to '_'.
-The episode name isn't used.
+Recordings are copied or moved to a name corresponding to their event name
+(title) with any characters that are illegal in the file system changed to '_'.
 The B<--date> option adds the day and date of the recording to the name,
-helpful for series recordings.
-Downloaded recordings are placed in the current directory.
+and the B<--episode> option adds the episode name to the recording
+name (if there is one set)
+-- helpful for series recordings.
+Downloaded recordings are placed in the current directory unless B<--outdir>
+has been specified.
 
 When listing recordings, recordings that are currently recording are flagged
 with C<*RECORDING NOW> next to the recording name.
@@ -81,10 +91,6 @@ Otherwise, if a device is named but isn't found, I<getWizPnP>
 returns with an error. Device name matching is case-insensitive
 (C<MyBeyonwiz> matches C<mybeyonwiz>).
 
-B<Note:> There is a problem with the implementation of this function
-and it can take up to 60 seconds (average 30 seconds) to search
-for the WizPnP devices on the network.
-Until this problem is fixed, you may prefer to use the --host option.
 
 =item
 
@@ -123,14 +129,42 @@ I<port> is ignored unless B<--host> is set.
   --list
   -l
 
-List the matching recordings, rather than downloading them.
+List the matching recordings, rather than copying them.
+
+=item delete
+
+  --delete
+  -X
+
+Delete the matching recordings, rather than copying them.
+
+=item move
+
+  --move
+  -M
+
+Move the specified recordings to the output directory.
+Equivalent to a copy followed by a delete for each matching recording.
 
 =item date
 
   --date
   -d
+  --nodate
+  --nod
 
 Add the recording day and date to the name of the
+recording when it's downloaded.
+Useful for downloading series.
+
+=item episode
+
+  --episode
+  -E
+  --noepisode
+  --noE
+
+Add the recording episode name (if there is one) to the name of the
 recording when it's downloaded.
 Useful for downloading series.
 
@@ -172,6 +206,9 @@ Allow downloads to overwrite existing recordings that appear to be complete.
 
 Provide more information. A single B<-v> lists some more details about
 the recordings, and shows a progress indicator when copying.
+The progress indicator shows the transfer rate for the last megabyte
+copied while the transfer is running, and the average transfer rate
+for the copy when the copy completes.
 Two B<-v> options list the sizes of the recording file chunks on the
 Beyonwiz.
 
@@ -268,7 +305,7 @@ just after the program defaults for options are set, and just before
 command-line options are set.
 
 It is probably most useful for setting the default B<--device>
-or B<--host> option.
+or B<--host> option, or making C<--episode> set by default.
 
 An example C<.getwizpnp> file is included with I<getWizPnP>, in
 the file C<getwizpnp.conf>.
@@ -289,6 +326,31 @@ C<HTTP::Status>,
 C<Getopt::Long>.
 
 =head1 BUGS
+
+Although a limited amount of testing has not found any problems,
+it is uncertain whether deleting a recording on the Beyonwiz
+while it is currently being watched can cause any malfunction on the
+Beyonwiz.
+Normally, the playback of the recording is stopped with an error message
+shortly after the recording is deleted.
+This may be impolite to he person watching, but so far does not appear
+to affect the Beyonwiz beyond that.
+
+The WizPnP search requires the use of the Perl package
+C<IO::Socket::Multicast>.
+This is available for download from CPAN for Mac OS X, Linux and Cygwin
+running under Windows.
+It is available only through and alternative PPM ActivePerl
+archive for Windows.
+Unfortunately, that version of C<IO::Socket::Multicast> does not
+appear to work with the same code that works with the CPAN version.
+
+If C<IO::Socket::Multicast> is not available, I<getWizPnP> will
+exit with an error. In this case, the Beyonwiz device must be specified
+using B<--host> (and B<--port> if necessary).
+
+See README.txt in the distribution for details on how to install
+ant modules that I<getWizPnP> needs to allow it to run on your system.
 
 Uses C<bignum> for 64-bit integers, even when the underlying
 Perl integers are 64 bits.
@@ -315,17 +377,32 @@ use Getopt::Long qw(:config no_ignore_case bundling);
 
 use constant CONFIG => '.getwizpnp';
 
+use constant MODE_LIST   => 0;
+use constant MODE_LISTBW => 1;
+use constant MODE_COPY   => 2;
+use constant MODE_MOVE   => 3;
+use constant MODE_DELETE => 4;
+
+use constant MATCH_SUBSTR => 0;
+use constant MATCH_REGEXP => 1;
+use constant MATCH_EXPR   => 2;
+use constant MATCH_BWNAME => 3;
+
 our $device_name;
 our $host;
 our $port = 49152;
 our $maxdevs = 1;
 our $outdir;
 our $indir;
+our $mode = MODE_COPY;
 
 our (
 	$list,
 	$List,
+	$delete,
+	$move,
 	$date,
+	$episode,
 	$regexp,
 	$expression,
 	$bwName,
@@ -335,17 +412,21 @@ our (
 	$resume,
 	$force,
 	$help,
-    ) = ((0) x 12);
+    ) = ((0) x 15);
 
 $| = 1;
 
 sub Usage {
-    die "Usage: $0 [-h|--help] [-D dev|--device dev] [-m devs|--maxdev=devs]\n",
+    die "Usage: $0 [-h|--help]\n",
+	"                  [-D dev|--device dev] [-m devs|--maxdev=devs]\n",
 	"                  [-H host|--host=host] [-p port|--port=port]\n",
-	"                  [-l|--list] [-t|--ts] [-v|--verbose] [-q|--quiet]\n",
-	"                  [-d|--date]\n",
+	"                  [-l|--list] [-L|--List]\n",
+	"                  [-X|--delete]\n",
+	"                  [-d|--date] [-E|--episode] [-t|--ts]\n",
 	"                  [-r|--regexp] [-e|--expression] [-B|-BWName]\n",
+	"                  [-R|--resume] [-f|--force]\n",
 	"                  [-O dir|--outdir=dir] [-I dir|--indir=dir]\n",
+	"                  [-v|--verbose] [-q|--quiet]\n",
 	"                  [ patterns... ]\n";
 }
 
@@ -356,24 +437,27 @@ my $config = defined $ENV{HOME} && length($ENV{HOME}) > 0
 do $config if(-f $config);
 
 GetOptions(
-	'h|help',        \$help,
-	'H|host=s',      \$host,
-	'p|port=i',      \$port,
-	'D|device=s',    \$device_name,
-	'm|maxdevs=i',   \$maxdevs,
-	'l|list',        \$list,
-	'L|List',        \$List,
-	't|ts!',         \$ts,
-	'd|date!',       \$date,
-	'R|resume!',     \$resume,
-	'f|force!',      \$force,
-	'r|regexp!',     \$regexp,
-	'e|expression!', \$expression,
-	'B|BWName!',      \$bwName,
-	'O|outdir=s',    \$outdir,
-	'I|indir=s',     \$indir,
-	'v|verbose+',    \$verbose,
-	'q|quiet+',      \$quiet,
+	'h|help'        => \$help,
+	'H|host=s'      => \$host,
+	'p|port=i'      => \$port,
+	'D|device=s'    => \$device_name,
+	'm|maxdevs=i'   => \$maxdevs,
+	'l|list'        => \$list,
+	'L|List'        => \$List,
+	'X|delete'	=> \$delete,
+	'M|move'	=> \$move,
+	't|ts!'         => \$ts,
+	'd|date!'       => \$date,
+	'E|episode!'    => \$episode,
+	'R|resume!'     => \$resume,
+	'f|force!'      => \$force,
+	'r|regexp!'     => \$regexp,
+	'e|expression!' => \$expression,
+	'B|BWName!'     => \$bwName,
+	'O|outdir=s'    => \$outdir,
+	'I|indir=s'     => \$indir,
+	'v|verbose+'    => \$verbose,
+	'q|quiet+'      => \$quiet,
     ) or Usage;
 
 Usage if($help);
@@ -381,13 +465,14 @@ Usage if($help);
 $verbose = $verbose - $quiet;
 $verbose = 0 if($verbose < 0);
 
-use constant MATCH_SUBSTR => 0;
-use constant MATCH_REGEXP => 1;
-use constant MATCH_EXPR   => 2;
-use constant MATCH_BWNAME => 3;
-
 die "Can't set more than one of --regexp, --expression or ---BWName\n"
     if($regexp + $expression + $bwName > 1);
+
+$mode = MODE_LIST   if(!@ARGV);
+$mode = MODE_DELETE if($delete);
+$mode = MODE_MOVE   if($move);
+$mode = MODE_LIST   if($list);
+$mode = MODE_LISTBW if($List);
 
 my $match_type = MATCH_SUBSTR;
 $match_type = MATCH_REGEXP if($regexp);
@@ -399,6 +484,8 @@ $match_type = MATCH_BWNAME if($bwName);
 {
     package ProgressBar;
 
+    use Time::HiRes;
+
     my $accessorsDone;
 
     sub new() {
@@ -406,12 +493,15 @@ $match_type = MATCH_BWNAME if($bwName);
 	$class = ref($class) if(ref($class));
 
 	my $self = {
-	    total   => undef,
-	    done    => undef,
-	    percen  => 0,
-	    totMb   => 0,
-	    mb      => 0,
-	    display => '',
+	    total     => undef,
+	    done      => undef,
+	    lastdone  => 0,
+	    lasttime  => Time::HiRes::time,
+	    starttime => Time::HiRes::time,
+	    percen    => 0,
+	    totMb     => 0,
+	    mb        => 0,
+	    display   => '',
 	};
 
 	bless $self, $class;
@@ -432,12 +522,39 @@ $match_type = MATCH_BWNAME if($bwName);
 	if(@_ == 2) {
 	    $self->{total} = $val;
 	    $self->done(0);
+	    $self->lastdone(0),
+	    $self->starttime(Time::HiRes::time);
+	    $self->lasttime($self->starttime);
 	    $self->percen(0);
 	    $self->mb(0);
 	    $self->totMb($val / (1024*1024));
 	    $self->display('');
 	}
 	return $ret;
+    }
+
+    # Calculate the transfer rate since the last update, or if the
+    # transfer is complete, the average transfer rate
+
+    sub rate($) {
+	my ($self) = @_;
+        my ($startt, $endt, $startd, $endd);
+	if($self->done >= $self->total) {
+	    $startt = $self->starttime;
+	    $startd = 0;
+	    $endd = $self->total;
+	} else {
+	    $startt = $self->lasttime;
+	    $startd = $self->lastdone;
+	    $endd = $self->done;
+	}
+	$endt = Time::HiRes::time;
+	$self->lasttime($endt);
+	$self->lastdone($endd);
+	return $startt != 0 && $endt > $startt 
+		    ? ($endd - $startd)/
+		      (($endt-$startt)*1024*1024)
+		    : 0;
     }
 
     # Return/set the total number of bytes transferred
@@ -458,11 +575,16 @@ $match_type = MATCH_BWNAME if($bwName);
 	    || $self->display eq '') {
 		my $donestr = '=' x $donechars;
 		my $leftstr = '-' x (50 - $donechars);
-		my $dispstr = sprintf "\r|%s%s| %3d%% %.0f/%.0fMB",
-		    $donestr, $leftstr, $percen,
+		my $now = Time::HiRes::time;
+		my $dispstr = sprintf "\r|%s%s| %5.1fMB/s %3d%% %.0f/%.0fMB",
+		    $donestr, $leftstr,
+		    $self->rate,
+		    $percen,
 		    $mb, $self->totMb;
 		$self->percen($percen);
 		$self->mb($mb);
+		$self->lastdone($self->done);
+		$self->lasttime($now);
 		print $dispstr;
 		$self->display($dispstr);
 	    }
@@ -535,32 +657,21 @@ sub testString($) {
 			scalar(gmtime($hdr->starttime)));
 }
 
-# Return true if the header matches any user pattern argument
-# and the recording isn't active, and the mode is "load recording"
+# Return true if the mode is MODE_LIST and the argument list is empty,
+# or the header matches the user pattern argument,
+# and the recording isn't active, and the mode is not MODE_LIEST
 
-sub doLoadFile($) {
-    my ($hdr) = @_;
-    return 0 if($hdr->inRec || @ARGV == 0 || $list);
+sub matchRecording($$) {
+    my ($hdr, $mode) = @_;
+    return 0 if($hdr->inRec && $mode != MODE_LIST);
+    return 1 if(@ARGV == 0 && $mode == MODE_LIST);
     $_ = testString($hdr);
     foreach my $a (@ARGV) {
-	return index(lc($_), lc($a)) >= 0 if($match_type == MATCH_SUBSTR);
-	return $_ =~ /$a/i if($match_type == MATCH_REGEXP);
-	return eval($a) if($match_type == MATCH_EXPR);
+	return 1 if($match_type == MATCH_SUBSTR && index(lc($_), lc($a)) >= 0);
+	return 1 if($match_type == MATCH_REGEXP && $_ =~ /$a/i);
+	return 1 if($match_type == MATCH_EXPR && eval($a));
     }
-}
-
-# Return true if the header matches any user pattern argument
-# and the mode is "list recording"
-
-sub doShowFile($) {
-    my ($hdr) = @_;
-    return 1 if(@ARGV == 0);
-    $_ = testString($hdr);
-    foreach my $a (@ARGV) {
-	return index(lc($_), lc($a)) >= 0 if($match_type == MATCH_SUBSTR);
-	return $_ =~ /$a/i if($match_type == MATCH_REGEXP);
-	return eval($a) if($match_type == MATCH_EXPR);
-    }
+    return 0;
 }
 
 # Create a new index object for he recording source, either local or HTTP.
@@ -575,14 +686,14 @@ sub newIndex($$)
 
 # Create a new recording object for he recording source, either local or HTTP.
 
-sub newRecording($$$$$$) {
-    my ($indir, $device, $ts, $date, $resume, $force) = @_;
+sub newRecording($$$$$$$) {
+    my ($indir, $device, $ts, $date, $episode, $resume, $force) = @_;
     return $indir
 	? Beyonwiz::Recording::FileRecording->new(
-			$indir, $ts, $date, $resume, $force
+			$indir, $ts, $date, $episode, $resume, $force
 		    )
 	: Beyonwiz::Recording::HTTPRecording->new(
-			$device->baseUrl, $ts, $date, $resume, $force
+			$device->baseUrl, $ts, $date, $episode, $resume, $force
 		    );
 }
 
@@ -619,81 +730,91 @@ format STDOUT =
     $info
 .
 
-# Either list or copy the recording.
-# List if $do_show; copy if $do_load.
+# List, copy, move or delete the recording dependiing on $mode.
+# If $indir us defined, it's the input directory for a local transfer.
 # $device is the WixPnPDevice, $hdr is the header object,
 # $ie is the IndexEntry object, $rec is the recording object.
 
-sub listOrCopy($$$$$$$) {
-    my ($indir, $device, $hdr, $ie, $rec, $do_show, $do_load) = @_;
+sub doRecordingOperation($$$$$$) {
+    my ($indir, $device, $hdr, $ie, $rec, $mode) = @_;
 
     my $trunc;
 
-    if($do_show) {
-	print $hdr->service, ': ', $hdr->longTitle,
-		    ($hdr->inRec ? ' *RECORDING NOW' : ''), "\n";
-	if($verbose >= 2) {
-	    $hdr->loadExtInfo;
-	    if($hdr->validExtInfo
-	    && $hdr->extInfo && length($hdr->extInfo) > 0) {
-		$info = $hdr->extInfo;
-		write STDOUT;
-	    }
-	}
-	if($verbose >= 1) {
-	    print "    Index name: ", $ie->name, "\n";
-	    print "    ", scalar(gmtime($hdr->starttime)),
-		' - ', scalar(gmtime($hdr->starttime + $hdr->playtime)),
+    print $hdr->service, ': ', $hdr->longTitle,
+		($hdr->inRec          ? ' *RECORDING NOW' : ''),
+		($mode == MODE_COPY   ? ' - Copy'         : ''),
+		($mode == MODE_DELETE ? ' - Delete'       : ''),
+		($mode == MODE_MOVE   ? ' - Move'         : ''),
 		"\n";
-	    printf "    playtime: %4d:%02d",
-		    int($hdr->playtime/60),  $hdr->playtime % 60;
-	    printf "    recording size: %8.1f MB\n",
-		    ($hdr->endOffset - $hdr->startOffset)/(1024*1024);
+    if($verbose >= 2) {
+	$hdr->loadExtInfo;
+	if($hdr->validExtInfo
+	&& $hdr->extInfo && length($hdr->extInfo) > 0) {
+	    $info = $hdr->extInfo;
+	    write STDOUT;
 	}
-	if($verbose >= 3) {
-	    $trunc = newTrunc($indir, $device, $ie);
-	    $trunc->load;
+    }
+    if($verbose >= 1) {
+	print "    Index name: ", $ie->name, "\n";
+	print "    ", scalar(gmtime($hdr->starttime)),
+	    ' - ', scalar(gmtime($hdr->starttime + $hdr->playtime)),
+	    "\n";
+	printf "    playtime: %4d:%02d",
+		int($hdr->playtime/60),  $hdr->playtime % 60;
+	printf "    recording size: %8.1f MB\n",
+		($hdr->endOffset - $hdr->startOffset)/(1024*1024);
+    }
+    if($verbose >= 3) {
+	$trunc = newTrunc($indir, $device, $ie);
+	$trunc->load;
 
-	    if($trunc->valid) {
-		# Print offsets with %s rather than %d, because %d forces
-		# conversion to internal integer size
-		printf "    Recording start offset: %19s\n",
-		    $hdr->startOffset;
-		printf "    Recording end offset:   %19s\n",
-		    $hdr->endOffset;
-		printf "    %4s %12s %10s %14s\n",
-		    'File', 'File Offset', 'Size', 'Rec Offset';
-		foreach my $tr (@{$trunc->entries}) {
-		    printf "    %04d %12s %10d %14s\n",
-			$tr->fileNum, $tr->offset,
-			$tr->size, $tr->wizOffset;
-		}
-	    }
-	}
-	if($verbose >= 4) {
-	    $hdr->loadOffsets;
-	    $hdr->loadBookmarks;
-	    if($hdr->validOffsets
-	    && $hdr->validBookmarks && $hdr->nbookmarks > 0) {
-		printf "    %4s %7s %14s\n", 'Num', 'Time', 'Bookmark';
-		for(my $i = 0; $i < $hdr->nbookmarks; $i++) {
-		    my $t = int($hdr->offsetTime($hdr->bookmarks->[$i]));
-		    printf "    %4d %4d:%02d %14s\n", $i,
-			int($t/60), $t % 60, $hdr->bookmarks->[$i];
-		}
-	    }
-	}
-	if($verbose >= 5) {
-	    if($hdr->validOffsets && $hdr->noffsets > 0) {
-		printf "    %4s %7s %14s\n", 'Num', 'Time', 'Rec Offset';
-		for(my $i = 0; $i < $hdr->noffsets; $i++) {
-		    printf "    %4d %4d:%02d %14s\n",
-			$i, int($i/6), $i * 10 % 60, $hdr->offsets->[$i];
-		}
+	if($trunc->valid) {
+	    # Print offsets with %s rather than %d, because %d forces
+	    # conversion to internal integer size
+	    printf "    Recording start offset: %19s\n",
+		$hdr->startOffset;
+	    printf "    Recording end offset:   %19s\n",
+		$hdr->endOffset;
+	    printf "    %4s %12s %10s %14s\n",
+		'File', 'File Offset', 'Size', 'Rec Offset';
+	    foreach my $tr (@{$trunc->entries}) {
+		printf "    %04d %12s %10d %14s\n",
+		    $tr->fileNum, $tr->offset,
+		    $tr->size, $tr->wizOffset;
 	    }
 	}
     }
-    if($do_load) {
+    if($verbose >= 4) {
+	$hdr->loadOffsets;
+	$hdr->loadBookmarks;
+	if($hdr->validOffsets
+	&& $hdr->validBookmarks && $hdr->nbookmarks > 0) {
+	    printf "    %4s %7s %14s\n", 'Num', 'Time', 'Bookmark';
+	    for(my $i = 0; $i < $hdr->nbookmarks; $i++) {
+		my $t = int($hdr->offsetTime($hdr->bookmarks->[$i]));
+		printf "    %4d %4d:%02d %14s\n", $i,
+		    int($t/60), $t % 60, $hdr->bookmarks->[$i];
+	    }
+	}
+    }
+    if($verbose >= 5) {
+	if($hdr->validOffsets && $hdr->noffsets > 0) {
+	    printf "    %4s %7s %14s\n", 'Num', 'Time', 'Rec Offset';
+	    for(my $i = 0; $i < $hdr->noffsets; $i++) {
+		printf "    %4d %4d:%02d %14s\n",
+		    $i, int($i/6), $i * 10 % 60, $hdr->offsets->[$i];
+	    }
+	}
+    }
+    if($mode == MODE_MOVE) {
+	# Try to move recording by renaming it
+	my $status = $rec->renameRecording($hdr, $ie->path, $outdir);
+	if($status == RC_OK) {
+	    print "\n" if($verbose >= 1);
+	    return;
+	}
+    }
+    if($mode == MODE_COPY || $mode == MODE_MOVE) {
 	if(!$trunc) {
 	    $trunc = newTrunc($indir, $device, $ie);
 	    $trunc->load;
@@ -708,14 +829,38 @@ sub listOrCopy($$$$$$$) {
 					    : undef
 				    );
 	    print "\n" if($verbose >= 1);
-	    warn "Download failed: ",
+	    if(!is_success($status)) {
+		warn "Download failed: ",
+			status_message($status), "\n";
+		return;
+	    }
+	} else {
+	    warn $ie->name, " skipped\n";
+	    return;
+	}
+    }
+    if($mode == MODE_DELETE || $mode == MODE_MOVE) {
+	if(!$trunc) {
+	    $trunc = newTrunc($indir, $device, $ie);
+	    $trunc->load;
+	}
+	if($trunc->valid) {
+	    my $status = $rec->deleteRecording(
+					$hdr, $trunc,
+					$ie->path,
+					$outdir,
+					$verbose >= 1
+					    ? ProgressBar->new
+					    : undef
+				    );
+	    warn "Delete failed: ",
 		    status_message($status), "\n"
 		if(!is_success($status));
 	} else {
 	    warn $ie->name, " skipped\n"
 	}
     }
-    print "\n" if($do_show && $verbose >= 1);
+    print "\n" if($verbose >= 1);
 
 }
 
@@ -725,8 +870,8 @@ sub listOrCopy($$$$$$$) {
 # $device is the WixPnPDevice, $index is the Index object,
 # $rec is the recording object.
 
-sub selectListOrCopy($$$$) {
-    my ($indir, $device, $index, $rec) = @_;
+sub scanRecordings($$$$$) {
+    my ($indir, $device, $index, $rec, $mode) = @_;
     foreach my $ie (@{$index->entries}) {
 	my $hdr = newHeader($indir, $device, $ie);
 
@@ -734,9 +879,8 @@ sub selectListOrCopy($$$$) {
 
 	if($hdr->validMain) {
 	    $hdr->loadEpisode;
-	    my ($do_show, $do_load) = (doShowFile($hdr), doLoadFile($hdr));
-	    listOrCopy($indir, $device, $hdr,
-			$ie, $rec, $do_show, $do_load);
+	    doRecordingOperation($indir, $device, $hdr, $ie, $rec, $mode)
+		if(matchRecording($hdr, $mode));
 	}
     }
 }
@@ -748,24 +892,18 @@ sub selectListOrCopy($$$$) {
 # $device is the WixPnPDevice, $index is the Index object,
 # $rec is the recording object.
 
-sub selectListOrCopyBWName($$$$) {
-    my ($indir, $device, $index, $rec) = @_;
+sub scanRecordingsBWName($$$$$) {
+    my ($indir, $device, $index, $rec, $mode) = @_;
     my %args = map { ( $_ => 1 ) } @ARGV;
     foreach my $ie (@{$index->entries}) {
-	my ($do_show, $do_load) = (0, 0);
-	if($list) {
-	    $do_show = $args{$ie->name};
-	} else {
-	    $do_show = $do_load = $args{$ie->name};
-	}
-	if($do_show || $do_load) {
-	my $hdr = newHeader($indir, $device, $ie);
+	if($args{$ie->name}) {
+	    my $hdr = newHeader($indir, $device, $ie);
 
 	    $hdr->loadMain;
 
-	    if($hdr->validMain && !($hdr->inRec && $do_load)) {
-		listOrCopy($indir, $device, $hdr,
-			    $ie, $rec, $do_show, $do_load);
+	    if($hdr->validMain
+	    && (!$hdr->inRec || $mode == MODE_LIST)) {
+		doRecordingOperation($indir, $device, $hdr, $ie, $rec, $mode)
 	    }
 	}
     }
@@ -793,16 +931,16 @@ die "Couldn't load index file from $host\n" if(!$index->valid);
 
 # Perform the copy or list operations
 
-my $rec = newRecording($indir, $device, $ts, $date, $resume, $force);
+my $rec = newRecording($indir, $device, $ts, $date, $episode, $resume, $force);
 
-if($List) {
+if($mode == MODE_LISTBW) {
     foreach my $ie (@{$index->entries}) {
 	print $ie->name, "\n";
     }
 } else {
     if($match_type == MATCH_BWNAME) {
-	selectListOrCopyBWName($indir, $device, $index, $rec);
+	scanRecordingsBWName($indir, $device, $index, $rec, $mode);
     } else {
-	selectListOrCopy($indir, $device, $index, $rec);
+	scanRecordings($indir, $device, $index, $rec, $mode);
     }
 }
