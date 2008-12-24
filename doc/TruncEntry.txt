@@ -1,0 +1,46 @@
+SYNOPSIS
+
+        use Beyonwiz::Recording::TruncEntry;
+
+SYNOPSIS
+
+    Represents an entry in the Beyonwiz trunc file.
+
+METHODS
+
+    "Beyonwiz::Recording::TruncEntry->new($wizOffset, $fileNum, $flags,
+    $offset, $size)"
+        Create a new Beyonwiz recording index entry object. $wizOffset
+        logical byte offset of the entry in the recording ("bignum").
+        $filenum is the numbered recording file that the entry refers to.
+        The file name is this number printed in "printf" %04d format. $flags
+        - flags for the entry - unknown purpose. $offset - offset of the
+        recording data chunk in the file ("bignum"). $size - size of the
+        recodding data chunk in the file. More than one
+        "Beyonwiz::Recording::Index" can refer to a given file.
+
+        Normally constructed from the Beyonwiz trunc file by
+        "Beyonwiz::Recording::Trunc".
+
+    "$te->wizOffset([$val]);"
+        Returns (sets) the logical byte offset of the entry in the
+        recording.
+
+    "$te->filenum([$val]);"
+        Returns (sets) the numbered recording file that the entry refers to.
+
+    "$te->flags([$val]);"
+        Returns (sets) the flags for the entry - unknown purpose.
+
+    "$te->offset([$val]);"
+        Returns (sets) the offset of the recording data chunk in the file
+        ("bignum").
+
+    "$te->size([$val]);"
+        Returns (sets) the size of the recodding data chunk in the file.
+
+BUGS
+
+    Uses "bignum" for 64-bit integers, even when the underlying Perl
+    integers are 64 bits.
+

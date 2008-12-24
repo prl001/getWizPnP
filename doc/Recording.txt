@@ -1,0 +1,84 @@
+SYNOPSIS
+
+        use Beyonwiz::Recording::Recording;
+
+SYNOPSIS
+
+    Download recordings from the Beyonwiz.
+
+CONSTANTS
+
+    "INDEX"
+        The index url path for the beyonwiz ("index.txt").
+
+METHODS
+
+    "Beyonwiz::Recording::Recording->new($base, $ts, $date)"
+        Create a new Beyonwiz recording downloader object. $base is the base
+        URL for the Beyonwiz device. If $ts is true, the download will be
+        into a single ".ts" file, otherwise the recording will be copied as
+        it is on the Beyonwiz. If $date is true, the recording date is added
+        to the recording name. Useful for downloading series recordings.
+
+    "$r->base([$val]);"
+        Returns (sets) the device base URL. The recording URL path name is
+        set when the recording is downloaded. The object is intended to
+        allow a sequence of recordings to be downloaded.
+
+    "$r->ts([$val]);"
+        Returns (sets) the single-file TS flag.
+
+    "$r->date([$val]);"
+        Returns (sets) the flag controlling whether the recording date is
+        added to the recording name.
+
+    "$r->get_recording_file_chunk($path, $name, $file, $outdir, $append,
+    $off, $size);"
+        Download a chunk of a recording corresponding to a single
+        "Beyonwiz::Recording::TruncEntry".
+
+        $path is the URL path to the folder containing the recording's files
+        on the Beyonwiz. $name is the name of the recording folder or file
+        (if "$r->ts" is true). $file is the name of the Beyonwiz file
+        containing the chunk. $append is false if $file is to be created,
+        true if it is to be appended to. $off and $size is the chunk to be
+        transferred. If $outdir is defined and not the empty string, the
+        record file is placed in that directory, rather than the current
+        directory.
+
+    "$r->get_recording_file($path, $name, $outdir, $file, $append);"
+        Download a complete 0000, 0001, etc. recording file from the
+        Beyonwiz. Note that more than one "Beyonwiz::Recording::TruncEntry"
+        may refer to any given file.
+
+        $path, $name, $outdir, $file and $append are as in
+        *get_recording_file_chunk*.
+
+    "$r->get_recording($hdr, $trunc, $path, $outdir, $show_progress);"
+        Download a Beyonwiz recording, either as a direct copy from the
+        Beyonwiz, or into a single ".ts" file (if "$r->ts" is true). $hdr is
+        the recording's header file object, $trunc is the recording's trunc
+        file object, and $path is the path name from the recording's
+        "Beyonwiz::Recording::IndexEntry". If $outdir is defined and not the
+        empty string, the recording is placed in that directory, rather than
+        the current directory. The name of the downloaded recording is
+        derived from the recording title in the $hdr, with the recording
+        date appended if "$r->date" is true. If $show_progress is not
+        "undef" it is called as a function with "bignum" arguments
+        ($file_size, $done), where $file_size is the size of the transfer,
+        and $done is the amount transferred already. Both in bytes.
+
+PREREQUISITES
+
+    Uses packages: "LWP::Simple", "URI", "URI::Escape", "HTTP::Status",
+    "File::Basename".
+
+BUGS
+
+    The progress callback may have inaccuracies when transferring a
+    recording as-is from the Beyonwiz if the recording has been edited or
+    made from the timeshift buffer.
+
+    Uses "bignum" for 64-bit integers, even when the underlying Perl
+    integers are 64 bits.
+

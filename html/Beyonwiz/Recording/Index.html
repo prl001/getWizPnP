@@ -1,0 +1,130 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Index</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@omen.apple.com" />
+</head>
+
+<body style="background-color: white">
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;Index</span></strong></big>
+</td></tr>
+</table>
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#constants">CONSTANTS</a></li>
+	<li><a href="#methods">METHODS</a></li>
+	<li><a href="#prerequisites">PREREQUISITES</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+    use Beyonwiz::Recording::Index;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Provides access to the Beyonwiz recording file index.</p>
+<p>
+</p>
+<hr />
+<h1><a name="constants">CONSTANTS</a></h1>
+<dl>
+<dt><strong><a name="item_index"><code>INDEX</code></a></strong>
+
+<dd>
+<p>The index url path for the beyonwiz (<code>index.txt</code>).</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="methods">METHODS</a></h1>
+<dl>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Index-&gt;new($base)</code></a></strong>
+
+<dd>
+<p>Create a new Beyonwiz recording index object.
+<code>$base</code> is the base URL for the Beyonwiz device.</p>
+</dd>
+</li>
+<dt><strong><a name="item_base"><code>$i-&gt;base([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the device base URL.</p>
+</dd>
+</li>
+<dt><strong><a name="item_url"><code>$i-&gt;url([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the index URL.</p>
+</dd>
+</li>
+<dt><strong><a name="item_entries"><code>$i-&gt;entries([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the list of
+<a href="../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>
+objects in the index as an array reference.</p>
+</dd>
+</li>
+<dt><strong><a name="item_nentries"><code>$i-&gt;nentries;</code></a></strong>
+
+<dd>
+<p>Returns the number of index entries.</p>
+</dd>
+</li>
+<dt><strong><a name="item_valid"><code>$i-&gt;valid;</code></a></strong>
+
+<dd>
+<p>Returns true if the last <a href="#item_load"><code>$i-&gt;load;</code></a> succeeded.</p>
+</dd>
+</li>
+<dt><strong><a name="item_load"><code>$i-&gt;load;</code></a></strong>
+
+<dd>
+<p>Load the index from the Beyonwiz.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="prerequisites">PREREQUISITES</a></h1>
+<p>Uses packages:
+<a href="../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>,
+<code>File::Basename</code>,
+<code>LWP::Simple</code>,
+<code>URI::Escape</code>,
+<code>URI</code>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<p>Uses a fixed value for the path name of the index, rather than deriving
+it from <em>locationURL</em> in
+<a href="../html/./Beyonwiz/WizPnP.html"><code>Beyonwiz::WizPnP</code></a>.</p>
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;Index</span></strong></big>
+</td></tr>
+</table>
+
+</body>
+
+</html>

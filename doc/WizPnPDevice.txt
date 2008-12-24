@@ -1,0 +1,38 @@
+SYNOPSIS
+
+        use Beyonwiz::Recording::WizPnPDevice;
+
+SYNOPSIS
+
+    Represents an entry in the Beyonwiz trunc file.
+
+METHODS
+
+    "Beyonwiz::Recording::WizPnPDevice->new($location, $dom)"
+        Create a new WizPnP device object. $location is the URL for the
+        device's XML description, and $dom us the "XML::DOM" tree for the
+        description. Normally constructed by "Beyonwiz::WizPnP" in *search*
+        or *add_device*.
+
+    "$wpnpd->location([$val]);"
+        Returns (sets) the URL for the device's XML description.
+
+    "$wpnpd->dom([$val]);"
+        Returns (sets) the device description DOM tree.
+
+    "$wpnpd->base_url;"
+        Returns the base URL for the device.
+
+    "$wpnpd->index_url;"
+        Returns the URL of the the device recording index document.
+
+    "$wpnpd->device_dom;"
+        Returns the "<device>" DOM subtree of the description.
+
+    "$wpnpd->name;"
+        Returns the device's WizPnP name (as set in
+        Setup>Network>WizPnP>Name).
+
+    "$wpnpd->presentationURL;"
+        Returns the device's WizPnP presentationURL.
+

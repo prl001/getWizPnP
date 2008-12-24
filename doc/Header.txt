@@ -1,0 +1,165 @@
+SYNOPSIS
+
+        use Beyonwiz::Recording::Header;
+
+SYNOPSIS
+
+    Provides access to the Beyonwiz recording file header.
+
+CONSTANTS
+
+    "TVHDR"
+        The name of the header file for a digital TV recording
+        ("header.tvwiz").
+
+    "RADHDR"
+        The name of the header file for a digital radio recording
+        ("header.radwiz").
+
+    "DAY"
+        Number of seconds in a day. Used internally for time conversion.
+
+    "MAX_TS_POINT"
+        Maximum number of offsets in *offsets* (8640).
+
+METHODS
+
+    "Beyonwiz::Recording::Header->new($name, $base, $path)"
+        Create a new Beyonwiz recording header object. $name is the default
+        name of the recording (usually the name in the Beyonwiz recording
+        index, see "Beyonwiz::Recording::Index"). $base is the base URL for
+        the Beyonwiz device. $path is the path part of the recording URL
+        (usually the path in the recording index).
+
+    "$h->base([$val]);"
+        Returns (sets) the device base URL.
+
+    "$h->name([$val]);"
+        Returns (sets) the default recording name.
+
+    "$h->name([$val]);"
+        Returns (sets) the default recording name.
+
+    "$h->path([$val]);"
+        Returns (sets) the recording URL path part.
+
+    "$h->headerName([$val]);"
+        Returns (sets) the name of the header document (path part only).
+
+    "$h->unknown([$val]);"
+        Returns (sets) the array reference of the 5 words in the header file
+        whose interpretation has not yet been made public.
+
+    "$h->lock([$val]);"
+        Returns (sets) lock flag. Possibly the flag that indicates the
+        recording has a parental lock set on the Beyonwiz. Unused in WizFX.
+
+    "$h->full([$val]);"
+        Returns (sets) the full flag. Purpose unknown. Unused in WizFX.
+
+    "$h->inRec([$val]);"
+        Returns (sets) the "currently recording" flag.
+
+    "$h->service([$val]);"
+        Returns (sets) the recording service (LCN) name.
+
+    "$h->title([$val]);"
+        Returns (sets) the recording title (event name).
+
+    "$h->mjd([$val]);"
+        Returns (sets) the recording start date. The name suggests that it
+        is the Modified Julian Date, but it isn't.
+
+        "$h->mjd == int(true_MJD + time_zone_offset_in_minutes/(24*60))"
+        where "time_zone_offset_in_minutes" is the time zone setting in
+        minutes current at the start of the recording.
+
+        The Beyonwiz appears to keep local time rather than UTC as its
+        internal time.
+
+    "$h->start([$val]);"
+        Returns (sets) number of seconds into the day indicated by "$h->mjd"
+        when the recording started.
+
+    "$h->last([$val]); $h->sec([$val]);"
+        Return (set) two parameters describing the recording duration. The
+        recording duration in seconds is: "$self->last*10 + $self->sec".
+        "$h->playtime" is a convenience method that calculates the playtime
+        from *last* and *sec*.
+
+    "$h->endOffset([$val]);"
+        Return the offset of the logical end of the recording. Returns a
+        "bignum".
+
+    "$h->offsets([$val]);"
+        Return (set) the table of offsets (possibly at even time intervals?)
+        of logical file offsets (as described in "$h->endOffset([$val]);").
+        Offsets are returned as "bignum"s.
+
+        If the offsets are at even intervals, it's probably 10 seconds.
+
+        For efficiency reasons, only populated for "$h->load(1)".
+
+    "$h->noffsets;"
+        Returns the number of offsets.
+
+    "$h->bookmarks([$val]);"
+        Return (set) the table of bookmarks (possibly at even time
+        intervals?) of logical file offsets (as described in
+        "$h->endOffset([$val]);"). Offsets are returned as "bignum"s.
+
+        For efficiency reasons, only populated for "$h->load(1)".
+
+    "$h->nbookmarks;"
+        Returns the number of bookmarks.
+
+    "$h->valid;"
+        Returns true if the last "$h->load;" was successful.
+
+    "$h->size;"
+        Returns the size of the header file (256kB).
+
+    "$h->isTV; $h->isRadio;"
+        Returns true if "$h->valid;" is true and the recording is digital TV
+        (resp digital radio).
+
+    "$h->playtime"
+        A convenience method that returns the duration of the recording in
+        seconds.
+
+    "$h->starttime"
+        Returns a Unix-like timestamp for the start time of the recording in
+        local time (rather than in UTC, like a true Unix timestamp). More
+        precisely, returns the number of seconds since midnight at the start
+        of 1 Jan 1970, *plus* the number of seconds in the timezone offset
+        at the time the recording was started.
+
+        This can be converted into the calender/clock fields for the local
+        time at the start of the recording using "gmtime" (*not*
+        "localtime").
+
+        The local time fields can then be converted into a genuine Unix
+        timestamp using "Time::Local::timelocal".
+
+    "$h->offset_time($offset)"
+        Convert an offset into a time. "$h->load(1)" must have been called,
+        otherwise -1 is returned. Interpolates between values in the offset
+        table. Returns 0 if "$offset <= $self->offsets->[0]" and
+        "$self->playtime" if "$offset >= $self->endOffset".
+
+    "$h->load([$full])"
+        Load the header object from the header on the Beyonwiz. The
+        *offsets* data is only loaded if $full is present and true. If $full
+        is not set, only 2kB is downloaded, otherwise 256kB is downloaded.
+
+PREREQUISITES
+
+    Uses packages: "File::Basename", "LWP::Simple", "URI::Escape", "URI".
+
+BUGS
+
+    Uses "bignum" for 64-bit integers, even when the underlying Perl
+    integers are 64 bits.
+
+    The bugs to do with time are in the Beyonwiz.
+
