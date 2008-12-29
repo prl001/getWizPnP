@@ -112,17 +112,23 @@ C<XML::DOM>.
 =head1 BUGS
 
 C<IO::Socket::Multicast> is not available in ActivePerl's
-PPM for Windows. 
+PPM for Windows, see README.txt for a download location. 
 
 C<< Beyonwiz::Recording::WizPnP->new >> will die with a
 message suggesting workarounds if C<IO::Socket::Multicast>
 can't be loaded.
+
+C<< $wpnp->search([$maxdev]); >> has intermittent failure on Windows
+with ActivePerl 10, and on Cygwin.
+The search is either immediately successful or fails completely,
+even on retry.
 
 =cut
 
 use warnings;
 use strict;
 
+use Beyonwiz::Utils;
 use Beyonwiz::WizPnPDevice;
 use IO::Select;
 use HTTP::Response;
@@ -153,9 +159,16 @@ use constant SSDPADDR => '239.255.255.250';
 use constant SSDPPORT => 1900;
 use constant SSDPPEER => SSDPADDR . ':' . SSDPPORT;
 
+use constant SSDPNPOLL    => 3;
+use constant SSDPMAXDELAY => 3;
+use constant TIMEOUT      => 4;
+use constant POLLTIME     => 0.1;
+use constant NPOLLS       => int(TIMEOUT / POLLTIME + 0.5);
+
 use constant CRLF => "\015\012";
 
 my $accessorsDone;
+my $debug;
 
 sub new($) {
     my ($class) = @_;
@@ -172,6 +185,13 @@ sub new($) {
     bless $self, $class;
 
     return $self;
+}
+
+sub debug(;$) {
+    my ($newDebug) = @_;
+    my $old = $debug;
+    $debug = $newDebug if(@_ > 0);
+    return $old;
 }
 
 sub deviceNames($) {
@@ -194,12 +214,13 @@ sub addDevice($$) {
 
     my $devdesc = get($location);
     if(!$devdesc) {
-	warn "Bad WizPnP response: no device description returned",
+	warn "Bad WizPnP response: No device description returned",
 	    " from $location\n";
+	return;
     }
     my $dom = XML::DOM::Parser->new->parse($devdesc);
     if(!$dom) {
-	warn "Bad WizPnP response: couldn't parse device description",
+	warn "Bad WizPnP response: Couldn't parse device description",
 	    " returned from $location\n";
 	return;
     }
@@ -208,7 +229,8 @@ sub addDevice($$) {
     if($name) {
 	$self->devices->{lc $name} = $dev;
     } else {
-	warn "No name found for device description in $location\n";
+	warn "Bad WizPnP response: No name found for device description",
+	    " from $location\n";
     }
 }
 
@@ -224,7 +246,7 @@ sub process($$) {
 
     my $location = $resp->header('LOCATION');
     if(!defined $location) {
-	warn "Bad WizPnP response: no device LOCATION\n";
+	warn "Bad WizPnP response: No device LOCATION\n";
 	return;
     }
     my $st = $resp->header('ST');
@@ -238,6 +260,8 @@ sub process($$) {
 
 sub search($;$) {
     my ($self, $maxdev) = @_;
+
+    warn 'WizPnP search. Maxdev: ', $maxdev, "\n" if($debug >= 1);
 
     die "Your system doesn't support multicast to discover WizPnP devices.\n",
 	    "Either install Perl package IO::Socket::Multicast, or\n",
@@ -258,35 +282,40 @@ sub search($;$) {
 				    LocalPort => $port,
 				    ReuseAddr => 1)
 		|| die "Can't make input socket to configure WizPnP: $!\n";
-    $sout->mcast_add(SSDPADDR)
-		|| die "Can't add WizPnP multicast address: $!\n";
 
     my $req = HTTP::Request->new('M-SEARCH' => '*');
     $req->protocol('HTTP/1.1');
     $req->header(
 	    Host => SSDPPEER,
-	    MX   => 3,
+	    MX   => SSDPMAXDELAY,
 	    ST   => 'urn:wizpnp-upnp-org:device:pvrtvdevice:1',
-	    MAN  => '"ssdp:discover"'
+	    MAN  => '"ssdp:discover"',
         );
 
     my $ndev = $self->ndevices;
 
+    my $sel = IO::Select->new;
+    $sel->add($sin);
+
     for(my $i = 0;
-	   $i < 3 && (!$maxdev || ($self->ndevices - $ndev) < $maxdev);
+	   $i < SSDPNPOLL && (!$maxdev || ($self->ndevices - $ndev) < $maxdev);
 	   $i++) {
 
+	warn 'Send request:', $req->as_string, "\n" if($debug >= 1);
 	$sout->send($req->as_string);
 
-	my $sel = IO::Select->new;
-	$sel->add($sin);
-
 	for(my $i = 0;
-	       $i < 60 && (!$maxdev || ($self->ndevices - $ndev) < $maxdev);
+	       $i < NPOLLS && (!$maxdev || ($self->ndevices - $ndev) < $maxdev);
 	       $i++) {
-	    if($sel->can_read(0.1)) {
+	    foreach my $sock ($sel->can_read(POLLTIME)) {
 		my $data;
-		$self->process($data) if(defined $sin->recv($data, 1024));
+
+		if(defined $sock->recv($data, 1500)) {
+		    warn "Received:\n", $data if($debug >= 1);
+		    $self->process($data);
+		} else {
+		    warn "Received:\n", $data if($debug >= 1);
+		}
 	    }
 	}
     }
@@ -294,9 +323,14 @@ sub search($;$) {
     $sin->close || die "Can't close WizPnP input socket: $!\n";
 }
 
-sub main() {
+sub main(;$) {
     my $pnp = Beyonwiz::WizPnP->new;
-    $pnp->search(1);
+    debug(1);
+    $pnp->search(@_ > 0 ? $_[0] : 1);
+    print 'Found ', $pnp->ndevices, ' device',
+	  ($pnp->ndevices == 1 ? '' :'s'), "\n";
+    print 'Devices: (', join(', ', $pnp->deviceNames), ")\n"
+	if($pnp->ndevices > 0);
 }
 
 1;
