@@ -483,8 +483,9 @@ sub bookmarks($;$) {
 
 sub longTitle($) {
     my ($self) = @_;
-    return $self->validEpisode && $self->episode
-		? $self->title . '/' . $self->episode
+    my $episode = $self->episode;
+    return $episode
+		? $self->title . '/' . $episode
 		: $self->title;
 }
 
