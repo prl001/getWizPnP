@@ -117,7 +117,9 @@ sub name($) {
     my $dom = $self->dom;
     return undef if(!defined $dom);
     my @dev = $dom->getElementsByTagName('friendlyName');
-    return $dev[0] ? $dev[0]->getFirstChild->getData : undef;
+    return defined($dev[0]) && defined($dev[0]->getFirstChild)
+	   ? $dev[0]->getFirstChild->getData
+	   : undef;
 }
 
 sub presentationURL($) {
