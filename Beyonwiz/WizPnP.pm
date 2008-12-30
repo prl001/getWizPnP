@@ -165,10 +165,8 @@ use constant TIMEOUT      => 4;
 use constant POLLTIME     => 0.1;
 use constant NPOLLS       => int(TIMEOUT / POLLTIME + 0.5);
 
-use constant CRLF => "\015\012";
-
 my $accessorsDone;
-my $debug;
+my $debug = 0;
 
 sub new($) {
     my ($class) = @_;
