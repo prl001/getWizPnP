@@ -26,13 +26,16 @@ METHODS
     "$i->url([$val]);"
         Returns (sets) the index URL.
 
+    "$i->newEntry($name, $path, $makeSortTitle);"
+        Create a new "Beyonwiz::Recording::HTTPIndexEntry".
+
     "$i->load;"
         Load the index from the Beyonwiz.
 
 PREREQUISITES
 
     Uses packages: "Beyonwiz::Recording::Index",
-    "Beyonwiz::Recording::IndexEntry", "Beyonwiz::Utils", LWP::Simple,
+    "Beyonwiz::Recording::HTTPIndexEntry", "Beyonwiz::Utils", LWP::Simple,
     "URI", "URI::Escape", "File::Basename".
 
 BUGS

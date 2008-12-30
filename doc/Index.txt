@@ -43,6 +43,12 @@ METHODS
         will be called directly by Perl's "sort" function, with two
         "Beyonwiz::Recording::IndexEntry" references as its arguments.
 
+    "$i->newEntry($name, $path, $makeSortTitle);"
+        Create a new "Beyonwiz::Recording::IndexEntry" of the appropriate
+        derived type for the index.
+
+        This method is abstract and must be overridden in derived classes.
+
     "$i->decode($index_data);"
         Decode the binary index data.
 

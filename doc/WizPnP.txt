@@ -78,8 +78,12 @@ PREREQUISITES
 BUGS
 
     "IO::Socket::Multicast" is not available in ActivePerl's PPM for
-    Windows.
+    Windows, see README.txt for a download location.
 
     "Beyonwiz::Recording::WizPnP->new" will die with a message suggesting
     workarounds if "IO::Socket::Multicast" can't be loaded.
+
+    "$wpnp->search([$maxdev]);" has intermittent failure on Windows with
+    ActivePerl 10, and on Cygwin. The search is either immediately
+    successful or fails completely, even on retry.
 

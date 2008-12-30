@@ -109,6 +109,18 @@ directly by Perl's <a href="#item_sort"><code>sort</code></a> function, with two
 references as its arguments.</p>
 </dd>
 </li>
+<dt><strong><a name="item_newentry"><code>$i-&gt;newEntry($name, $path, $makeSortTitle);</code></a></strong>
+
+<dd>
+<p>Create a new
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>
+of the appropriate derived type for the index.</p>
+</dd>
+<dd>
+<p>This method is abstract and must be overridden in
+derived classes.</p>
+</dd>
+</li>
 <dt><strong><a name="item_decode"><code>$i-&gt;decode($index_data);</code></a></strong>
 
 <dd>

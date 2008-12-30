@@ -741,9 +741,11 @@ to affect the Beyonwiz beyond that.</p>
 This is available for download from CPAN for Mac OS X, Linux and Cygwin
 running under Windows.
 It is available only through and alternative PPM ActivePerl
-archive for Windows.
-Unfortunately, that version of <code>IO::Socket::Multicast</code> does not
-appear to work with the same code that works with the CPAN version.</p>
+archive for Windows.</p>
+<p>WizPnP device search has intermittent failure on Windows
+with ActivePerl 10, and on Cygwin.
+The search is either immediately successful or fails completely,
+even on retry.</p>
 <p>If <code>IO::Socket::Multicast</code> is not available, <em>getWizPnP</em> will
 exit with an error. In this case, the Beyonwiz device must be specified
 using <strong>--host</strong> (and <strong>--port</strong> if necessary).</p>

@@ -23,6 +23,9 @@ METHODS
     "$i->path([$val]);"
         Returns (sets) the recording path.
 
+    "$i->newEntry($name, $path, $makeSortTitle);"
+        Create a new "Beyonwiz::Recording::HTTPIndexEntry".
+
     "$i->load;"
         Load the index from the Beyonwiz.
 
@@ -30,8 +33,8 @@ PREREQUISITES
 
     Uses packages: "Beyonwiz::Recording::Header",
     "Beyonwiz::Recording::Trunc", "Beyonwiz::Recording::Index",
-    "Beyonwiz::Recording::IndexEntry", "Beyonwiz::Utils", "LWP::Simple",
-    "URI", "URI::Escape", "File::Spec::Functions".
+    "Beyonwiz::Recording::FileIndexEntry", "Beyonwiz::Utils", "LWP::Simple",
+    "URI", "URI::Escape", "File::Find", "File::Spec::Functions".
 
 BUGS
 

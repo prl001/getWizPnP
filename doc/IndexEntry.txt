@@ -30,7 +30,10 @@ METHODS
     "$ie->fullPath([$val]);"
         Returns (sets) the full path of the recording. This is the
         right-hand part of a "index.txt" entry for a recording. The last
-        segment of this path is not used when constructing a URL.
+        segment of this path is not used when constructing a URL or file
+        path.
+
+        This method is abstract and must be overridden in derived classes.
 
     "$ie->extractDetails;"
         Extracts the remaining information fields for the index entry from
