@@ -804,8 +804,8 @@ GetOptions(
 	'r|regexp!'		=> \$regexp,
 	'e|expression!'		=> \$expression,
 	'B|BWName!'		=> \$bwName,
-	'O|outdir=s'		=> \$outdir,
-	'I|indir=s'		=> \$indir,
+	'O|outdir:s'		=> \$outdir,
+	'I|indir:s'		=> \$indir,
 	'v|verbose+'		=> \$verbose,
 	'V|Verbose=i'		=> \$verbose,
 	'x|index!'		=> \$indexName,
@@ -1172,7 +1172,7 @@ sub matchRecording($$$) {
 sub newIndex($$)
 {
     my ($indir, $device) = @_;
-    return $indir
+    return defined $indir
 	? Beyonwiz::Recording::FileIndex->new(
 				$indir, \&makeSortTitle
 			    )
@@ -1185,7 +1185,7 @@ sub newIndex($$)
 
 sub newRecording($$$$$$$) {
     my ($indir, $device, $ts, $date, $episode, $resume, $force) = @_;
-    return $indir
+    return defined $indir
 	? Beyonwiz::Recording::FileRecording->new(
 			$indir, $ts, $date, $episode, $resume, $force
 		    )
@@ -1199,7 +1199,7 @@ sub newRecording($$$$$$$) {
 
 sub newHeader($$$) {
     my ($indir, $device, $ie) = @_;
-    return $indir
+    return defined $indir
 	? Beyonwiz::Recording::FileHeader->new($ie->name, $ie->path)
 	: Beyonwiz::Recording::HTTPHeader->new(
     			$ie->name, $device->baseUrl, $ie->path
@@ -1211,7 +1211,7 @@ sub newHeader($$$) {
 
 sub newTrunc($$$) {
     my ($indir, $device, $ie) = @_;
-    return $indir
+    return defined $indir
 	? Beyonwiz::Recording::FileTrunc->new($ie->name, $ie->path)
 	: Beyonwiz::Recording::HTTPTrunc->new(
 			$ie->name, $device->baseUrl, $ie->path
@@ -1248,11 +1248,9 @@ sub doRecordingOperation($$$$$$) {
 		($mode == MODE_DELETE ? ' - Delete'       : ''),
 		($mode == MODE_MOVE   ? ' - Move'         : ''),
 		"\n";
-    if($verbose >= 2) {
-    if($hdr->extInfo && length($hdr->extInfo) > 0) {
-	    $info = $hdr->extInfo;
-	    write STDOUT;
-	}
+    if($verbose >= 2 && $hdr->extInfo && length($hdr->extInfo) > 0) {
+	$info = $hdr->extInfo;
+	write STDOUT;
     }
     print "    Index name: ", $ie->name, "\n" if($verbose >= 3 || $indexName);
     if($verbose >= 1) {
@@ -1415,7 +1413,7 @@ my $device;
 
 # Get the connection as a WizPnPDevice in $device
 
-if(!$indir) {
+if(!defined $indir) {
     my $pnp = Beyonwiz::WizPnP->new;
 
     $device = connectToBW($host, $maxdevs, $verbose);

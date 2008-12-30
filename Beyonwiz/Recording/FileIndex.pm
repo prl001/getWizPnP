@@ -119,31 +119,31 @@ sub load($) {
 
     our $index_data = '';
     our $path = canonpath($self->path);
+    our $dotPath = $path eq '' ? '.' : $path;
 
     sub process() {
 	if(-d $_ && (-f catfile($_, TVHDR) || -f catfile($_, RADHDR))
 	&& -f catfile($_, TRUNC)) {
 	    # Fake up index.txt lines;
-	    my $relpath = substr $File::Find::name, length($path) + 1;
+	    my $relpath = substr $File::Find::name, length($dotPath) + 1;
 	    my $name = $relpath;
 	    $name =~ s/\.tvwiz$//;
 	    $name = join '/', splitdir($name);
-	    my $mtime = (stat $File::Find::name)[9];
+	    my $mtime = (stat $_)[9];
 	    my ($min,$hour,$mday,$mon,$year) = (localtime($mtime))[1..5];
 	    $name .= sprintf ' %s.%d.%d_%d.%d',
 				$monNames[$mon], $mday, $year+1900, $hour, $min;
 	    $index_data .= $name . '|'
-			. catfile($self->path, $relpath, $_ . '.tvwizts')
+			. catfile($dotPath, $relpath, $_ . '.tvwizts')
 			. "\n";
 	    $File::Find::prune = 1;
 	}
     }
 
-    -d $self->path or die "Can't find ", $self->path, ": $!\n";
-    find({ wanted => \&process, follow => 0 }, $path);
+    -d $dotPath or die "Can't find ", $dotPath, ": $!\n";
+    find({ wanted => \&process, follow => 0 }, $dotPath);
 
     $self->decode($index_data);
-
     $self->valid or die "Fetch of ", $self->path, " failed\n";
 
     return $self->nentries;
