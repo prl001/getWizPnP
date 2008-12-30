@@ -41,7 +41,10 @@ for a recording.
 Returns (sets) the full path of the recording.
 This is the right-hand part of a C<index.txt> entry
 for a recording. The last segment of this path
-is not used when constructing a URL.
+is not used when constructing a URL or file path.
+
+This method is abstract and must be overridden in
+derived classes.
 
 =item C<< $ie->extractDetails; >>
 
@@ -144,7 +147,6 @@ sub new($$$) {
 
     bless $self, $class;
 
-    $self->fullPath($path);
     $self->name($name);
     $self->extractDetails;
 
@@ -168,16 +170,8 @@ my %monthNum = (
 
 sub fullPath($;$) {
     my ($self, $val) = @_;
-    my $ret = $self->{fullPath};
-    if(@_ == 2) {
-	$self->{fullPath} = $val;
-	my @path = split '/', $val;
-	my $folder = '';
-	$self->path(@path >= 1
-			? join '/', @path[0..$#path-1]
-			: '');
-    }
-    return $ret;
+    die "Beyonwiz::Recording::IndexEntry::fullPath",
+	" is abstract and must be overridden in a subclass\n";
 }
 
 sub extractDetails() {
@@ -185,29 +179,6 @@ sub extractDetails() {
     my $title;
     my $folder;
     my $time;
-#    my $val = $self->fullPath;
-#    if(defined($val) && $val ne '') {
-#	# Beyonwiz path entry
-#	my @path = split '/', $val;
-#	my $folder = '';
-#	if(@path >= 4) {
-#	    $folder = join '/', @path[2..$#path-2];
-#	}
-#	my $title = uri_unescape($path[$#path]);
-#	$title =~ s/\.(tv|rad)wizts$//;
-#	my $timeStr = uri_unescape($path[$#path-1]);
-#	$timeStr =~ /_([a-z][a-z][a-z])\.(\d+)\.(\d+)_(\d+)\.(\d+)\+\d+\.\d+\.(tv|rad)wiz$/i;
-#	my $time;
-#	if(defined($1) && defined($2) && defined($3)
-#	&& defined($4) && defined($5)
-#	&& defined($monthNum{$1})) {
-#	    $time = sprintf '%04d%02d%02dT%02d%02d',
-#					$3, $monthNum{$1}, $2, $4, $5;
-#	}
-#	$self->time($time);
-#	$self->title($title);
-#	$self->folder($folder);
-#    }
     my $val = $self->name;
     if(defined($val) && $val ne '') {
 	# Beyonwiz index name entry
