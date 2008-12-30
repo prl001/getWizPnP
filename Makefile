@@ -11,8 +11,9 @@ BWMODULES=$(BWMODULEDIR)/Utils.pm $(BWMODULEDIR)/WizPnP.pm \
 	$(BWMODULEDIR)/WizPnPDevice.pm
 
 RECMODULES=$(RECMODULEDIR)/FileHeader.pm $(RECMODULEDIR)/FileIndex.pm \
-	$(RECMODULEDIR)/FileRecording.pm $(RECMODULEDIR)/FileTrunc.pm \
-	$(RECMODULEDIR)/HTTPHeader.pm $(RECMODULEDIR)/HTTPIndex.pm \
+	$(RECMODULEDIR)/FileIndexEntry.pm $(RECMODULEDIR)/FileRecording.pm \
+	$(RECMODULEDIR)/FileTrunc.pm $(RECMODULEDIR)/HTTPHeader.pm \
+	$(RECMODULEDIR)/HTTPIndex.pm $(RECMODULEDIR)/HTTPIndexEntry.pm \
 	$(RECMODULEDIR)/HTTPRecording.pm $(RECMODULEDIR)/HTTPTrunc.pm \
 	$(RECMODULEDIR)/Header.pm $(RECMODULEDIR)/Index.pm \
 	$(RECMODULEDIR)/IndexEntry.pm $(RECMODULEDIR)/Recording.pm \
