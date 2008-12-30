@@ -36,6 +36,11 @@ Returns (sets) the device base URL.
 
 Returns (sets) the index URL.
 
+=item C<< $i->newEntry($name, $path, $makeSortTitle); >>
+
+Create a new
+L<C<Beyonwiz::Recording::HTTPIndexEntry>|Beyonwiz::Recording::HTTPIndexEntry>.
+
 =item C<< $i->load; >>
 
 Load the index from the Beyonwiz.
@@ -46,7 +51,7 @@ Load the index from the Beyonwiz.
 
 Uses packages:
 L<C<Beyonwiz::Recording::Index>|Beyonwiz::Recording::Index>,
-L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>,
+L<C<Beyonwiz::Recording::HTTPIndexEntry>|Beyonwiz::Recording::HTTPIndexEntry>,
 L<C<Beyonwiz::Utils>|Beyonwiz::Utils>,
 L<LWP::Simple>,
 C<URI>,
@@ -65,7 +70,7 @@ use warnings;
 use strict;
 
 use Beyonwiz::Recording::Index qw(INDEX);
-use Beyonwiz::Recording::IndexEntry;
+use Beyonwiz::Recording::HTTPIndexEntry;
 use LWP::Simple;
 use URI;
 use URI::Escape;
@@ -107,6 +112,11 @@ sub new() {
 sub uriPathEscape($) {
     my ($path) = @_;
     return uri_escape($path, "^A-Za-z0-9\-_.!~*'()/");
+}
+
+sub newEntry($$$) {
+    my ($self, $name, $path, $makeSortTitle) = @_;
+    return Beyonwiz::Recording::HTTPIndexEntry->new($name, $path, $makeSortTitle);
 }
 
 sub load($) {

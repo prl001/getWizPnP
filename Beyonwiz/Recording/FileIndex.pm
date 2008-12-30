@@ -32,6 +32,11 @@ for comparisons when sorting
 
 Returns (sets) the recording path.
 
+=item C<< $i->newEntry($name, $path, $makeSortTitle); >>
+
+Create a new
+L<C<Beyonwiz::Recording::HTTPIndexEntry>|Beyonwiz::Recording::HTTPIndexEntry>.
+
 =item C<< $i->load; >>
 
 Load the index from the Beyonwiz.
@@ -44,11 +49,12 @@ Uses packages:
 L<C<Beyonwiz::Recording::Header>|Beyonwiz::Recording::Header>,
 L<C<Beyonwiz::Recording::Trunc>|Beyonwiz::Recording::Trunc>,
 L<C<Beyonwiz::Recording::Index>|Beyonwiz::Recording::Index>,
-L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>,
+L<C<Beyonwiz::Recording::FileIndexEntry>|Beyonwiz::Recording::FileIndexEntry>,
 L<C<Beyonwiz::Utils>|Beyonwiz::Utils>,
 C<LWP::Simple>,
 C<URI>,
 C<URI::Escape>,
+C<File::Find>,
 C<File::Spec::Functions>.
 
 =head1 BUGS
@@ -65,11 +71,12 @@ use strict;
 use Beyonwiz::Recording::Header qw(TVHDR RADHDR);
 use Beyonwiz::Recording::Trunc qw(TRUNC);
 use Beyonwiz::Recording::Index;
-use Beyonwiz::Recording::IndexEntry;
+use Beyonwiz::Recording::FileIndexEntry;
 use LWP::Simple;
 use URI;
 use URI::Escape;
-use File::Spec::Functions qw(!path);
+use File::Find;
+use File::Spec::Functions qw(!path splitdir);
 
 our @ISA = qw( Beyonwiz::Recording::Index );
 
@@ -98,33 +105,42 @@ sub new($$;$) {
     return bless $self, $class;
 }
 
+sub newEntry($$$) {
+    my ($self, $name, $path, $makeSortTitle) = @_;
+    return Beyonwiz::Recording::FileIndexEntry->new($name, $path, $makeSortTitle);
+}
+
 my @monNames = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
 
 sub load($) {
-    my ($self) = @_;
+    our ($self) = @_;
 
     @{$self->entries} = ();
 
-    my $index_data = '';
+    our $index_data = '';
+    our $path = canonpath($self->path);
 
-    opendir DIR, $self->path or die "Can't find ", $self->path, ": $!\n";
-    foreach my $ent (grep { -d catfile($self->path, $_)
-			       && (    -f catfile($self->path, $_, TVHDR)
-			            || -f catfile($self->path, $_, RADHDR)
-				  )
-			       && -f catfile($self->path, $_, TRUNC)
-			} readdir(DIR)) {
-	# Fake up index.txt lines;
-	my $name = $ent;
-	$name =~ s/\.tvwiz$//;
-	my $mtime = (stat catfile($self->path, $ent))[9];
-	my ($min,$hour,$mday,$mon,$year) = (localtime)[1..5];
-	$name .= sprintf ' %s.%d.%d_%2d.%2d',
-			    $monNames[$mon], $mday, $year+1900, $hour, $min;
-	$index_data .= $name . '|'
-	            . catfile($self->path, $ent, $ent . '.tvwizts') . "\n";
+    sub process() {
+	if(-d $_ && (-f catfile($_, TVHDR) || -f catfile($_, RADHDR))
+	&& -f catfile($_, TRUNC)) {
+	    # Fake up index.txt lines;
+	    my $relpath = substr $File::Find::name, length($path) + 1;
+	    my $name = $relpath;
+	    $name =~ s/\.tvwiz$//;
+	    $name = join '/', splitdir($name);
+	    my $mtime = (stat $File::Find::name)[9];
+	    my ($min,$hour,$mday,$mon,$year) = (localtime($mtime))[1..5];
+	    $name .= sprintf ' %s.%d.%d_%d.%d',
+				$monNames[$mon], $mday, $year+1900, $hour, $min;
+	    $index_data .= $name . '|'
+			. catfile($self->path, $relpath, $_ . '.tvwizts')
+			. "\n";
+	    $File::Find::prune = 1;
+	}
     }
-    closedir DIR;
+
+    -d $self->path or die "Can't find ", $self->path, ": $!\n";
+    find({ wanted => \&process, follow => 0 }, $path);
 
     $self->decode($index_data);
 

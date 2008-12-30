@@ -64,6 +64,15 @@ directly by Perl's C<sort> function, with two
 L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>
 references as its arguments.
 
+=item C<< $i->newEntry($name, $path, $makeSortTitle); >>
+
+Create a new
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>
+of the appropriate derived type for the index.
+
+This method is abstract and must be overridden in
+derived classes.
+
 =item C<< $i->decode($index_data); >>
 
 Decode the binary index data.
@@ -138,6 +147,13 @@ sub sort($$) {
     return @{$self->entries} = sort $makeSortTitle @{$self->entries};
 }
 
+sub newEntry($$$) {
+    my ($self, $name, $path, $makeSortTitle);
+    die "Beyonwiz::Recording::Index::newEntry",
+	" is abstract and must be overridden in a subclass\n";
+    return undef;
+}
+
 sub decode($$) {
     my ($self, $index_data) = @_;
 
@@ -147,9 +163,8 @@ sub decode($$) {
 	foreach my $rec (split /\r?\n/, $index_data) {
 	    my @parts = split /\|/, $rec;
 	    if(@parts == 2) {
-#		$parts[1] =~ s,/[^/]*\.(tv|rad)wizts$,,;
 		push @{$self->entries},
-		    Beyonwiz::Recording::IndexEntry->new(
+		    $self->newEntry(
 			    $parts[0], $parts[1], $self->makeSortTitle);
 	    } elsif(@parts == 1 || $parts[0] eq "\tidehdd/contents") {
 		# Can't handle media files in contents folder yet
