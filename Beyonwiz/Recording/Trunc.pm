@@ -183,6 +183,7 @@ sub makeFileTrunc($) {
 
     my $fileTrunc = Beyonwiz::Recording::Trunc->new($self->name);
     my $lastfile = -1;
+    $fileTrunc->{size} = $self->size;
 
     foreach my $tr (@{$self->entries}) {
 	if($lastfile != $tr->fileNum) {
