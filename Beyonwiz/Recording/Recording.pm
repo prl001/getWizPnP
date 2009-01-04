@@ -146,9 +146,6 @@ Uses packages:
 L<C<Beyonwiz::Recording::Trunc>|Beyonwiz::Recording::Trunc>,
 L<C<Beyonwiz::Recording::Header>|Beyonwiz::Recording::Header>,
 L<C<Beyonwiz::Utils>|Beyonwiz::Utils>,
-C<LWP::Simple>,
-C<URI>,
-C<URI::Escape>,
 C<HTTP::Status>,
 C<File::Spec::Functions>,
 C<File::Basename>.
@@ -170,14 +167,13 @@ use bignum;
 
 use Beyonwiz::Recording::Trunc qw(TRUNC);
 use Beyonwiz::Recording::Header qw(TVHDR RADHDR);
-use LWP::Simple qw(getstore $ua);
-use URI;
-use URI::Escape;
+use Beyonwiz::Utils;
 use HTTP::Status;
 use File::Spec::Functions;
 use File::Basename;
 
 use constant STAT => 'stat';
+use constant STATSIZE => 96;
 
 use constant BADCHARS => '\\/:*?"<>|';
 
@@ -356,8 +352,7 @@ sub getRecording($$$$$$) {
 		return RC_FORBIDDEN;
 	    }
 	}
-
-	$size += $hdr->size + $trunc->size;
+	$size += $hdr->size + $trunc->size + STATSIZE;
 
 	if($progressBar) {
 	    $progressBar->total($size);
@@ -372,7 +367,7 @@ sub getRecording($$$$$$) {
 
 	$status = $self->getRecordingFile($path, $name, STAT, $outdir, 0);
 	if(is_success($status)) {
-	    $done += 96;
+	    $done += STATSIZE;
 	    $progressBar->done($done) if($progressBar);
 	} else {
 	    warn "Stat file not found for $name: ",
