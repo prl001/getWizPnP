@@ -112,9 +112,8 @@ METHODS
 PREREQUISITES
 
     Uses packages: "Beyonwiz::Recording::Trunc",
-    "Beyonwiz::Recording::Header", "Beyonwiz::Utils", "LWP::Simple", "URI",
-    "URI::Escape", "HTTP::Status", "File::Spec::Functions",
-    "File::Basename".
+    "Beyonwiz::Recording::Header", "Beyonwiz::Utils", "HTTP::Status",
+    "File::Spec::Functions", "File::Basename".
 
 BUGS
 

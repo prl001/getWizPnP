@@ -29,14 +29,36 @@ METHODS
     "Beyonwiz::Recording::WizPnP->new"
         Create a new Beyonwiz WizPnP search object.
 
+    "$wpnp->maxDevs([$val]);"
+        Returns (sets) the maximum number of devices to search for. If set
+        to 0, the search is unlimited, and runs until it times out. Defaults
+        to 0.
+
     "$wpnp->devices([$val]);"
         Returns (sets) the reference to the hash of discovered devices
         ("Beyonwiz::WizPnPDevice"), indexed by the lower-case version of the
         device name.
 
-    "$wpnp->deviceNames;"
-        Returns the list of discovered device names. All lower-cased. No
-        particular order.
+    "$wpnp->httpTimeout([$val]);"
+        Returns (sets) the timeout used when fetching the Beyonwiz device
+        descriptor using HTTP. Defaults to "undef". When set to "undef" uses
+        the "LWP" default timeout (180 sec).
+
+    "$wpnp->cacheEnable([$val]);"
+        Returns (sets) the enable flag for the device location lookup cache.
+        Only has an effect if executed on a derived class that implements
+        caching.
+
+    "$wpnp->cacheLifetime([$val]);"
+        Returns (sets) the lifetime of a Beyonwiz location cache entry in
+        seconds. Only has an effect if executed on a derived class that
+        implements caching.
+
+    "$wpnp->_quietLocation([$val]);"
+        Returns (sets) a flag to suppress some warning messages during
+        device location specifier processing. Intended for use by derived
+        clases when they are testing for the presence of a Beyonwiz device
+        and will take recovery action.
 
     "$wpnp->deviceNames;"
         Returns the list of discovered device names. All lower-cased. No
@@ -55,19 +77,31 @@ METHODS
         $location is typically the "LOCATION" header in the response to an
         SDDP "M-SEARCH" request.
 
+        Returns the index name of the device (as in "$wpnp->deviceNames;")
+        if successful, "undef" otherwise.
+
     "$wpnp->process($data);"
         Process an SDDP "M-SEARCH" response (or, for now, an SSDP "NOTIFY"
         message) in $data, and install the device pointed to by the
         "LOCATION" header in the message.
 
-        Returns true if the message contained an installable SSDP device.
+        Returns the index name of the device (as in "$wpnp->deviceNames;")
+        if the message contained an installable SSDP device, "undef"
+        otherwise.
 
-    "$wpnp->search([$maxdev]);"
+    "$wpnp->search();"
         Search the local net for Beyonwiz PnP devices and install them in
         $wpnp.
 
-        If $maxdev is supplied and non-zero, terminate the search when
-        $maxdev devices have been installed.
+        If "$wpnp->maxDevs" non-zero, terminate the search when
+        "$self->maxDevs" devices have been installed, otherwise search until
+        the search times out.
+
+        Returns the number of devices found.
+
+    "$wpnp->cacheFlush;"
+        Clear the Beyonwiz location cache. Only has an effect if executed on
+        a derived class that implements caching.
 
 PREREQUISITES
 
@@ -82,8 +116,4 @@ BUGS
 
     "Beyonwiz::Recording::WizPnP->new" will die with a message suggesting
     workarounds if "IO::Socket::Multicast" can't be loaded.
-
-    "$wpnp->search([$maxdev]);" has intermittent failure on Windows with
-    ActivePerl 10, and on Cygwin. The search is either immediately
-    successful or fails completely, even on retry.
 

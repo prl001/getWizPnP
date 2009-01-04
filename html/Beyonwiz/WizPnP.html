@@ -84,6 +84,15 @@ document on the Beyonwiz PVR (<code>tvdevicedesc.xml</code>;</p>
 <p>Create a new Beyonwiz WizPnP search object.</p>
 </dd>
 </li>
+<dt><strong><a name="item_maxdevs"><code>$wpnp-&gt;maxDevs([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the maximum number of devices to search
+for.
+If set to 0, the search is unlimited, and runs until it times out.
+Defaults to 0.</p>
+</dd>
+</li>
 <dt><strong><a name="item_devices"><code>$wpnp-&gt;devices([$val]);</code></a></strong>
 
 <dd>
@@ -92,14 +101,41 @@ document on the Beyonwiz PVR (<code>tvdevicedesc.xml</code>;</p>
 indexed by the lower-case version of the device name.</p>
 </dd>
 </li>
-<dt><strong><a name="item_devicenames"><code>$wpnp-&gt;deviceNames;</code></a></strong>
+<dt><strong><a name="item_httptimeout"><code>$wpnp-&gt;httpTimeout([$val]);</code></a></strong>
 
 <dd>
-<p>Returns the list of discovered device names.
-All lower-cased. No particular order.</p>
+<p>Returns (sets) the timeout used when fetching the Beyonwiz device descriptor
+using HTTP. Defaults to <code>undef</code>. When set to <code>undef</code> uses the <code>LWP</code>
+default timeout (180 sec).</p>
 </dd>
 </li>
-<dt><strong><code>$wpnp-&gt;deviceNames;</code></strong>
+<dt><strong><a name="item_cacheenable"><code>$wpnp-&gt;cacheEnable([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the enable flag for the device location
+lookup cache.
+Only has an effect if executed on a derived class that
+implements caching.</p>
+</dd>
+</li>
+<dt><strong><a name="item_cachelifetime"><code>$wpnp-&gt;cacheLifetime([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the lifetime of a Beyonwiz location cache
+entry in seconds.
+Only has an effect if executed on a derived class that
+implements caching.</p>
+</dd>
+</li>
+<dt><strong><a name="item__quietlocation"><code>$wpnp-&gt;_quietLocation([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) a flag to suppress some warning messages during device
+location specifier processing. Intended for use by derived clases when
+they are testing for the presence of a Beyonwiz device and will take recovery action.</p>
+</dd>
+</li>
+<dt><strong><a name="item_devicenames"><code>$wpnp-&gt;deviceNames;</code></a></strong>
 
 <dd>
 <p>Returns the list of discovered device names.
@@ -130,6 +166,10 @@ device <a href="../../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPD
 <code>$location</code> is typically the <code>LOCATION</code> header in the
 response to an SDDP <code>M-SEARCH</code> request.</p>
 </dd>
+<dd>
+<p>Returns the index name of the device (as in <a href="#item_devicenames"><code>$wpnp-&gt;deviceNames;</code></a>)
+if successful, <code>undef</code> otherwise.</p>
+</dd>
 </li>
 <dt><strong><a name="item_process"><code>$wpnp-&gt;process($data);</code></a></strong>
 
@@ -140,18 +180,31 @@ and install the device pointed to by the <code>LOCATION</code> header
 in the message.</p>
 </dd>
 <dd>
-<p>Returns true if the message contained an installable SSDP device.</p>
+<p>Returns the index name of the device (as in <a href="#item_devicenames"><code>$wpnp-&gt;deviceNames;</code></a>)
+if the message contained an installable SSDP device, <code>undef</code> otherwise.</p>
 </dd>
 </li>
-<dt><strong><a name="item_search"><code>$wpnp-&gt;search([$maxdev]);</code></a></strong>
+<dt><strong><a name="item_search"><code>$wpnp-&gt;search();</code></a></strong>
 
 <dd>
 <p>Search the local net for Beyonwiz PnP devices and install
 them in <code>$wpnp</code>.</p>
 </dd>
 <dd>
-<p>If <code>$maxdev</code> is supplied and non-zero, terminate
-the search when <code>$maxdev</code> devices have been installed.</p>
+<p>If <a href="#item_maxdevs"><code>$wpnp-&gt;maxDevs</code></a> non-zero, terminate
+the search when <a href="#item_maxdevs"><code>$self-&gt;maxDevs</code></a> devices have been installed,
+otherwise search until the search times out.</p>
+</dd>
+<dd>
+<p>Returns the number of devices found.</p>
+</dd>
+</li>
+<dt><strong><a name="item_cacheflush"><code>$wpnp-&gt;cacheFlush;</code></a></strong>
+
+<dd>
+<p>Clear the Beyonwiz location cache.
+Only has an effect if executed on a derived class that
+implements caching.</p>
 </dd>
 </li>
 </dl>
@@ -178,10 +231,6 @@ PPM for Windows, see README.txt for a download location.</p>
 <p><a href="#item_new"><code>Beyonwiz::Recording::WizPnP-&gt;new</code></a> will die with a
 message suggesting workarounds if <code>IO::Socket::Multicast</code>
 can't be loaded.</p>
-<p><a href="#item_search"><code>$wpnp-&gt;search([$maxdev]);</code></a> has intermittent failure on Windows
-with ActivePerl 10, and on Cygwin.
-The search is either immediately successful or fails completely,
-even on retry.</p>
 <table border="0" width="100%" cellspacing="0" cellpadding="3">
 <tr><td class="block" style="background-color: #cccccc" valign="middle">
 <big><strong><span class="block">&nbsp;WizPnP</span></strong></big>

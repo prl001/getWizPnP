@@ -55,6 +55,7 @@
               [--outdir=dir|-O dir] [--indir=dir|-I dir]
               [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
               [--index|-x]
+              [--discover]
               [ patterns... ]</pre>
 <p>
 </p>
@@ -62,14 +63,14 @@
 <h1><a name="description">DESCRIPTION</a></h1>
 <p>List, fetch, move or delete the recordings on a Beyonwiz DP series
 PVR over the network using the <em>WizPnP</em> interface.
-If <strong>--indir</strong> is specified, perform the same operations on
+If <strong>--<a href="#item_indir">indir</a></strong> is specified, perform the same operations on
 the computer where <em>getWizPnP</em> is running.
-<strong>--indir</strong> is most useful in combination with <strong>--ts</strong>.</p>
+<strong>--<a href="#item_indir">indir</a></strong> is most useful in combination with <strong>--<a href="#item_ts">ts</a></strong>.</p>
 <p>If no pattern arguments are given, then all recordings are listed.
 Otherwise recordings matching any of the patterns are fetched
-(or listed, moved or deleted, with <strong>--list</strong>, <strong>--move</strong> or <strong>--delete</strong>
+(or listed, moved or deleted, with <strong>--<a href="#item_list">list</a></strong>, <strong>--<a href="#item_move">move</a></strong> or <strong>--<a href="#item_delete">delete</a></strong>
 respectively).</p>
-<p>In the absence of <strong>--regexp</strong> or <strong>--expression</strong> a pattern matches
+<p>In the absence of <strong>--<a href="#item_regexp">regexp</a></strong> or <strong>--<a href="#item_expression">expression</a></strong> a pattern matches
 if it is a substring of the string <em>servicename</em><strong>#</strong><em>longtitle</em>#<em>date</em>,
 case insensitive.
 The <em>longtitle</em> is just the title if the header has no episode information,
@@ -85,11 +86,11 @@ otherwise it is <em>title</em><strong>/</strong><em>episodename</em>.</p>
     wizGetPnP ''</pre>
 <p>Recordings are copied or moved to a name corresponding to their event name
 (title) with any characters that are illegal in the file system changed to '_'.
-The <strong>--date</strong> option adds the day and date of the recording to the name,
-and the <strong>--episode</strong> option adds the episode name to the recording
+The <strong>--<a href="#item_date">date</a></strong> option adds the day and date of the recording to the name,
+and the <strong>--<a href="#item_episode">episode</a></strong> option adds the episode name to the recording
 name (if there is one set)
 -- helpful for series recordings.
-Downloaded recordings are placed in the current directory unless <strong>--outdir</strong>
+Downloaded recordings are placed in the current directory unless <strong>--<a href="#item_outdir">outdir</a></strong>
 has been specified.</p>
 <p>When listing recordings, recordings that are currently recording are flagged
 with <code>*RECORDING NOW</code> next to the recording name.
@@ -129,7 +130,8 @@ Otherwise, if a device is named but isn't found, <em>getWizPnP</em>
 returns with an error. Device name matching is case-insensitive
 (<code>MyBeyonwiz</code> matches <code>mybeyonwiz</code>).</p>
 </dd>
-<dt>
+<dt><strong><a name="item_maxdevs">maxdevs</a></strong>
+
 <dd>
 <pre>
   --maxdevs=devs
@@ -150,12 +152,12 @@ time out (currently 60 seconds). <em>Devs</em> defaults to 1.</p>
 <dd>
 <p>Connect to the <em>host</em> (DNS name or dotted-quad IP address) instead of using
 WizPnP search to find the Beyonwiz, or instead of the default set in the
-configuration file (see FILES below).</p>
+<strong><a href="#files">configuration file</a></strong>.</p>
 </dd>
 <dd>
-<p>If the device name is specified with <strong>--device</strong> then the configuration
+<p>If the device name is specified with <strong>--<a href="#item_device">device</a></strong> then the configuration
 returned by <em>host</em> that contains the WizPnP name of the device must match
-(case insensitive) the device name given by <strong>--device</strong>.</p>
+(case insensitive) the device name given by <strong>--<a href="#item_device">device</a></strong>.</p>
 </dd>
 <dt><strong><a name="item_port">port</a></strong>
 
@@ -167,8 +169,8 @@ returned by <em>host</em> that contains the WizPnP name of the device must match
 <dd>
 <p>Connect to the <em>port</em> instead of the
 file default (<code>49152</code>), or the default set in the configuration
-file (see FILES below).
-<em>port</em> is ignored unless <strong>--host</strong> is set.</p>
+file (see <strong><a href="#files">FILES</a></strong> below).
+<em>port</em> is ignored unless <strong>--<a href="#item_host">host</a></strong> is set.</p>
 </dd>
 <dt><strong><a name="item_list">list</a></strong>
 
@@ -212,7 +214,7 @@ Move uses an undocumented feature of WizPnP. See <strong><a href="#bugs">BUGS</a
 </dd>
 <dd>
 <p>Restrict the operations to the named folder.
-More that one <strong>--folder</strong> option may be given, the operations apply to
+More that one <strong>--<a href="#item_folder">folder</a></strong> option may be given, the operations apply to
 all the named folders.
 If no folders are named, operations are on the top level
 recording folder (equivalent to specifying <strong>--folder=</strong>
@@ -237,7 +239,7 @@ and using anything but the default folder will mean that
 no recordings are visible.</p>
 </dd>
 <dd>
-<p>If <strong>--indir</strong> is used, then all recordings in that folder will appear
+<p>If <strong>--<a href="#item_indir">indir</a></strong> is used, then all recordings in that folder will appear
 to be in the top level folder seen by <em>getWizPnP</em>.
 If any foldername except <strong>--folder=</strong> (or <strong>--folder=/</strong>)
 is used, no recprdings will be found.</p>
@@ -255,14 +257,14 @@ is used, no recprdings will be found.</p>
 </dd>
 <dd>
 <p>Recursively examine all subfolders under the folders specified
-by <strong>--folder</strong> for recordings, as well as just the recordings
+by <strong>--<a href="#item_folder">folder</a></strong> for recordings, as well as just the recordings
 directly in the folders.</p>
 </dd>
 <dd>
 <p>Has no effect if the Beyonwiz is running firmware 01.05.261 or earlier.</p>
 </dd>
 <dd>
-<p>Has no effect if <strong>--indir</strong> is used.</p>
+<p>Has no effect if <strong>--<a href="#item_indir">indir</a></strong> is used.</p>
 </dd>
 <dt><strong><a name="item_regexp">regexp</a></strong>
 
@@ -286,8 +288,9 @@ For example:</p>
 <p>will copy all recordings made from either the ABC or SBS.</p>
 </dd>
 <dd>
-<p><strong>--noregexp</strong> and <strong>--nor</strong> undo the setting of this option;
-useful if this option is set by default in the user's <code>.getwizpnp</code> file.</p>
+<p><strong>--no<a href="#item_regexp">regexp</a></strong> and <strong>--nor</strong> undo the setting of this option;
+useful if this option is set by default in the user's
+<strong><a href="#files">configuration file</a></strong>.</p>
 </dd>
 <dt><strong><a name="item_expression">expression</a></strong>
 
@@ -309,12 +312,13 @@ the recording is matched.</p>
     getWizPnp --expression '/ABC|SBS/i'</pre>
 </dd>
 <dd>
-<p>is equivalent to the <strong>--regexp</strong> example above.
+<p>is equivalent to the <strong>--<a href="#item_regexp">regexp</a></strong> example above.
 Quite powerful; the Swiss Army knife approach.</p>
 </dd>
 <dd>
-<p><strong>--noexpression</strong> and <strong>--noe</strong> undo the setting of this option;
-useful if this option is set by default in the user's <code>.getwizpnp</code> file.</p>
+<p><strong>--no<a href="#item_expression">expression</a></strong> and <strong>--noe</strong> undo the setting of this option;
+useful if this option is set by default in the user's
+<strong><a href="#files">configuration file</a></strong>.</p>
 </dd>
 <dt><strong><a name="item_sort">sort</a></strong>
 
@@ -365,7 +369,7 @@ recording ha been renamed.</p>
 </dd>
 <dd>
 <p>Sorting is by the last modified time of the folder,
-not on the actual recording time when <strong>--outdir</strong> is used.</p>
+not on the actual recording time when <strong>--<a href="#item_outdir">outdir</a></strong> is used.</p>
 </dd>
 <dt><strong><a name="item_dictionarysort">dictionarySort</a></strong>
 
@@ -457,7 +461,7 @@ become the only ones used.</p>
 <p>makes the options just <strong>case</strong> and <strong>punctuation</strong>.</p>
 </dd>
 <dd>
-<p>Multiple <strong>--dictionarySort</strong> may be used.</p>
+<p>Multiple <strong>--<a href="#item_dictionarysort">dictionarySort</a></strong> may be used.</p>
 </dd>
 <dd>
 <pre>
@@ -480,11 +484,11 @@ become the only ones used.</p>
 <dd>
 <p>Use the <code>word(s)</code> specified by the comma-separated
 list of <em>words</em> as the words ignored
-by <strong>--dictionarySort</strong> when they appear at the start of a title.
+by <strong>--<a href="#item_dictionarysort">dictionarySort</a></strong> when they appear at the start of a title.
 The default list is <strong>A</strong>, <strong>An</strong>, <strong>The</strong>.
-Specifying any words with <strong>--dictStoplist</strong>
+Specifying any words with <strong>--<a href="#item_dictstoplist">dictStoplist</a></strong>
 overrides the stoplist.
-Multiple instances of <strong>--dictStoplist</strong> add to the list.</p>
+Multiple instances of <strong>--<a href="#item_dictstoplist">dictStoplist</a></strong> add to the list.</p>
 </dd>
 <dd>
 <pre>
@@ -499,7 +503,7 @@ Multiple instances of <strong>--dictStoplist</strong> add to the list.</p>
 </dd>
 <dd>
 <p>Case is ignored checking for these words only
-if <strong>case</strong> is set in <strong>--dictionarySort</strong>.</p>
+if <strong>case</strong> is set in <strong>--<a href="#item_dictionarysort">dictionarySort</a></strong>.</p>
 </dd>
 <dt><strong><a name="item_date">date</a></strong>
 
@@ -543,8 +547,8 @@ Useful for downloading series.</p>
 rather than copying in the Beyonwiz internal recording format.</p>
 </dd>
 <dd>
-<p><strong>--nots</strong> and <strong>--not</strong> undo the setting of this option;
-useful if this option is set by default in the user's <code>.getwizpnp</code> file.</p>
+<p><strong>--no<a href="#item_ts">ts</a></strong> and <strong>--not</strong> undo the setting of this option;
+useful if this option is set by default in the user's <strong><a href="#files">configuration file</a></strong>.</p>
 </dd>
 <dt><strong><a name="item_resume">resume</a></strong>
 
@@ -584,7 +588,7 @@ from 0.</p>
 <dd>
 <p>Verbosity level 1 lists some more details about
 the recordings, and shows a progress indicator when copying.
-The progress indicator shows the transfer rate for the last megabyte
+The progress indicator shows the transfer rate for the last 20 mebibytes
 copied while the transfer is running, and the average transfer rate
 for the copy when the copy completes.
 Level 2 includes the program synopsis, if there is one.
@@ -594,6 +598,14 @@ a list of the file fragments that make up the recording.
 Level 5 includes a listing of the time/recording offset information
 for the file. This is a long listing (one line for every 10 seconds of
 the recording).</p>
+</dd>
+<dd>
+<p>The units used in the verbose listings are in terms of mebibytes (MiB)
+and mebibits (Mib).
+Mebi- is the ISO name for a multipler of 2^20 (1204*1024 = 1048576).
+In computing this multiplier is often (strictly incorrectly) called mega-
+(prefix M). Mega- should be used for a multiplier of 1000000.
+Mebi- is about 5% more than mega-.</p>
 </dd>
 <dd>
 <p>See also <strong>--<a href="#item_verbose">Verbose</a></strong></p>
@@ -607,15 +619,15 @@ the recording).</p>
 </dd>
 <dd>
 <p>Sets the verbosity level to <em>level</em>. This overrides any setting of
-<code>$verbose</code> in <code>.getwizpnp</code>.</p>
+<code>$verbose</code> in the <strong><a href="#files">configuration file</a></strong>.</p>
 </dd>
 <dd>
-<p><strong>--Verbose</strong> and <strong>--verbose</strong> options are processed in order.
-Assuming that <code>$verbose</code> isn't set to non-zero in <code>.getwizpnp</code>,
+<p><strong>--Verbose</strong> and <strong>--<a href="#item_verbose">verbose</a></strong> options are processed in order.
+Assuming that <code>$verbose</code> isn't set to non-zero in the config file,
 <code>-vv -V=1</code> sets the verbosity level to 1, but <code>-V=1 -vv</code> sets it to 3.</p>
 </dd>
 <dd>
-<p>Mixing <strong>--Verbose</strong> and <strong>--verbose</strong> probably doesn't help with
+<p>Mixing <strong>--Verbose</strong> and <strong>--<a href="#item_verbose">verbose</a></strong> probably doesn't help with
 clarity in commands.</p>
 </dd>
 <dd>
@@ -630,7 +642,8 @@ clarity in commands.</p>
 </dd>
 <dd>
 <p>The opposite effect of <strong>--<a href="#item_verbose">verbose</a></strong>.
-Useful if <code>$verbose</code> is non-zero in the user's <code>.getwizpnp</code> file.</p>
+Useful if <code>$verbose</code> is non-zero in the user's
+<strong><a href="#files">configuration file</a></strong>.</p>
 </dd>
 <dt><strong><a name="item_index">index</a></strong>
 
@@ -694,18 +707,45 @@ Unlike the other matching methods, must be an exact string match.
 Not very user-friendly.
 Intended for use by GUIs or other programs calling <em>getWizPnP</em>.</p>
 </dd>
+<dt><strong><a name="item_discover">discover</a></strong>
+
+<dd>
+<pre>
+  --discover</pre>
+</dd>
+<dd>
+<p>Print a list of the discovered Beyonwiz WizPnP servers,
+name and IP address, and exit.
+As in normal operation, the maximum number of devices to search for
+is set by <strong>--<a href="#item_maxdevs">maxdevs</a></strong>.
+If <strong>--<a href="#item_indir">indir</a></strong> is set, no Beyonwiz device search is performed,
+and <em>getWizPnP</em> exits immediately.</p>
+</dd>
 </dl>
 <p>
 </p>
 <hr />
 <h1><a name="files">FILES</a></h1>
-<p>The file <code>.getwizpnp</code> is searched for in the user's <code>HOME</code> directory,
-if <code>HOME</code> is set, or in the current directory if <code>HOME</code> is not set.
-If <code>.getwizpnp</code> exists, it is run as a piece of Perl code by <em>getWixPnP</em>
+<p>A small Perl file, <code>.getwizpnp</code> on Unix-like systems
+(MacOS X, Cygwin, Linuz, etc) and <code>getwizpnp.conf</code> on
+Windows can be used to change the default values of a number of
+<em>getWizPnP</em> options.</p>
+<p>On Unix-like systems, the file <code>.getwizpnp</code> is searched for in the user's
+<code>HOME</code> directory,
+if <code>HOME</code> is set,
+or in the current directory if <code>HOME</code> is not set.</p>
+<p>On Windows, the file <code>getwizpnp.conf</code> is searched for
+in <code>%APPDATA%\Prl\getWizPnP</code> if <code>%APPDATA%</code> is set,
+and in <em>getWizPnP</em>'s current directory otherwise.</p>
+<p><code>%APPDATA%</code> is normally set to
+<code>C:\Documents and Settings\</code><em>userName</em><code>\Application Data</code>.</p>
+<p>If the configuration file exists,
+it is run as a piece of Perl code by <em>getWixPnP</em>
 just after the program defaults for options are set, and just before
-command-line options are set.</p>
-<p>It is probably most useful for setting the default <strong>--device</strong>
-or <strong>--host</strong> option, or making <code>--episode</code> set by default.</p>
+command-line options are set, so it over-rides program defaults,
+but not command-line options.</p>
+<p>It is probably most useful for setting the default <strong>--<a href="#item_device">device</a></strong>
+or <strong>--<a href="#item_host">host</a></strong> option, or making <strong>--<a href="#item_episode">episode</a></strong> set by default.</p>
 <p>An example <code>.getwizpnp</code> file is included with <em>getWizPnP</em>, in
 the file <code>getwizpnp.conf</code>.</p>
 <p>
@@ -722,6 +762,8 @@ the file <code>getwizpnp.conf</code>.</p>
 <a href=".././html/./Beyonwiz/Recording/FileHeader.html"><code>Beyonwiz::Recording::FileHeader</code></a>,
 <a href=".././html/./Beyonwiz/Recording/FileTrunc.html"><code>Beyonwiz::Recording::FileTrunc</code></a>,
 <a href=".././html/./Beyonwiz/Recording/FileRecording.html"><code>Beyonwiz::Recording::FileRecording</code></a>,
+<code>File::Spec::Functions </code>,
+<code>File::Path</code>,
 <code>HTTP::Status</code>,
 <code>Getopt::Long</code>.</p>
 <p>
@@ -748,13 +790,13 @@ The search is either immediately successful or fails completely,
 even on retry.</p>
 <p>If <code>IO::Socket::Multicast</code> is not available, <em>getWizPnP</em> will
 exit with an error. In this case, the Beyonwiz device must be specified
-using <strong>--host</strong> (and <strong>--port</strong> if necessary).</p>
+using <strong>--<a href="#item_host">host</a></strong> (and <strong>--<a href="#item_port">port</a></strong> if necessary).</p>
 <p>See README.txt in the distribution for details on how to install
 any Perl modules that <em>getWizPnP</em> needs to allow it to run on
 your system.</p>
 <p>Uses <code>bignum</code> for 64-bit integers, even when the underlying
 Perl integers are 64 bits.</p>
-<p>When resuming a download, may fetch up to 32MB more data than is
+<p>When resuming a download, may fetch up to 32MiB more data than is
 necessary.</p>
 <p><strong>--<a href="#item_move">move</a></strong> and <strong>--<a href="#item_delete">delete</a></strong> use undocumented features of WizPnP.
 This has a number of consequences:</p>
@@ -794,11 +836,11 @@ On some earlier firmware, sorting on time won't work if the
 recording has been renamed.</p>
 <p>Folder options (including sorting on folder name) do not work
 with Beyonwiz firmware 01.05.261 and earlier.</p>
-<p><strong>--recursive</strong> has no effect if the Beyonwiz is running firmware
+<p><strong>--<a href="#item_recursive">recursive</a></strong> has no effect if the Beyonwiz is running firmware
 01.05.261 or earlier.</p>
-<p>Folder options don't work properly in conjunction with <strong>--indir</strong>.</p>
+<p>Folder options don't work properly in conjunction with <strong>--<a href="#item_indir">indir</a></strong>.</p>
 <p>Sorting is by the last modified time of the folder,
-not on the actual recording time when <strong>--outdir</strong> is used.</p>
+not on the actual recording time when <strong>--<a href="#item_outdir">outdir</a></strong> is used.</p>
 <p>Instant recordings will not sort in their correct alphabetic sequence
 (sorting on time or date will work).</p>
 <table border="0" width="100%" cellspacing="0" cellpadding="3">

@@ -21,6 +21,7 @@ SYNOPSIS
                   [--outdir=dir|-O dir] [--indir=dir|-I dir]
                   [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
                   [--index|-x]
+                  [--discover]
                   [ patterns... ]
 
 DESCRIPTION
@@ -86,7 +87,7 @@ ARGUMENTS
         isn't found, *getWizPnP* returns with an error. Device name matching
         is case-insensitive ("MyBeyonwiz" matches "mybeyonwiz").
 
-
+    maxdevs
           --maxdevs=devs
           -D devs
 
@@ -100,7 +101,7 @@ ARGUMENTS
 
         Connect to the *host* (DNS name or dotted-quad IP address) instead
         of using WizPnP search to find the Beyonwiz, or instead of the
-        default set in the configuration file (see FILES below).
+        default set in the configuration file.
 
         If the device name is specified with --device then the configuration
         returned by *host* that contains the WizPnP name of the device must
@@ -111,7 +112,7 @@ ARGUMENTS
           -p port
 
         Connect to the *port* instead of the file default (49152), or the
-        default set in the configuration file (see FILES below). *port* is
+        default set in the configuration file (see "FILES" below). *port* is
         ignored unless --host is set.
 
     list
@@ -193,7 +194,7 @@ ARGUMENTS
         will copy all recordings made from either the ABC or SBS.
 
         --noregexp and --nor undo the setting of this option; useful if this
-        option is set by default in the user's ".getwizpnp" file.
+        option is set by default in the user's configuration file.
 
     expression
           --expression
@@ -211,7 +212,7 @@ ARGUMENTS
         Swiss Army knife approach.
 
         --noexpression and --noe undo the setting of this option; useful if
-        this option is set by default in the user's ".getwizpnp" file.
+        this option is set by default in the user's configuration file.
 
     sort
             --sort=sortcode
@@ -357,7 +358,7 @@ ARGUMENTS
         format.
 
         --nots and --not undo the setting of this option; useful if this
-        option is set by default in the user's ".getwizpnp" file.
+        option is set by default in the user's configuration file.
 
     resume
           --resume
@@ -386,7 +387,7 @@ ARGUMENTS
 
         Verbosity level 1 lists some more details about the recordings, and
         shows a progress indicator when copying. The progress indicator
-        shows the transfer rate for the last megabyte copied while the
+        shows the transfer rate for the last 20 mebibytes copied while the
         transfer is running, and the average transfer rate for the copy when
         the copy completes. Level 2 includes the program synopsis, if there
         is one. Level 3 includes a display of any bookmarks in the file.
@@ -396,6 +397,12 @@ ARGUMENTS
         for the file. This is a long listing (one line for every 10 seconds
         of the recording).
 
+        The units used in the verbose listings are in terms of mebibytes
+        (MiB) and mebibits (Mib). Mebi- is the ISO name for a multipler of
+        2^20 (1204*1024 = 1048576). In computing this multiplier is often
+        (strictly incorrectly) called mega- (prefix M). Mega- should be used
+        for a multiplier of 1000000. Mebi- is about 5% more than mega-.
+
         See also --Verbose
 
     Verbose
@@ -403,11 +410,11 @@ ARGUMENTS
           -V level
 
         Sets the verbosity level to *level*. This overrides any setting of
-        $verbose in ".getwizpnp".
+        $verbose in the configuration file.
 
         --Verbose and --verbose options are processed in order. Assuming
-        that $verbose isn't set to non-zero in ".getwizpnp", "-vv -V=1" sets
-        the verbosity level to 1, but "-V=1 -vv" sets it to 3.
+        that $verbose isn't set to non-zero in the config file, "-vv -V=1"
+        sets the verbosity level to 1, but "-V=1 -vv" sets it to 3.
 
         Mixing --Verbose and --verbose probably doesn't help with clarity in
         commands.
@@ -419,7 +426,7 @@ ARGUMENTS
           -q
 
         The opposite effect of --verbose. Useful if $verbose is non-zero in
-        the user's ".getwizpnp" file.
+        the user's configuration file.
 
     index
           --index
@@ -462,16 +469,39 @@ ARGUMENTS
         user-friendly. Intended for use by GUIs or other programs calling
         *getWizPnP*.
 
+    discover
+          --discover
+
+        Print a list of the discovered Beyonwiz WizPnP servers, name and IP
+        address, and exit. As in normal operation, the maximum number of
+        devices to search for is set by --maxdevs. If --indir is set, no
+        Beyonwiz device search is performed, and *getWizPnP* exits
+        immediately.
+
 FILES
 
-    The file ".getwizpnp" is searched for in the user's "HOME" directory, if
-    "HOME" is set, or in the current directory if "HOME" is not set. If
-    ".getwizpnp" exists, it is run as a piece of Perl code by *getWixPnP*
-    just after the program defaults for options are set, and just before
-    command-line options are set.
+    A small Perl file, ".getwizpnp" on Unix-like systems (MacOS X, Cygwin,
+    Linuz, etc) and "getwizpnp.conf" on Windows can be used to change the
+    default values of a number of *getWizPnP* options.
+
+    On Unix-like systems, the file ".getwizpnp" is searched for in the
+    user's "HOME" directory, if "HOME" is set, or in the current directory
+    if "HOME" is not set.
+
+    On Windows, the file "getwizpnp.conf" is searched for in
+    "%APPDATA%\Prl\getWizPnP" if "%APPDATA%" is set, and in *getWizPnP*'s
+    current directory otherwise.
+
+    "%APPDATA%" is normally set to "C:\Documents and
+    Settings\"*userName*"\Application Data".
+
+    If the configuration file exists, it is run as a piece of Perl code by
+    *getWixPnP* just after the program defaults for options are set, and
+    just before command-line options are set, so it over-rides program
+    defaults, but not command-line options.
 
     It is probably most useful for setting the default --device or --host
-    option, or making "--episode" set by default.
+    option, or making --episode set by default.
 
     An example ".getwizpnp" file is included with *getWizPnP*, in the file
     "getwizpnp.conf".
@@ -482,7 +512,8 @@ PREREQUSITES
     "Beyonwiz::Recording::HTTPHeader", "Beyonwiz::Recording::HTTPTrunc",
     "Beyonwiz::Recording::HTTPRecording", "Beyonwiz::Recording::FileIndex",
     "Beyonwiz::Recording::FileHeader", "Beyonwiz::Recording::FileTrunc",
-    "Beyonwiz::Recording::FileRecording", "HTTP::Status", "Getopt::Long".
+    "Beyonwiz::Recording::FileRecording", "File::Spec::Functions ",
+    "File::Path", "HTTP::Status", "Getopt::Long".
 
 BUGS
 
@@ -513,7 +544,7 @@ BUGS
     Uses "bignum" for 64-bit integers, even when the underlying Perl
     integers are 64 bits.
 
-    When resuming a download, may fetch up to 32MB more data than is
+    When resuming a download, may fetch up to 32MiB more data than is
     necessary.
 
     --move and --delete use undocumented features of WizPnP. This has a

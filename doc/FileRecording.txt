@@ -89,8 +89,8 @@ PREREQUISITES
 
     Uses packages: "Beyonwiz::Recording::Recording",
     "Beyonwiz::Recording::Trunc", "Beyonwiz::Recording::Header",
-    "Beyonwiz::Utils", "LWP::Simple", "URI", "URI::Escape", "HTTP::Status",
-    "File::Basename", "File::Spec::Functions", "Errno", "POSIX".
+    "Beyonwiz::Utils", "HTTP::Status", "File::Basename",
+    "File::Spec::Functions", "Errno", "POSIX".
 
 BUGS
 
