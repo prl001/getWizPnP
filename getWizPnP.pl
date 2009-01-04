@@ -23,22 +23,23 @@ getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network
               [--outdir=dir|-O dir] [--indir=dir|-I dir]
               [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
 	      [--index|-x]
+	      [--discover]
               [ patterns... ]
 
 =head1 DESCRIPTION
 
 List, fetch, move or delete the recordings on a Beyonwiz DP series
 PVR over the network using the I<WizPnP> interface.
-If B<--indir> is specified, perform the same operations on
+If B<--L<indir>> is specified, perform the same operations on
 the computer where I<getWizPnP> is running.
-B<--indir> is most useful in combination with B<--ts>.
+B<--L<indir>> is most useful in combination with B<--L<ts>>.
 
 If no pattern arguments are given, then all recordings are listed.
 Otherwise recordings matching any of the patterns are fetched
-(or listed, moved or deleted, with B<--list>, B<--move> or B<--delete>
+(or listed, moved or deleted, with B<--L<list>>, B<--L<move>> or B<--L<delete>>
 respectively).
 
-In the absence of B<--regexp> or B<--expression> a pattern matches
+In the absence of B<--L<regexp>> or B<--L<expression>> a pattern matches
 if it is a substring of the string I<servicename>B<#>I<longtitle>#I<date>,
 case insensitive.
 The I<longtitle> is just the title if the header has no episode information,
@@ -58,11 +59,11 @@ To download all recordings, an empty string will match everything:
 
 Recordings are copied or moved to a name corresponding to their event name
 (title) with any characters that are illegal in the file system changed to '_'.
-The B<--date> option adds the day and date of the recording to the name,
-and the B<--episode> option adds the episode name to the recording
+The B<--L<date>> option adds the day and date of the recording to the name,
+and the B<--L<episode>> option adds the episode name to the recording
 name (if there is one set)
 -- helpful for series recordings.
-Downloaded recordings are placed in the current directory unless B<--outdir>
+Downloaded recordings are placed in the current directory unless B<--L<outdir>>
 has been specified.
 
 When listing recordings, recordings that are currently recording are flagged
@@ -98,7 +99,7 @@ returns with an error. Device name matching is case-insensitive
 (C<MyBeyonwiz> matches C<mybeyonwiz>).
 
 
-=item
+=item maxdevs
 
   --maxdevs=devs
   -D devs
@@ -114,11 +115,11 @@ time out (currently 60 seconds). I<Devs> defaults to 1.
 
 Connect to the I<host> (DNS name or dotted-quad IP address) instead of using
 WizPnP search to find the Beyonwiz, or instead of the default set in the
-configuration file (see FILES below).
+B<L<configuration file|/FILES>>.
 
-If the device name is specified with B<--device> then the configuration
+If the device name is specified with B<--L<device>> then the configuration
 returned by I<host> that contains the WizPnP name of the device must match
-(case insensitive) the device name given by B<--device>.
+(case insensitive) the device name given by B<--L<device>>.
 
 =item port
 
@@ -127,8 +128,8 @@ returned by I<host> that contains the WizPnP name of the device must match
 
 Connect to the I<port> instead of the
 file default (C<49152>), or the default set in the configuration
-file (see FILES below).
-I<port> is ignored unless B<--host> is set.
+file (see B<L</FILES>> below).
+I<port> is ignored unless B<--L<host>> is set.
 
 =item list
 
@@ -160,7 +161,7 @@ Move uses an undocumented feature of WizPnP. See B<L</BUGS>>.
     -f folder
 
 Restrict the operations to the named folder.
-More that one B<--folder> option may be given, the operations apply to
+More that one B<--L<folder>> option may be given, the operations apply to
 all the named folders.
 If no folders are named, operations are on the top level
 recording folder (equivalent to specifying B<--folder=>
@@ -182,7 +183,7 @@ directly in the recordings folder are accessible,
 and using anything but the default folder will mean that
 no recordings are visible.
 
-If B<--indir> is used, then all recordings in that folder will appear
+If B<--L<indir>> is used, then all recordings in that folder will appear
 to be in the top level folder seen by I<getWizPnP>.
 If any foldername except B<--folder=> (or B<--folder=/>)
 is used, no recprdings will be found.
@@ -197,12 +198,12 @@ is used, no recprdings will be found.
   --noa
 
 Recursively examine all subfolders under the folders specified
-by B<--folder> for recordings, as well as just the recordings
+by B<--L<folder>> for recordings, as well as just the recordings
 directly in the folders.
 
 Has no effect if the Beyonwiz is running firmware 01.05.261 or earlier.
 
-Has no effect if B<--indir> is used.
+Has no effect if B<--L<indir>> is used.
 
 =item regexp
 
@@ -219,8 +220,9 @@ For example:
 
 will copy all recordings made from either the ABC or SBS.
 
-B<--noregexp> and B<--nor> undo the setting of this option;
-useful if this option is set by default in the user's C<.getwizpnp> file.
+B<--noL<regexp>> and B<--nor> undo the setting of this option;
+useful if this option is set by default in the user's
+B<L<configuration file|/FILES>>.
 
 =item expression
 
@@ -236,11 +238,12 @@ the recording is matched.
 
     getWizPnp --expression '/ABC|SBS/i'
 
-is equivalent to the B<--regexp> example above.
+is equivalent to the B<--L<regexp>> example above.
 Quite powerful; the Swiss Army knife approach.
 
-B<--noexpression> and B<--noe> undo the setting of this option;
-useful if this option is set by default in the user's C<.getwizpnp> file.
+B<--noL<expression>> and B<--noe> undo the setting of this option;
+useful if this option is set by default in the user's
+B<L<configuration file|/FILES>>.
 
 =item sort
 
@@ -283,7 +286,7 @@ On some earlier firmware, sorting on time won't work if the
 recording ha been renamed.
 
 Sorting is by the last modified time of the folder,
-not on the actual recording time when B<--outdir> is used.
+not on the actual recording time when B<--L<outdir>> is used.
 
 =item dictionarySort
 
@@ -348,7 +351,7 @@ adds B<case> and B<punctuation> to the current set of options.
 
 makes the options just B<case> and B<punctuation>.
 
-Multiple B<--dictionarySort> may be used.
+Multiple B<--L<dictionarySort>> may be used.
 
     --dictionarySort=exact --dictionarySort=case,punctuation
 
@@ -363,11 +366,11 @@ has the same effect as
 
 Use the word(s) specified by the comma-separated
 list of I<words> as the words ignored
-by B<--dictionarySort> when they appear at the start of a title.
+by B<--L<dictionarySort>> when they appear at the start of a title.
 The default list is B<A>, B<An>, B<The>.
-Specifying any words with B<--dictStoplist>
+Specifying any words with B<--L<dictStoplist>>
 overrides the stoplist.
-Multiple instances of B<--dictStoplist> add to the list.
+Multiple instances of B<--L<dictStoplist>> add to the list.
 
     --dictStoplist=a,an --dictStoplist=the
 
@@ -376,7 +379,7 @@ has the same effect as
     --dictStoplist=a,an,the
 
 Case is ignored checking for these words only
-if B<case> is set in B<--dictionarySort>.
+if B<case> is set in B<--L<dictionarySort>>.
 
 =item date
 
@@ -410,8 +413,8 @@ Useful for downloading series.
 Download the recordings as single C<.ts> (MPEG Transport Stream) files,
 rather than copying in the Beyonwiz internal recording format.
 
-B<--nots> and B<--not> undo the setting of this option;
-useful if this option is set by default in the user's C<.getwizpnp> file.
+B<--noL<ts>> and B<--not> undo the setting of this option;
+useful if this option is set by default in the user's B<L<configuration file|/FILES>>.
 
 =item resume
 
@@ -441,7 +444,7 @@ from 0.
 
 Verbosity level 1 lists some more details about
 the recordings, and shows a progress indicator when copying.
-The progress indicator shows the transfer rate for the last megabyte
+The progress indicator shows the transfer rate for the last 20 mebibytes
 copied while the transfer is running, and the average transfer rate
 for the copy when the copy completes.
 Level 2 includes the program synopsis, if there is one.
@@ -452,6 +455,13 @@ Level 5 includes a listing of the time/recording offset information
 for the file. This is a long listing (one line for every 10 seconds of
 the recording).
 
+The units used in the verbose listings are in terms of mebibytes (MiB)
+and mebibits (Mib).
+Mebi- is the ISO name for a multipler of 2^20 (1204*1024 = 1048576).
+In computing this multiplier is often (strictly incorrectly) called mega-
+(prefix M). Mega- should be used for a multiplier of 1000000.
+Mebi- is about 5% more than mega-.
+
 See also B<--L<Verbose>>
 
 =item Verbose
@@ -460,13 +470,13 @@ See also B<--L<Verbose>>
   -V level
 
 Sets the verbosity level to I<level>. This overrides any setting of
-C<$verbose> in C<.getwizpnp>.
+C<$verbose> in the B<L<configuration file|/FILES>>.
 
-B<--Verbose> and B<--verbose> options are processed in order.
-Assuming that C<$verbose> isn't set to non-zero in C<.getwizpnp>,
+B<--Verbose> and B<--L<verbose>> options are processed in order.
+Assuming that C<$verbose> isn't set to non-zero in the config file,
 C<-vv -V=1> sets the verbosity level to 1, but C<-V=1 -vv> sets it to 3.
 
-Mixing B<--Verbose> and B<--verbose> probably doesn't help with
+Mixing B<--Verbose> and B<--L<verbose>> probably doesn't help with
 clarity in commands.
 
 See also B<--L<verbose>>.
@@ -477,7 +487,8 @@ See also B<--L<verbose>>.
   -q
 
 The opposite effect of B<--L<verbose>>.
-Useful if C<$verbose> is non-zero in the user's C<.getwizpnp> file.
+Useful if C<$verbose> is non-zero in the user's
+B<L<configuration file|/FILES>>.
 
 =item index
 
@@ -526,18 +537,46 @@ Unlike the other matching methods, must be an exact string match.
 Not very user-friendly.
 Intended for use by GUIs or other programs calling I<getWizPnP>.
 
+=item discover
+
+  --discover
+
+Print a list of the discovered Beyonwiz WizPnP servers,
+name and IP address, and exit.
+As in normal operation, the maximum number of devices to search for
+is set by B<--L<maxdevs>>.
+If B<--L<indir>> is set, no Beyonwiz device search is performed,
+and I<getWizPnP> exits immediately.
+
 =back
 
 =head1 FILES
 
-The file C<.getwizpnp> is searched for in the user's C<HOME> directory,
-if C<HOME> is set, or in the current directory if C<HOME> is not set.
-If C<.getwizpnp> exists, it is run as a piece of Perl code by I<getWixPnP>
-just after the program defaults for options are set, and just before
-command-line options are set.
+A small Perl file, C<.getwizpnp> on Unix-like systems
+(MacOS X, Cygwin, Linuz, etc) and C<getwizpnp.conf> on
+Windows can be used to change the default values of a number of
+I<getWizPnP> options.
 
-It is probably most useful for setting the default B<--device>
-or B<--host> option, or making C<--episode> set by default.
+On Unix-like systems, the file C<.getwizpnp> is searched for in the user's
+C<HOME> directory,
+if C<HOME> is set,
+or in the current directory if C<HOME> is not set.
+
+On Windows, the file C<getwizpnp.conf> is searched for
+in C<%APPDATA%\Prl\getWizPnP> if C<%APPDATA%> is set,
+and in I<getWizPnP>'s current directory otherwise.
+
+C<%APPDATA%> is normally set to
+C<C:\Documents and Settings\>I<userName>C<\Application Data>.
+
+If the configuration file exists,
+it is run as a piece of Perl code by I<getWixPnP>
+just after the program defaults for options are set, and just before
+command-line options are set, so it over-rides program defaults,
+but not command-line options.
+
+It is probably most useful for setting the default B<--L<device>>
+or B<--L<host>> option, or making B<--L<episode>> set by default.
 
 An example C<.getwizpnp> file is included with I<getWizPnP>, in
 the file C<getwizpnp.conf>.
@@ -554,6 +593,8 @@ L<C<Beyonwiz::Recording::FileIndex>|Beyonwiz::Recording::FileIndex>,
 L<C<Beyonwiz::Recording::FileHeader>|Beyonwiz::Recording::FileHeader>,
 L<C<Beyonwiz::Recording::FileTrunc>|Beyonwiz::Recording::FileTrunc>,
 L<C<Beyonwiz::Recording::FileRecording>|Beyonwiz::Recording::FileRecording>,
+C<File::Spec::Functions >,
+C<File::Path>,
 C<HTTP::Status>,
 C<Getopt::Long>.
 
@@ -582,7 +623,7 @@ even on retry.
 
 If C<IO::Socket::Multicast> is not available, I<getWizPnP> will
 exit with an error. In this case, the Beyonwiz device must be specified
-using B<--host> (and B<--port> if necessary).
+using B<--L<host>> (and B<--L<port>> if necessary).
 
 See README.txt in the distribution for details on how to install
 any Perl modules that I<getWizPnP> needs to allow it to run on
@@ -591,7 +632,7 @@ your system.
 Uses C<bignum> for 64-bit integers, even when the underlying
 Perl integers are 64 bits.
 
-When resuming a download, may fetch up to 32MB more data than is
+When resuming a download, may fetch up to 32MiB more data than is
 necessary.
 
 B<--L<move>> and B<--L<delete>> use undocumented features of WizPnP.
@@ -642,13 +683,13 @@ recording has been renamed.
 Folder options (including sorting on folder name) do not work
 with Beyonwiz firmware 01.05.261 and earlier.
 
-B<--recursive> has no effect if the Beyonwiz is running firmware
+B<--L<recursive>> has no effect if the Beyonwiz is running firmware
 01.05.261 or earlier.
 
-Folder options don't work properly in conjunction with B<--indir>.
+Folder options don't work properly in conjunction with B<--L<indir>>.
 
 Sorting is by the last modified time of the folder,
-not on the actual recording time when B<--outdir> is used.
+not on the actual recording time when B<--L<outdir>> is used.
 
 Instant recordings will not sort in their correct alphabetic sequence
 (sorting on time or date will work).
@@ -657,7 +698,7 @@ Instant recordings will not sort in their correct alphabetic sequence
 
 use strict;
 
-use Beyonwiz::WizPnP;;
+use Beyonwiz::WizPnP;
 use Beyonwiz::Recording::HTTPIndex;
 use Beyonwiz::Recording::HTTPHeader;
 use Beyonwiz::Recording::HTTPTrunc;
@@ -666,17 +707,20 @@ use Beyonwiz::Recording::FileIndex;
 use Beyonwiz::Recording::FileHeader;
 use Beyonwiz::Recording::FileTrunc;
 use Beyonwiz::Recording::FileRecording;
+use File::Spec::Functions qw(catfile);
+use File::Path qw(mkpath);
 
 use HTTP::Status;
 use Getopt::Long qw(:config no_ignore_case bundling);
 
-use constant CONFIG => '.getwizpnp';
+use constant CONFIG => $^O eq 'MSWin32' ? 'getwizpnp.conf' : '.getwizpnp';
 
 use constant MODE_LIST   => 0;
 use constant MODE_LISTBW => 1;
 use constant MODE_COPY   => 2;
 use constant MODE_MOVE   => 3;
 use constant MODE_DELETE => 4;
+use constant MODE_SEARCH => 5;
 
 use constant MATCH_SUBSTR => 0;
 use constant MATCH_REGEXP => 1;
@@ -695,6 +739,7 @@ our @dictionarySort;
 our @defDictStoplist = qw(A An The);
 
 our (
+	# initialised to 0
 	$list,
 	$List,
 	$recursive,
@@ -712,7 +757,8 @@ our (
 	$resume,
 	$force,
 	$help,
-    ) = ((0) x 16);
+	$discover,
+    ) = ((0) x 18);
 
 $| = 1;
 
@@ -771,13 +817,35 @@ sub Usage {
 	"                  [--outdir=dir|-O dir] [--indir=dir|-I dir]\n",
 	"                  [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]\n",
 	"                  [--index|-x]\n",
-
+	"                  [--discover]\n",
 	"                  [ patterns... ]\n";
 }
 
-my $config = defined $ENV{HOME} && length($ENV{HOME}) > 0
-		? $ENV{HOME} . '/' . CONFIG
+my $configDir;
+
+if($^O eq 'MSWin32') {
+    if(defined $ENV{APPDATA} and $ENV{APPDATA} ne '') {
+	$configDir = catfile($ENV{APPDATA}, 'Prl', 'getWizPnP');
+    }
+} else {
+    if(defined $ENV{HOME} and $ENV{HOME} ne '') {
+	$configDir = $ENV{HOME};
+    }
+}
+
+if(defined $configDir) {
+    if(!-d $configDir) {
+	eval { mkpath $configDir };
+	if ($@) {
+	    $configDir = undef;
+	}
+    }
+}
+
+my $config = defined $configDir && length($configDir) > 0
+		? $configDir . '/' . CONFIG
 		: CONFIG;
+
 
 do $config if(-f $config);
 
@@ -809,6 +877,7 @@ GetOptions(
 	'v|verbose+'		=> \$verbose,
 	'V|Verbose=i'		=> \$verbose,
 	'x|index!'		=> \$indexName,
+	'discover'		=> \$discover,
 	'q|quiet+'		=> \$quiet,
     ) or Usage;
 
@@ -860,7 +929,7 @@ GetOptions(
 	    $self->starttime(Time::HiRes::time);
 	    $self->percen(0);
 	    $self->mb(0);
-	    $self->totMb($val / (1024*1024));
+	    $self->totMb(int($val / (1024*1024) + 0.5));
 	    $self->display('');
 	}
 	return $ret;
@@ -911,14 +980,15 @@ GetOptions(
 	    my $percen = $self->{done} / $self->total * 100;
 	    my $donechars = int($percen / 2 + 0.5);
 	    $percen = int($percen + 0.5);
-	    my $mb = int($self->{done} / (1024*1024));
+	    my $mb = int($self->{done} / (1024*1024) + 0.5);
 	    if($percen != $self->percen
 	    || $mb != $self->mb
-	    || $self->display eq '') {
+	    || $self->display eq ''
+	    || $self->{done} >= $self->total) {
 		my $donestr = '=' x $donechars;
 		my $leftstr = '-' x (50 - $donechars);
 		my $now = Time::HiRes::time;
-		my $dispstr = sprintf "\r|%s%s|%5.1fMB/s %3d%% %.0f/%.0fMB",
+		my $dispstr = sprintf "\r|%s%s|%4.1fMiB/s %3d%% %.0f/%.0fMiB",
 		    $donestr, $leftstr,
 		    $self->rate,
 		    $percen,
@@ -962,6 +1032,7 @@ sub processOpts() {
     $mode = MODE_MOVE   if($move);
     $mode = MODE_LIST   if($list);
     $mode = MODE_LISTBW if($List);
+    $mode = MODE_SEARCH if($discover);
 
     $matchType = MATCH_REGEXP if($regexp);
     $matchType = MATCH_EXPR   if($expression);
@@ -997,7 +1068,7 @@ sub processOpts() {
     # expand comma-separated lists, and set values in
     # %dictionarySort
 
-    my $errs;
+    my $errs = 0;
     @dictionarySort = @{expandCommaList(\@dictionarySort, 1)};
     foreach my $d (@dictionarySort) {
 	if(!exists $dictionarySortMap{$d}) {
@@ -1082,6 +1153,9 @@ sub sortCmp($$) {
 sub connectToBW($$$) {
     my ($host, $maxdevs, $verbose) = @_; 
     my $pnp = Beyonwiz::WizPnP->new;
+
+    $pnp->maxDevs($maxdevs);
+
     my $device;
 
     if($host) {
@@ -1101,7 +1175,7 @@ sub connectToBW($$$) {
 		($maxdevs != 1 ? 's' : ''), "\n"
 	    if($verbose >= 1 && $maxdevs > 0);
 
-	$pnp->search($maxdevs);
+	$pnp->search;
 
 	if($pnp->ndevices == 0) {
 	    die "Search for WizPnP devices failed\n";
@@ -1120,6 +1194,17 @@ sub connectToBW($$$) {
 		    join(', ', $pnp->deviceNames), " were found\n"
 		if(!$device);
 	}
+    }
+    if($mode == MODE_SEARCH) {
+	foreach my $name (sort $pnp->deviceNames) {
+	    printf "%-16s%s\n",  $device->name,
+		($device->location->authority
+		    ? $device->location->host
+		    : ''
+		),
+		"\n";
+	}
+	exit;
     }
     return $device;
 }
@@ -1259,8 +1344,11 @@ sub doRecordingOperation($$$$$$) {
 	    "\n";
 	printf "    playtime: %4d:%02d",
 		int($hdr->playtime/60),  $hdr->playtime % 60;
-	printf "    recording size: %8.1f MB\n",
-		($hdr->endOffset - $hdr->startOffset)/(1024*1024);
+	my $mbytes = ($hdr->endOffset - $hdr->startOffset)/(1024*1024);
+	printf "    recording size: %8.1f MiB",
+		$mbytes;
+	printf "    bit rate: %5.1f Mib/s\n",
+		$mbytes * 8 / $hdr->playtime;
     }
     if($verbose >= 3) {
 	if($hdr->nbookmarks > 0) {
@@ -1344,9 +1432,7 @@ sub doRecordingOperation($$$$$$) {
 					$hdr, $trunc,
 					$ie->path,
 					$outdir,
-					$verbose >= 1
-					    ? ProgressBar->new
-					    : undef
+					undef
 				    );
 	    warn "Delete failed: ",
 		    status_message($status), "\n"
@@ -1414,12 +1500,19 @@ my $device;
 # Get the connection as a WizPnPDevice in $device
 
 if(!defined $indir) {
-    my $pnp = Beyonwiz::WizPnP->new;
-
     $device = connectToBW($host, $maxdevs, $verbose);
 
-    print 'Connecting to ', $device->name, "\n" if($verbose >= 1);
+    print 'Connecting to ', $device->name,
+	    ($device->location->authority
+		? ' (' . $device->location->host . ')'
+		: ''
+	    ),
+	    "\n"
+	if($verbose >= 1 && $mode != MODE_SEARCH);
+} elsif($mode == MODE_SEARCH) {
+    exit;
 }
+
 
 # Load the recording index
 
