@@ -125,9 +125,6 @@ L<C<Beyonwiz::Recording::Recording>|Beyonwiz::Recording::Recording>,
 L<C<Beyonwiz::Recording::Trunc>|Beyonwiz::Recording::Trunc>,
 L<C<Beyonwiz::Recording::Header>|Beyonwiz::Recording::Header>,
 L<C<Beyonwiz::Utils>|Beyonwiz::Utils>,
-C<LWP::Simple>,
-C<URI>,
-C<URI::Escape>,
 C<HTTP::Status>,
 C<File::Basename>,
 C<File::Spec::Functions>,
@@ -152,9 +149,6 @@ use bignum;
 use Beyonwiz::Recording::Recording qw(STAT addDir);
 use Beyonwiz::Recording::Trunc qw(TRUNC);
 use Beyonwiz::Recording::Header qw(TVHDR RADHDR);
-use LWP::Simple qw(getstore $ua);
-use URI;
-use URI::Escape;
 use HTTP::Status;
 use File::Basename;
 use File::Spec::Functions qw(!path);
@@ -222,11 +216,15 @@ sub getRecordingFileChunk($$$$$$$$) {
 
     if(!sysseek FROM, $off, SEEK_SET) {
 	warn "Seek error on $file: $!\n";
+	close FROM;
+	close TO;
 	return RC_BAD_REQUEST;
     }
 
     if(!sysseek TO, $outOff, SEEK_SET) {
 	warn "Seek error on $name: $!\n";
+	close FROM;
+	close TO;
 	return RC_BAD_REQUEST;
     }
 
