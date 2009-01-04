@@ -128,6 +128,7 @@ sub readHdrChunk($$$) {
 		my $nread = sysread HDR, $hdr_data, $size;
 		if(defined($nread) && $nread == $size) {
 		    $self->headerName($h);
+		    close HDR;
 		    return $hdr_data;
 		}
 	    }
