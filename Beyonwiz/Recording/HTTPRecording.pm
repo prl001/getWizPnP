@@ -175,13 +175,13 @@ sub getRecordingFileChunk($$$$$$$) {
 
     if(!open TO, ($append ? '+<' : '>'), $name) {
 	warn "Can't create $name: $!\n";
-	close TO;
 	return RC_FORBIDDEN;
     }
     binmode TO;
 
     if(!sysseek TO, $outOff, SEEK_SET) {
 	warn "Seek error on $name: $!\n";
+	close TO;
 	return RC_BAD_REQUEST;
     }
 
