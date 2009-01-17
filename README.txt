@@ -60,6 +60,10 @@ message, just run:
 
 	cpan XML::DOM
 
+The Perl modules that you are most likely to need to install are:
+	XML::DOM
+	File::Slurp
+	IO::Socket::Multicast
 
 Windows
 =======
@@ -99,16 +103,14 @@ missing in that error message, just run:
 
 	ppm XML::DOM
 
+The Perl modules that you are most likely to need to install are:
+	XML::DOM
+	File::Slurp
+	IO::Socket::Multicast
+
 Unfortunately, the module IO::Socket::Multicast is *not* available from
 ppm the default ppm repository, so if you want to have this functionality
 in Windows, use an alternative repository.
-
-**********************************************************************
-*** Unfortunately, although this procedure appears to install
-*** IO::Socket::Multicastcorrectly, the Perl code using it fails under
-*** Windows, so for now, there doesn't appear any way of making WizPnP
-*** device search work correctly on Windows.
-**********************************************************************
 
 You can install IO::Socket::Multicast as follows (just type what follows
 the 'prl>' prompt):
