@@ -113,11 +113,15 @@ it has no title set.
 
 Returns (sets) the recording episode name (subtitle).
 
-=item C<< $h->longTitle; >>
+=item C<< $h->longTitle([$addEpisode[, $sep]]; >>
 
-Returns C<< $h->title . '/' $h->episode >> if the episode name
-has been loaded and is non-empty, otherwise returns
+Returns C<< $h->title . '/' . $h->episode >> if the episode name
+can be loaded and is non-empty, otherwise returns
 C<< $h->title >>.
+If C<$addEpisode> is specified and false, the episode name is not
+added in ant case.
+If C<$sep> is specified, it is used instead of C<'/'> as the separator
+between title and episode name.
 
 =item C<< $h->mjd([$val]); >>
 
@@ -481,11 +485,14 @@ sub bookmarks($;$) {
     return $ret;
 }
 
-sub longTitle($) {
-    my ($self) = @_;
+sub longTitle($;$$) {
+    my ($self, $addEpisode, $sep) = @_;
+    $addEpisode = 1 if(@_ < 2);
+    return $self->title if(!$addEpisode);
+    $sep = '/' if(@_ < 3);
     my $episode = $self->episode;
-    return $episode
-		? $self->title . '/' . $episode
+    return defined($episode) && $episode ne ''
+		? $self->title . $sep . $episode
 		: $self->title;
 }
 
@@ -641,6 +648,8 @@ sub decodeEpisode($$) {
 	my $len = unpack 'C', $hdr_data;
 	$len = HDR_EPISODE_SZ if($len > HDR_EPISODE_SZ);
 	my $episode = unpack '@1 Z' . $len, $hdr_data;
+	$episode =~ s/^\s+//;
+	$episode =~ s/\s+$//;
 	$self->{validEpisode} = 1;
 	$self->episode($episode);
     } else {
