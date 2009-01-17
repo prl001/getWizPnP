@@ -39,20 +39,26 @@ METHODS
         If $dir is defined and not empty, return $dir prepended to $name,
         otherwise return $name.
 
+    "$r->getRecordingName($hdr, $path, $ts);"
+        $hdr is the recording's header. $path is the path name from the
+        recording's "Beyonwiz::Recording::IndexEntry". $ts is a flag to
+        indicate whether a recording folde or single recording TS file is to
+        be created.
+
     "$r->getRecordingFileChunk($path, $name, $file, $outdir, $append, $off,
     $size, $outOff, $progressBar);"
         Download a chunk of a recording corresponding to a single
         "Beyonwiz::Recording::TruncEntry".
 
-        $path is the URL path to the folder containing the recording's files
-        on the Beyonwiz. $name is the name of the recording folder or file
-        (if "$r->ts" is true). $file is the name of the Beyonwiz file
-        containing the chunk. $append is false if $file is to be created,
-        true if it is to be appended to. $off and $size is the chunk to be
-        transferred. If $outdir is defined and not the empty string, the
-        record file is placed in that directory, rather than the current
-        directory. $outoff is the offset to where to write the chunk into
-        the output file. $progressBar is as defined below in
+        $path is the path name from the recording's
+        "Beyonwiz::Recording::IndexEntry". $name is the name of the
+        recording folder or file (if "$r->ts" is true). $file is the name of
+        the Beyonwiz file containing the chunk. $append is false if $file is
+        to be created, true if it is to be appended to. $off and $size is
+        the chunk to be transferred. If $outdir is defined and not the empty
+        string, the record file is placed in that directory, rather than the
+        current directory. $outoff is the offset to where to write the chunk
+        into the output file. $progressBar is as defined below in
         "$r->getRecordng(...)".
 
         Unimplemented in "Beyonwiz::Recording::Recording", over-ride in

@@ -77,9 +77,12 @@ METHODS
     "$h->episode([$val]);"
         Returns (sets) the recording episode name (subtitle).
 
-    "$h->longTitle;"
-        Returns "$h->title . '/' $h->episode" if the episode name has been
-        loaded and is non-empty, otherwise returns "$h->title".
+    "$h->longTitle([$addEpisode[, $sep]];"
+        Returns "$h->title . '/' . $h->episode" if the episode name can be
+        loaded and is non-empty, otherwise returns "$h->title". If
+        $addEpisode is specified and false, the episode name is not added in
+        ant case. If $sep is specified, it is used instead of '/' as the
+        separator between title and episode name.
 
     "$h->mjd([$val]);"
         Returns (sets) the recording start date. The name suggests that it

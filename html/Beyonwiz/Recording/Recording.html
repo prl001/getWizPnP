@@ -93,6 +93,16 @@ is permitted.</p>
 otherwise return <code>$name</code>.</p>
 </dd>
 </li>
+<dt><strong><a name="item_getrecordingname"><code>$r-&gt;getRecordingName($hdr, $path, $ts);</code></a></strong>
+
+<dd>
+<p><code>$hdr</code> is the recording's header.
+<code>$path</code> is the path name from the recording's
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.
+<code>$ts</code> is a flag to indicate whether a recording folde
+or single recording TS file is to be created.</p>
+</dd>
+</li>
 <dt><strong><a name="item_getrecordingfilechunk"><code>$r-&gt;getRecordingFileChunk($path, $name, $file, $outdir,
         $append, $off, $size, $outOff, $progressBar);</code></a></strong>
 
@@ -101,8 +111,8 @@ otherwise return <code>$name</code>.</p>
 <a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>.</p>
 </dd>
 <dd>
-<p><code>$path</code> is the URL path to the folder containing the recording's
-files on the Beyonwiz.
+<p><code>$path</code> is the path name from the recording's
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.
 <code>$name</code> is the name of the recording folder or file
 (if <a href="#item_ts"><code>$r-&gt;ts</code></a> is true).
 <code>$file</code> is the name of the Beyonwiz file containing the chunk.

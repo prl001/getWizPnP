@@ -179,12 +179,16 @@ it has no title set.</p>
 <p>Returns (sets) the recording episode name (subtitle).</p>
 </dd>
 </li>
-<dt><strong><a name="item_longtitle"><code>$h-&gt;longTitle;</code></a></strong>
+<dt><strong><a name="item_longtitle"><code>$h-&gt;longTitle([$addEpisode[, $sep]];</code></a></strong>
 
 <dd>
-<p>Returns <a href="#item_title"><code>$h-&gt;title . '/' $h-&gt;episode</code></a> if the episode name
-has been loaded and is non-empty, otherwise returns
-<a href="#item_title"><code>$h-&gt;title</code></a>.</p>
+<p>Returns <a href="#item_title"><code>$h-&gt;title . '/' . $h-&gt;episode</code></a> if the episode name
+can be loaded and is non-empty, otherwise returns
+<a href="#item_title"><code>$h-&gt;title</code></a>.
+If <code>$addEpisode</code> is specified and false, the episode name is not
+added in ant case.
+If <code>$sep</code> is specified, it is used instead of <code>'/'</code> as the separator
+between title and episode name.</p>
 </dd>
 </li>
 <dt><strong><a name="item_mjd"><code>$h-&gt;mjd([$val]);</code></a></strong>

@@ -23,6 +23,7 @@
 	<li><a href="#synopsis">SYNOPSIS</a></li>
 	<li><a href="#constants">CONSTANTS</a></li>
 	<li><a href="#methods">METHODS</a></li>
+	<li><a href="#internal_methods">INTERNAL METHODS</a></li>
 	<li><a href="#prerequisites">PREREQUISITES</a></li>
 	<li><a href="#bugs">BUGS</a></li>
 </ul>
@@ -71,6 +72,40 @@ document on the Beyonwiz PVR (<code>tvdevicedesc.xml</code>;</p>
 <dd>
 <p><em>SSDPADDR</em>:&lt;SSDPPORT&gt;; <code>239.255.255.250:1900</code></p>
 </dd>
+<dd>
+<pre>
+ Beyonwiz WizPnP servers appear to only wait about 40ms 
+ 
+=item C&lt;SSDPNPOLL&gt;</pre>
+</dd>
+<dd>
+<p>Default maximum number of SSDP search requests (3). Maximum time
+for a search to complete ~= SSDPNPOLL * SSDPTIMEOUT = 0.9 sec</p>
+</dd>
+</li>
+<dt><strong><a name="item_ssdpmaxdelay"><code>SSDPMAXDELAY</code></a></strong>
+
+<dd>
+<p>Default maximum random delay (3 seconds, integer) that a responding
+SSDP server may insert before replying.
+The Beyonwiz WizPnP server seems to ignore
+this, and replys in about 35-40ms.</p>
+</dd>
+</li>
+<dt><strong><a name="item_ssdptimeout"><code>SSDPTIMEOUT</code></a></strong>
+
+<dd>
+<p>Default time to wait (0.3 sec) for an SSDP response.
+Should be &gt; <a href="#item_ssdpmaxdelay"><code>SSDPMAXDELAY</code></a>, but testing shows 0.3 sec to be adequate
+with <code>SSDPNPOLL</code> set to 3.
+See comment about response delay in <code>/SSDPMAXDELAY</code>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_ssdppolltime"><code>SSDPPOLLTIME</code></a></strong>
+
+<dd>
+<p>Response polling timeout granularity (0.1 sec).</p>
+</dd>
 </li>
 </dl>
 <p>
@@ -78,7 +113,7 @@ document on the Beyonwiz PVR (<code>tvdevicedesc.xml</code>;</p>
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::WizPnP-&gt;new</code></a></strong>
+<dt><strong><a name="item_new"><code>Beyonwiz::WizPnP-&gt;new</code></a></strong>
 
 <dd>
 <p>Create a new Beyonwiz WizPnP search object.</p>
@@ -99,6 +134,23 @@ Defaults to 0.</p>
 <p>Returns (sets) the reference to the hash of discovered devices
 (<a href="../../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>),
 indexed by the lower-case version of the device name.</p>
+</dd>
+</li>
+<dt><strong><a name="item_wizpnppoll"><code>$wpnp-&gt;wizpnpPoll([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the maximum number of search requests sent by 
+<a href="#item_search"><code>$wpnp-&gt;search();</code></a>
+before terminating the search.
+Defaults to <code>SSDPNPOLL</code>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_wizpnptimeout"><code>$wpnp-&gt;wizpnpTimeout([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the maximum timeout used when waiting for a respnse
+to a WizPnP SSDP device search request.
+Defaults to SSDPTIMEOUT sec.</p>
 </dd>
 </li>
 <dt><strong><a name="item_httptimeout"><code>$wpnp-&gt;httpTimeout([$val]);</code></a></strong>
@@ -125,14 +177,6 @@ implements caching.</p>
 entry in seconds.
 Only has an effect if executed on a derived class that
 implements caching.</p>
-</dd>
-</li>
-<dt><strong><a name="item__quietlocation"><code>$wpnp-&gt;_quietLocation([$val]);</code></a></strong>
-
-<dd>
-<p>Returns (sets) a flag to suppress some warning messages during device
-location specifier processing. Intended for use by derived clases when
-they are testing for the presence of a Beyonwiz device and will take recovery action.</p>
 </dd>
 </li>
 <dt><strong><a name="item_devicenames"><code>$wpnp-&gt;deviceNames;</code></a></strong>
@@ -211,6 +255,94 @@ implements caching.</p>
 <p>
 </p>
 <hr />
+<h1><a name="internal_methods">INTERNAL METHODS</a></h1>
+<dl>
+<dt><strong><a name="item__quietlocation"><code>$wpnp-&gt;_quietLocation([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) a flag to suppress some warning messages during device
+location specifier processing. Intended for use by derived clases when
+they are testing for the presence of a Beyonwiz device and will take recovery action.</p>
+</dd>
+</li>
+<dt><strong><a name="item__requestsock"><code>$wpnp-&gt;_requestSock([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the multicast socket on which WizPnP's SSDP search
+requests are sent.
+Normally set by <a href="#item__openrequestsock"><code>$wpnp-&gt;_openRequestSock();</code></a>
+and <a href="#item__closerequestsock"><code>$wpnp-&gt;_closeRequestSock();</code></a>.</p>
+</dd>
+</li>
+<dt><strong><a name="item__responsesock"><code>$wpnp-&gt;_responseSock([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the socket on which WizPnP's SSDP search
+responses are received.
+Normally set by <a href="#item__openresponsesock"><code>$wpnp-&gt;_openResponseSock();</code></a>
+and <a href="#item__closeresponsesock"><code>$wpnp-&gt;_closeResponseSock();</code></a>.</p>
+</dd>
+</li>
+<dt><strong><a name="item__responseport"><code>$wpnp-&gt;_responsePort([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the port on which WizPnP's SSDP search
+requests were sent and on which its responses are received.
+Normally set by <a href="#item__openrequestsock"><code>$wpnp-&gt;_openRequestSock();</code></a>
+and <a href="#item__openrequestsock"><code>$wpnp-&gt;_openRequestSock();</code></a>.</p>
+</dd>
+</li>
+<dt><strong><a name="item__request"><code>$wpnp-&gt;_request([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the <code>HTTP::Request</code> that will be sent
+by WizPnP's SSDP search requests.
+Normally set in the class constructor.</p>
+</dd>
+</li>
+<dt><strong><a name="item__openrequestsock"><code>$wpnp-&gt;_openRequestSock;</code></a></strong>
+
+<dd>
+<p>Opens the multicast socket on which WizPnP's SSDP search
+requests are sent.
+Also sets <a href="#item__requestsock"><code>$wpnp-&gt;_requestSock;</code></a> and <a href="#item__responseport"><code>$wpnp-&gt;_responsePort;</code></a></p>
+</dd>
+</li>
+<dt><strong><a name="item__closerequestsock"><code>$wpnp-&gt;_closeRequestSock;</code></a></strong>
+
+<dd>
+<p>Closes the socket on which WizPnP's SSDP search
+requests are sent.
+Sets <a href="#item__requestsock"><code>$wpnp-&gt;_requestSock;</code></a> to <code>undef</code>.</p>
+</dd>
+</li>
+<dt><strong><a name="item__openresponsesock"><code>$wpnp-&gt;_openResponseSock();</code></a></strong>
+
+<dd>
+<p>Opens the socket on which WizPnP's SSDP search
+responses are received.
+Sets <a href="#item__responsesock"><code>$wpnp-&gt;_responseSock;</code></a> to <code>undef</code>.</p>
+</dd>
+</li>
+<dt><strong><a name="item__closeresponsesock"><code>$wpnp-&gt;_closeResponseSock();</code></a></strong>
+
+<dd>
+<p>Opens the socket on which WizPnP's SSDP search
+responses are received.
+Sets <a href="#item__responsesock"><code>$wpnp-&gt;_responseSock;</code></a> and <a href="#item__responseport"><code>$wpnp-&gt;_responsePort;</code></a>
+to <code>undef</code>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_beyonwiz_3a_3awizpnp_3a_3a_ismacos"><code>Beyonwiz::WizPnP::_isMacOs</code></a></strong>
+
+<dd>
+<p>Returns true if the system runnung is MacOS X or Darwin.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
 <h1><a name="prerequisites">PREREQUISITES</a></h1>
 <p>Uses packages:
 <a href="../../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>,
@@ -221,7 +353,8 @@ implements caching.</p>
 <code>HTTP::Status</code>,
 <code>LWP::Simple</code>,
 <code>URI</code>,
-<code>XML::DOM</code>.</p>
+<code>XML::DOM</code>
+<code>Time::HiRes</code>.</p>
 <p>
 </p>
 <hr />

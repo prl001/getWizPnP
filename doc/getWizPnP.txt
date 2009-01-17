@@ -6,10 +6,10 @@ NAME
 SYNOPSIS
 
         getWizPnP [--help|-h]
-                  [--device dev|-D dev] [--maxdev=devs|-m devs]
+                  [--device dev|-D dev] [--maxdevs=devs|-m devs]
                   [--host=host|-H host] [--port=port|-p port]
                   [--list|-l] [--List|-L]
-                  [--delete|-X] [--move|-M]
+                  [--delete|-X] [--move|-M] [--dryrun|-n]
                   [--folder=folderlist|-f folderlist]
                   [--recursive|--all|-a]
                   [--regexp|-r] [--expression|-e] [-BWName|-B]
@@ -21,7 +21,7 @@ SYNOPSIS
                   [--outdir=dir|-O dir] [--indir=dir|-I dir]
                   [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
                   [--index|-x]
-                  [--discover]
+                  [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]
                   [ patterns... ]
 
 DESCRIPTION
@@ -93,7 +93,9 @@ ARGUMENTS
 
         In a WizPnP search, stop searching when the number of WizPnP devices
         found is *devs*, rather than waiting for the search to time out
-        (currently 60 seconds). *Devs* defaults to 1.
+        (currently 9 seconds). *Devs* defaults to 1. If set to zero, there
+        is no limit; the search continues looking for devices until it times
+        out.
 
     host
           --host=host
@@ -478,10 +480,23 @@ ARGUMENTS
         Beyonwiz device search is performed, and *getWizPnP* exits
         immediately.
 
+    wizpnpPoll
+          --wizpnpPoll=npoll
+
+        Sets the maximum number of search requests sent by a WizPnP device
+        search before terminating the search. Defaults to 3.
+
+    wizpnpTimeout
+          --wizpnpTimeout=timeout
+
+        Sets the maximum timeout (floating point seconds) used when waiting
+        for a respnse to a WizPnP SSDP device search request. Defaults to
+        0.3 sec.
+
 FILES
 
     A small Perl file, ".getwizpnp" on Unix-like systems (MacOS X, Cygwin,
-    Linuz, etc) and "getwizpnp.conf" on Windows can be used to change the
+    Linux, etc) and "getwizpnp.conf" on Windows can be used to change the
     default values of a number of *getWizPnP* options.
 
     On Unix-like systems, the file ".getwizpnp" is searched for in the

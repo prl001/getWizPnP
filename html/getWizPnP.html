@@ -40,10 +40,10 @@
 <h1><a name="synopsis">SYNOPSIS</a></h1>
 <pre>
     getWizPnP [--help|-h]
-              [--device dev|-D dev] [--maxdev=devs|-m devs]
+              [--device dev|-D dev] [--maxdevs=devs|-m devs]
               [--host=host|-H host] [--port=port|-p port]
               [--list|-l] [--List|-L]
-              [--delete|-X] [--move|-M]
+              [--delete|-X] [--move|-M] [--dryrun|-n]
               [--folder=folderlist|-f folderlist]
               [--recursive|--all|-a]
               [--regexp|-r] [--expression|-e] [-BWName|-B]
@@ -55,7 +55,7 @@
               [--outdir=dir|-O dir] [--indir=dir|-I dir]
               [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
               [--index|-x]
-              [--discover]
+              [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]
               [ patterns... ]</pre>
 <p>
 </p>
@@ -140,7 +140,9 @@ returns with an error. Device name matching is case-insensitive
 <dd>
 <p>In a WizPnP search, stop searching when the number of WizPnP
 devices found is <em>devs</em>, rather than waiting for the search to
-time out (currently 60 seconds). <em>Devs</em> defaults to 1.</p>
+time out (currently 9 seconds). <em>Devs</em> defaults to 1.
+If set to zero, there is no limit; the search continues looking
+for devices until it times out.</p>
 </dd>
 <dt><strong><a name="item_host">host</a></strong>
 
@@ -721,13 +723,35 @@ is set by <strong>--<a href="#item_maxdevs">maxdevs</a></strong>.
 If <strong>--<a href="#item_indir">indir</a></strong> is set, no Beyonwiz device search is performed,
 and <em>getWizPnP</em> exits immediately.</p>
 </dd>
+<dt><strong><a name="item_wizpnppoll">wizpnpPoll</a></strong>
+
+<dd>
+<pre>
+  --wizpnpPoll=npoll</pre>
+</dd>
+<dd>
+<p>Sets the maximum number of search requests sent by 
+a WizPnP device search before terminating the search.
+Defaults to 3.</p>
+</dd>
+<dt><strong><a name="item_wizpnptimeout">wizpnpTimeout</a></strong>
+
+<dd>
+<pre>
+  --wizpnpTimeout=timeout</pre>
+</dd>
+<dd>
+<p>Sets the maximum timeout (floating point seconds)
+used when waiting for a respnse to a WizPnP SSDP device search request.
+Defaults to 0.3 sec.</p>
+</dd>
 </dl>
 <p>
 </p>
 <hr />
 <h1><a name="files">FILES</a></h1>
 <p>A small Perl file, <code>.getwizpnp</code> on Unix-like systems
-(MacOS X, Cygwin, Linuz, etc) and <code>getwizpnp.conf</code> on
+(MacOS X, Cygwin, Linux, etc) and <code>getwizpnp.conf</code> on
 Windows can be used to change the default values of a number of
 <em>getWizPnP</em> options.</p>
 <p>On Unix-like systems, the file <code>.getwizpnp</code> is searched for in the user's

@@ -24,9 +24,29 @@ CONSTANTS
     "SSDPPEER"
         *SSDPADDR*:<SSDPPORT>; "239.255.255.250:1900"
 
+         Beyonwiz WizPnP servers appear to only wait about 40ms
+
+    "SSDPNPOLL"
+        Default maximum number of SSDP search requests (3). Maximum time for
+        a search to complete ~= SSDPNPOLL * SSDPTIMEOUT = 0.9 sec
+
+    "SSDPMAXDELAY"
+        Default maximum random delay (3 seconds, integer) that a responding
+        SSDP server may insert before replying. The Beyonwiz WizPnP server
+        seems to ignore this, and replys in about 35-40ms.
+
+    "SSDPTIMEOUT"
+        Default time to wait (0.3 sec) for an SSDP response. Should be >
+        "SSDPMAXDELAY", but testing shows 0.3 sec to be adequate with
+        "SSDPNPOLL" set to 3. See comment about response delay in
+        "SSDPMAXDELAY".
+
+    "SSDPPOLLTIME"
+        Response polling timeout granularity (0.1 sec).
+
 METHODS
 
-    "Beyonwiz::Recording::WizPnP->new"
+    "Beyonwiz::WizPnP->new"
         Create a new Beyonwiz WizPnP search object.
 
     "$wpnp->maxDevs([$val]);"
@@ -38,6 +58,15 @@ METHODS
         Returns (sets) the reference to the hash of discovered devices
         ("Beyonwiz::WizPnPDevice"), indexed by the lower-case version of the
         device name.
+
+    "$wpnp->wizpnpPoll([$val]);"
+        Returns (sets) the maximum number of search requests sent by
+        "$wpnp->search();" before terminating the search. Defaults to
+        "SSDPNPOLL".
+
+    "$wpnp->wizpnpTimeout([$val]);"
+        Returns (sets) the maximum timeout used when waiting for a respnse
+        to a WizPnP SSDP device search request. Defaults to SSDPTIMEOUT sec.
 
     "$wpnp->httpTimeout([$val]);"
         Returns (sets) the timeout used when fetching the Beyonwiz device
@@ -53,12 +82,6 @@ METHODS
         Returns (sets) the lifetime of a Beyonwiz location cache entry in
         seconds. Only has an effect if executed on a derived class that
         implements caching.
-
-    "$wpnp->_quietLocation([$val]);"
-        Returns (sets) a flag to suppress some warning messages during
-        device location specifier processing. Intended for use by derived
-        clases when they are testing for the presence of a Beyonwiz device
-        and will take recovery action.
 
     "$wpnp->deviceNames;"
         Returns the list of discovered device names. All lower-cased. No
@@ -103,11 +126,59 @@ METHODS
         Clear the Beyonwiz location cache. Only has an effect if executed on
         a derived class that implements caching.
 
+INTERNAL METHODS
+
+    "$wpnp->_quietLocation([$val]);"
+        Returns (sets) a flag to suppress some warning messages during
+        device location specifier processing. Intended for use by derived
+        clases when they are testing for the presence of a Beyonwiz device
+        and will take recovery action.
+
+    "$wpnp->_requestSock([$val]);"
+        Returns (sets) the multicast socket on which WizPnP's SSDP search
+        requests are sent. Normally set by "$wpnp->_openRequestSock();" and
+        "$wpnp->_closeRequestSock();".
+
+    "$wpnp->_responseSock([$val]);"
+        Returns (sets) the socket on which WizPnP's SSDP search responses
+        are received. Normally set by "$wpnp->_openResponseSock();" and
+        "$wpnp->_closeResponseSock();".
+
+    "$wpnp->_responsePort([$val]);"
+        Returns (sets) the port on which WizPnP's SSDP search requests were
+        sent and on which its responses are received. Normally set by
+        "$wpnp->_openRequestSock();" and "$wpnp->_openRequestSock();".
+
+    "$wpnp->_request([$val]);"
+        Returns (sets) the "HTTP::Request" that will be sent by WizPnP's
+        SSDP search requests. Normally set in the class constructor.
+
+    "$wpnp->_openRequestSock;"
+        Opens the multicast socket on which WizPnP's SSDP search requests
+        are sent. Also sets "$wpnp->_requestSock;" and
+        "$wpnp->_responsePort;"
+
+    "$wpnp->_closeRequestSock;"
+        Closes the socket on which WizPnP's SSDP search requests are sent.
+        Sets "$wpnp->_requestSock;" to "undef".
+
+    "$wpnp->_openResponseSock();"
+        Opens the socket on which WizPnP's SSDP search responses are
+        received. Sets "$wpnp->_responseSock;" to "undef".
+
+    "$wpnp->_closeResponseSock();"
+        Opens the socket on which WizPnP's SSDP search responses are
+        received. Sets "$wpnp->_responseSock;" and "$wpnp->_responsePort;"
+        to "undef".
+
+    "Beyonwiz::WizPnP::_isMacOs"
+        Returns true if the system runnung is MacOS X or Darwin.
+
 PREREQUISITES
 
     Uses packages: "Beyonwiz::WizPnPDevice", "IO::Socket::Multicast",
     "IO::Select", "HTTP::Response", "HTTP::Request", "HTTP::Status",
-    "LWP::Simple", "URI", "XML::DOM".
+    "LWP::Simple", "URI", "XML::DOM" "Time::HiRes".
 
 BUGS
 
