@@ -8,10 +8,10 @@ getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network
 =head1 SYNOPSIS
 
     getWizPnP [--help|-h]
-              [--device dev|-D dev] [--maxdev=devs|-m devs]
+              [--device dev|-D dev] [--maxdevs=devs|-m devs]
               [--host=host|-H host] [--port=port|-p port]
               [--list|-l] [--List|-L]
-              [--delete|-X] [--move|-M]
+              [--delete|-X] [--move|-M] [--dryrun|-n]
               [--folder=folderlist|-f folderlist]
               [--recursive|--all|-a]
               [--regexp|-r] [--expression|-e] [-BWName|-B]
@@ -23,7 +23,7 @@ getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network
               [--outdir=dir|-O dir] [--indir=dir|-I dir]
               [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
 	      [--index|-x]
-	      [--discover]
+	      [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]
               [ patterns... ]
 
 =head1 DESCRIPTION
@@ -106,7 +106,9 @@ returns with an error. Device name matching is case-insensitive
 
 In a WizPnP search, stop searching when the number of WizPnP
 devices found is I<devs>, rather than waiting for the search to
-time out (currently 60 seconds). I<Devs> defaults to 1.
+time out (currently 9 seconds). I<Devs> defaults to 1.
+If set to zero, there is no limit; the search continues looking
+for devices until it times out.
 
 =item host
 
@@ -548,12 +550,28 @@ is set by B<--L<maxdevs>>.
 If B<--L<indir>> is set, no Beyonwiz device search is performed,
 and I<getWizPnP> exits immediately.
 
+=item wizpnpPoll
+
+  --wizpnpPoll=npoll
+
+Sets the maximum number of search requests sent by 
+a WizPnP device search before terminating the search.
+Defaults to 3.
+
+=item wizpnpTimeout
+
+  --wizpnpTimeout=timeout
+
+Sets the maximum timeout (floating point seconds)
+used when waiting for a respnse to a WizPnP SSDP device search request.
+Defaults to 0.3 sec.
+
 =back
 
 =head1 FILES
 
 A small Perl file, C<.getwizpnp> on Unix-like systems
-(MacOS X, Cygwin, Linuz, etc) and C<getwizpnp.conf> on
+(MacOS X, Cygwin, Linux, etc) and C<getwizpnp.conf> on
 Windows can be used to change the default values of a number of
 I<getWizPnP> options.
 
@@ -748,6 +766,7 @@ our (
 	$bwName,
 	$delete,
 	$move,
+	$dryrun,
 	$date,
 	$episode,
 	$verbose,
@@ -758,7 +777,9 @@ our (
 	$force,
 	$help,
 	$discover,
-    ) = ((0) x 18);
+	$wizpnpPoll,
+	$wizpnpTimeout,
+    ) = ((0) x 21);
 
 $| = 1;
 
@@ -802,10 +823,10 @@ my $matchType = MATCH_SUBSTR;
 
 sub Usage {
     die "Usage: $0 [--help|-h]\n",
-	"                  [--device dev|-D dev] [--maxdev=devs|-m devs]\n",
+	"                  [--device dev|-D dev] [--maxdevs=devs|-m devs]\n",
 	"                  [--host=host|-H host] [--port=port|-p port]\n",
 	"                  [--list|-l] [--List|-L]\n",
-	"                  [--delete|-X] [--move|-M]\n",
+	"                  [--delete|-X] [--move|-M] [--dryrun|-n]\n",
 	"                  [--folder=folderlist|-f folderlist]\n",
 	"                  [--recursive|--all|-a]\n",
 	"                  [--regexp|-r] [--expression|-e] [-BWName|-B]\n",
@@ -817,7 +838,7 @@ sub Usage {
 	"                  [--outdir=dir|-O dir] [--indir=dir|-I dir]\n",
 	"                  [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]\n",
 	"                  [--index|-x]\n",
-	"                  [--discover]\n",
+	"                  [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]\n",
 	"                  [ patterns... ]\n";
 }
 
@@ -864,6 +885,7 @@ GetOptions(
 	'a|recursive|all!'	=> \$recursive,
 	'X|delete'		=> \$delete,
 	'M|move'		=> \$move,
+	'n|dryrun'		=> \$dryrun,
 	't|ts!'			=> \$ts,
 	'd|date!'		=> \$date,
 	'E|episode!'		=> \$episode,
@@ -878,6 +900,8 @@ GetOptions(
 	'V|Verbose=i'		=> \$verbose,
 	'x|index!'		=> \$indexName,
 	'discover'		=> \$discover,
+	'wizpnpPoll=i'		=> \$wizpnpPoll,
+	'wizpnpTimeout=f'	=> \$wizpnpTimeout,
 	'q|quiet+'		=> \$quiet,
     ) or Usage;
 
@@ -1140,6 +1164,17 @@ sub sortCmp($$) {
     return 0;
 }
 
+# Return the host:port string for the device.
+# :port is omitted if the port is the default for the protocol.
+
+
+sub deviceHostPort($) {
+    my ($device) = @_;
+
+    return $device->location->authority
+	? $device->location->host . ':' . $device->location->port
+	: '';
+}
 
 # Connect to a Beyonwiz WizPnP server and return
 # its WizPnPDevice. If $host is set, use that as the
@@ -1155,6 +1190,8 @@ sub connectToBW($$$) {
     my $pnp = Beyonwiz::WizPnP->new;
 
     $pnp->maxDevs($maxdevs);
+    $pnp->wizpnpPoll($wizpnpPoll) if($wizpnpPoll > 0);
+    $pnp->wizpnpTimeout($wizpnpTimeout) if($wizpnpTimeout > 0);
 
     my $device;
 
@@ -1165,11 +1202,15 @@ sub connectToBW($$$) {
 	$url->port($port);
 
 	$pnp->addDevice($url);
-	die "Can't get a device description for $host\n"
-	    if($pnp->ndevices == 0);
-	$device = $pnp->device(($pnp->deviceNames)[0]);
-	die "Host $host isn't device $device_name, it's ", $device->name, "\n",
-	    if(defined($device_name) && lc($device_name) ne lc($device->name));
+	if($mode != MODE_SEARCH) {
+	    die "Can't get a device description for $host\n"
+		if($pnp->ndevices == 0);
+	    $device = $pnp->device(($pnp->deviceNames)[0]);
+	    die "Host $host isn't device $device_name, it's ",
+		    $device->name, "\n",
+		if(defined($device_name)
+		&& lc($device_name) ne lc($device->name));
+	}
     } else {
 	print "Searching for at most $maxdevs device",
 		($maxdevs != 1 ? 's' : ''), "\n"
@@ -1177,32 +1218,31 @@ sub connectToBW($$$) {
 
 	$pnp->search;
 
-	if($pnp->ndevices == 0) {
-	    die "Search for WizPnP devices failed\n";
-	} elsif($pnp->ndevices == 1) {
-	    $device = $pnp->device(($pnp->deviceNames)[0]);
-	    die "Device $device_name isn't available.",
-		    " Device ", $device->name, " was found\n",
-		if(defined($device_name)
-		&& lc($device_name) ne lc($device->name));
-	} else {
-	    die 'Found devices [', join(', ', $pnp->deviceNames),
-		    ' but no device selected with --device'
-		if(!defined $device_name);
-	    $device = $pnp->device($device_name);
-	    die "Device $device_name isn't available. [",
-		    join(', ', $pnp->deviceNames), " were found\n"
-		if(!$device);
+	if($mode != MODE_SEARCH) {
+	    if($pnp->ndevices == 0) {
+		die "Search for WizPnP devices failed\n";
+	    } elsif($pnp->ndevices == 1) {
+		$device = $pnp->device(($pnp->deviceNames)[0]);
+		die "Device $device_name isn't available.",
+			" Device ", $device->name, " was found\n",
+		    if(defined($device_name)
+		    && lc($device_name) ne lc($device->name));
+	    } else {
+		die 'Found devices [', join(', ', $pnp->deviceNames),
+			"] but no device selected with --device\n"
+		    if(!defined $device_name);
+		$device = $pnp->device($device_name);
+		die "Device $device_name isn't available. [",
+			join(', ', $pnp->deviceNames), "] were found\n"
+		    if(!$device);
+	    }
 	}
     }
     if($mode == MODE_SEARCH) {
 	foreach my $name (sort $pnp->deviceNames) {
+	    $device = $pnp->device($name);
 	    printf "%-16s%s\n",  $device->name,
-		($device->location->authority
-		    ? $device->location->host
-		    : ''
-		),
-		"\n";
+		deviceHostPort($device);
 	}
 	exit;
     }
@@ -1349,6 +1389,9 @@ sub doRecordingOperation($$$$$$) {
 		$mbytes;
 	printf "    bit rate: %5.1f Mib/s\n",
 		$mbytes * 8 / $hdr->playtime;
+	printf "    recording name: %s\n",
+		$rec->getRecordingName($hdr, $ie->path, $rec->ts)
+	    if($mode == MODE_COPY || $mode == MODE_MOVE);
     }
     if($verbose >= 3) {
 	if($hdr->nbookmarks > 0) {
@@ -1389,56 +1432,57 @@ sub doRecordingOperation($$$$$$) {
 	    }
 	}
     }
-    if($mode == MODE_MOVE) {
-	# Try to move recording by renaming it
-	my $status = $rec->renameRecording($hdr, $ie->path, $outdir);
-	if($status == RC_OK) {
-	    print "\n" if($verbose >= 1);
-	    return;
-	}
-    }
-    if($mode == MODE_COPY || $mode == MODE_MOVE) {
-	if(!$trunc) {
-	    $trunc = newTrunc($indir, $device, $ie);
-	    $trunc->load;
-	}
-	if($trunc->valid) {
-	    my $status = $rec->getRecording(
-					$hdr, $trunc,
-					$ie->path,
-					$outdir,
-					$verbose >= 1
-					    ? ProgressBar->new
-					    : undef
-				    );
-	    print "\n" if($verbose >= 1);
-	    if(!is_success($status)) {
-		warn "Download failed: ",
-			status_message($status), "\n";
+    if(!$dryrun) {
+	if($mode == MODE_MOVE) {
+	    # Try to move recording by renaming it
+	    my $status = $rec->renameRecording($hdr, $ie->path, $outdir);
+	    if($status == RC_OK) {
+		print "\n" if($verbose >= 1);
 		return;
 	    }
-	} else {
-	    warn $ie->name, " skipped\n";
-	    return;
+	} elsif($mode == MODE_COPY || $mode == MODE_MOVE) {
+	    if(!$trunc) {
+		$trunc = newTrunc($indir, $device, $ie);
+		$trunc->load;
+	    }
+	    if($trunc->valid) {
+		my $status = $rec->getRecording(
+					    $hdr, $trunc,
+					    $ie->path,
+					    $outdir,
+					    $verbose >= 1
+						? ProgressBar->new
+						: undef
+					);
+		print "\n" if($verbose >= 1);
+		if(!is_success($status)) {
+		    warn "Download failed: ",
+			    status_message($status), "\n";
+		    return;
+		}
+	    } else {
+		warn $ie->name, " skipped\n";
+		return;
+	    }
 	}
-    }
-    if($mode == MODE_DELETE || $mode == MODE_MOVE) {
-	if(!$trunc) {
-	    $trunc = newTrunc($indir, $device, $ie);
-	    $trunc->load;
-	}
-	if($trunc->valid) {
-	    my $status = $rec->deleteRecording(
-					$hdr, $trunc,
-					$ie->path,
-					$outdir,
-					undef
-				    );
-	    warn "Delete failed: ",
-		    status_message($status), "\n"
-		if(!is_success($status));
-	} else {
-	    warn $ie->name, " skipped\n"
+	if($mode == MODE_DELETE || $mode == MODE_MOVE) {
+	    if(!$trunc) {
+		$trunc = newTrunc($indir, $device, $ie);
+		$trunc->load;
+	    }
+	    if($trunc->valid) {
+		my $status = $rec->deleteRecording(
+					    $hdr, $trunc,
+					    $ie->path,
+					    $outdir,
+					    undef
+					);
+		warn "Delete failed: ",
+			status_message($status), "\n"
+		    if(!is_success($status));
+	    } else {
+		warn $ie->name, " skipped\n"
+	    }
 	}
     }
     print "\n" if($verbose >= 1);
@@ -1502,12 +1546,7 @@ my $device;
 if(!defined $indir) {
     $device = connectToBW($host, $maxdevs, $verbose);
 
-    print 'Connecting to ', $device->name,
-	    ($device->location->authority
-		? ' (' . $device->location->host . ')'
-		: ''
-	    ),
-	    "\n"
+    print 'Connecting to ', $device->name, ' (', deviceHostPort($device), ")\n"
 	if($verbose >= 1 && $mode != MODE_SEARCH);
 } elsif($mode == MODE_SEARCH) {
     exit;
