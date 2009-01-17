@@ -50,14 +50,22 @@ is permitted.
 If C<$dir> is defined and not empty, return C<$dir> prepended to C<$name>,
 otherwise return C<$name>.
 
+=item C<< $r->getRecordingName($hdr, $path, $ts); >>
+
+C<$hdr> is the recording's header.
+C<$path> is the path name from the recording's
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
+C<$ts> is a flag to indicate whether a recording folde
+or single recording TS file is to be created.
+
 =item C<< $r->getRecordingFileChunk($path, $name, $file, $outdir,
         $append, $off, $size, $outOff, $progressBar); >>
 
 Download a chunk of a recording corresponding to a single
 L<C<Beyonwiz::Recording::TruncEntry>|Beyonwiz::Recording::TruncEntry>.
 
-C<$path> is the URL path to the folder containing the recording's
-files on the Beyonwiz.
+C<$path> is the path name from the recording's
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
 C<$name> is the name of the recording folder or file
 (if C<< $r->ts >> is true).
 C<$file> is the name of the Beyonwiz file containing the chunk.
@@ -237,14 +245,10 @@ sub addDir($$) {
 }
 
 sub getRecordingName($$$$) {
-    my ($self, $hdr, $path) = @_;
+    my ($self, $hdr, $path, $ts) = @_;
     my $name = basename($path);
     if(defined($hdr->title) && length($hdr->title) > 0) {
-	$name = $hdr->title;
-	if($self->episode && defined($hdr->episode)
-	&& ($hdr->episode !~ /^\s*$/)) {
-	    $name .= ' - ' . $hdr->episode;
-	}
+	$name = $hdr->longTitle($self->episode, ' - ');
 	if($self->date) {
 	    my $d = gmtime($hdr->starttime);
 	    substr $d, 11, 9, '';
@@ -256,6 +260,12 @@ sub getRecordingName($$$$) {
     $name =~ s/^\*(.)/$1/;
     # Some ugliness to interpolate BADCHARS into the character class
     $name =~ s/[${\(BADCHARS)}]/_/g;
+    if($ts) {
+	$name =~ s/.(tv|rad)wiz$//;
+	$name .= '.ts';
+    } else {
+	$name .= $hdr->isRadio ? '.radwiz' : '.tvwiz';
+    }
     return $name;
 }
 
@@ -263,14 +273,7 @@ sub getRecording($$$$$$) {
     my ($self, $hdr, $trunc, $path, $outdir, $progressBar) = @_;
     my $status;
 
-    my $name = $self->getRecordingName($hdr, $path);
-    if($self->ts) {
-	$name =~ s/.(tv|rad)wiz$//;
-	$name .= '.ts';
-    } else {
-	$trunc = $trunc->makeFileTrunc;
-	$name .= $hdr->isRadio ? '.radwiz' : '.tvwiz';
-    }
+    my $name = $self->getRecordingName($hdr, $path, $self->ts);
 
     my $size = $trunc->recordingSize;
 
@@ -311,6 +314,7 @@ sub getRecording($$$$$$) {
 	}
 
     } else {
+	$trunc = $trunc->makeFileTrunc;
 	my $dirname = addDir($outdir, $name);
 	if(-d $dirname) {
 	    if(   -f catfile($dirname, TVHDR)
@@ -419,7 +423,7 @@ sub deleteRecording($$$$$$) {
     my ($self, $hdr, $trunc, $path) = @_;
     my $status;
 
-    my $name = $self->getRecordingName($hdr, $path);
+    my $name = $self->getRecordingName($hdr, $path, 0);
 
     $status = $self->deleteRecordingFile($path, $name, $hdr->headerName);
     return $status if(!is_success($status));
