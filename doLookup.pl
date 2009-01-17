@@ -5,14 +5,23 @@ use warnings;
 
 use Beyonwiz::WizPnP;
 
-die "Usage: $0 testnum\n" if(@ARGV != 1);
+die "Usage: $0 testnum [maxdevs [expectdevs [wizpnpTimeout [wizpnpPoll]]]]\n"
+    if(@ARGV < 1 || @ARGV > 5);
 
-my ($n) = @ARGV;
+my ($n, $maxdevs, $expectdevs, $wizpnpTimeout, $wizpnpPoll) = @ARGV;
+
+$maxdevs = 1 if(!defined $maxdevs);
+$expectdevs = $maxdevs if(!defined $expectdevs);
 
 my $pnp = Beyonwiz::WizPnP->new;
 #Beyonwiz::WizPnP::debug(1);
 
-$pnp->maxDevs(1);
+$pnp->maxDevs($maxdevs);
+$pnp->wizpnpTimeout($wizpnpTimeout)  if(defined $wizpnpTimeout);
+$pnp->wizpnpPoll($wizpnpPoll) if(defined $wizpnpPoll);
 
 $pnp->search;
-print "\nSearch $n failed\n" if($pnp->ndevices == 0);
+
+print "\nSearch $n found ", $pnp->ndevices, " of $expectdevs devices\n"
+    if($expectdevs == 0 && $pnp->ndevices == 0
+    || $expectdevs != 0 && $pnp->ndevices < $expectdevs);
