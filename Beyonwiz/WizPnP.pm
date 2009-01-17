@@ -32,13 +32,38 @@ The IP multicast port number used for Simple Service Discovery Protocol
 
 I<SSDPADDR>:<SSDPPORT>; C<239.255.255.250:1900>
 
+ Beyonwiz WizPnP servers appear to only wait about 40ms 
+ 
+=item C<SSDPNPOLL>
+
+Default maximum number of SSDP search requests (3). Maximum time
+for a search to complete ~= SSDPNPOLL * SSDPTIMEOUT = 0.9 sec
+
+=item C<SSDPMAXDELAY>
+
+Default maximum random delay (3 seconds, integer) that a responding
+SSDP server may insert before replying.
+The Beyonwiz WizPnP server seems to ignore
+this, and replys in about 35-40ms.
+
+=item C<SSDPTIMEOUT>
+
+Default time to wait (0.3 sec) for an SSDP response.
+Should be > C<SSDPMAXDELAY>, but testing shows 0.3 sec to be adequate
+with C<SSDPNPOLL> set to 3.
+See comment about response delay in C<L</SSDPMAXDELAY>>.
+
+=item C<SSDPPOLLTIME>
+
+Response polling timeout granularity (0.1 sec).
+
 =back
 
 =head1 METHODS
 
 =over
 
-=item C<< Beyonwiz::Recording::WizPnP->new >>
+=item C<< Beyonwiz::WizPnP->new >>
 
 Create a new Beyonwiz WizPnP search object.
 
@@ -54,6 +79,19 @@ Defaults to 0.
 Returns (sets) the reference to the hash of discovered devices
 (L<C<Beyonwiz::WizPnPDevice>|Beyonwiz::WizPnPDevice>),
 indexed by the lower-case version of the device name.
+
+=item C<< $wpnp->wizpnpPoll([$val]); >>
+
+Returns (sets) the maximum number of search requests sent by 
+C<< $wpnp->search(); >>
+before terminating the search.
+Defaults to C<SSDPNPOLL>.
+
+=item C<< $wpnp->wizpnpTimeout([$val]); >>
+
+Returns (sets) the maximum timeout used when waiting for a respnse
+to a WizPnP SSDP device search request.
+Defaults to SSDPTIMEOUT sec.
 
 =item C<< $wpnp->httpTimeout([$val]); >>
 
@@ -74,12 +112,6 @@ Returns (sets) the lifetime of a Beyonwiz location cache
 entry in seconds.
 Only has an effect if executed on a derived class that
 implements caching.
-
-=item C<< $wpnp->_quietLocation([$val]); >>
-
-Returns (sets) a flag to suppress some warning messages during device
-location specifier processing. Intended for use by derived clases when
-they are testing for the presence of a Beyonwiz device and will take recovery action.
 
 =item C<< $wpnp->deviceNames; >>
 
@@ -137,6 +169,74 @@ implements caching.
 
 =back
 
+=head1 INTERNAL METHODS
+
+=over
+
+=item C<< $wpnp->_quietLocation([$val]); >>
+
+Returns (sets) a flag to suppress some warning messages during device
+location specifier processing. Intended for use by derived clases when
+they are testing for the presence of a Beyonwiz device and will take recovery action.
+
+=item C<< $wpnp->_requestSock([$val]); >>
+
+Returns (sets) the multicast socket on which WizPnP's SSDP search
+requests are sent.
+Normally set by C<< $wpnp->_openRequestSock(); >>
+and C<< $wpnp->_closeRequestSock(); >>.
+
+=item C<< $wpnp->_responseSock([$val]); >>
+
+Returns (sets) the socket on which WizPnP's SSDP search
+responses are received.
+Normally set by C<< $wpnp->_openResponseSock(); >>
+and C<< $wpnp->_closeResponseSock(); >>.
+
+=item C<< $wpnp->_responsePort([$val]); >>
+
+Returns (sets) the port on which WizPnP's SSDP search
+requests were sent and on which its responses are received.
+Normally set by C<< $wpnp->_openRequestSock(); >>
+and C<< $wpnp->_openRequestSock(); >>.
+
+=item C<< $wpnp->_request([$val]); >>
+
+Returns (sets) the C<< HTTP::Request >> that will be sent
+by WizPnP's SSDP search requests.
+Normally set in the class constructor.
+
+=item C<< $wpnp->_openRequestSock; >>
+
+Opens the multicast socket on which WizPnP's SSDP search
+requests are sent.
+Also sets C<< $wpnp->_requestSock; >> and C<< $wpnp->_responsePort; >>
+
+=item C<< $wpnp->_closeRequestSock; >>
+
+Closes the socket on which WizPnP's SSDP search
+requests are sent.
+Sets C<< $wpnp->_requestSock; >> to C<undef>.
+
+=item C<< $wpnp->_openResponseSock(); >>
+
+Opens the socket on which WizPnP's SSDP search
+responses are received.
+Sets C<< $wpnp->_responseSock; >> to C<undef>.
+
+=item C<< $wpnp->_closeResponseSock(); >>
+
+Opens the socket on which WizPnP's SSDP search
+responses are received.
+Sets C<< $wpnp->_responseSock; >> and C<< $wpnp->_responsePort; >>
+to C<undef>.
+
+=item C<< Beyonwiz::WizPnP::_isMacOs >>
+
+Returns true if the system runnung is MacOS X or Darwin.
+
+=back
+
 =head1 PREREQUISITES
 
 Uses packages:
@@ -148,7 +248,8 @@ C<HTTP::Request>,
 C<HTTP::Status>,
 C<LWP::Simple>,
 C<URI>,
-C<XML::DOM>.
+C<XML::DOM>
+C<Time::HiRes>.
 
 =head1 BUGS
 
@@ -173,6 +274,7 @@ use HTTP::Status;
 use LWP::Simple qw(get $ua);
 use URI;
 use XML::DOM;
+use Time::HiRes;
 
 # Test at runtime whether IO::Socket::Multicast exists,
 # and if it doesn't make new() die by setting $hasMulticast to fales.
@@ -198,21 +300,22 @@ use constant SSDPPORT => 1900;
 use constant SSDPPEER => SSDPADDR . ':' . SSDPPORT;
 
 # Maximum number of SSDP search requests. Maximum time
-# for a search to complete ~= SSDPNPOLL * TIMEOUT = 12sec
+# for a search to complete ~= SSDPNPOLL * SSDPTIMEOUT = 0.9 sec
 use constant SSDPNPOLL    => 3;
 
-# Maximum random delay a responding SSDP client may insert
-# before replying.
+# Maximum random delay (in seconds) that a responding SSDP server
+# may insert before replying. The Beyonwiz server seems to ignore
+# this, and reply in about 35-40ms.
 use constant SSDPMAXDELAY => 3;
 
-# Time to wait for an SSDP response (must be > SSDPMAXDELAY)
-use constant TIMEOUT      => SSDPMAXDELAY + 1;
+# Time to wait for an SSDP response. Should be > SSDPMAXDELAY,
+# but tests indicate that 0.3 sec is sufficient with
+# SSDPNPOLL = 3..
+
+use constant SSDPTIMEOUT      => 0.3;
 
 # Response polling timeout
-use constant POLLTIME     => 0.2;
-
-# Number of iterations in the response polling loop.
-use constant NPOLLS       => int(TIMEOUT / POLLTIME + 0.5);
+use constant SSDPPOLLTIME     => 0.1;
 
 my $accessorsDone;
 my $debug = 0;
@@ -223,10 +326,16 @@ sub new($) {
     my $self = {
 	maxDevs		=> 0,
 	devices		=> {},
+	wizpnpTimeout	=> SSDPTIMEOUT,
+	wizpnpPoll	=> SSDPNPOLL,
 	httpTimeout	=> undef,
 	cacheEnable	=> undef,
 	cacheLifetime	=> undef,
 	_quietLocation	=> 0,
+	_requestSock	=> undef,
+	_responseSock	=> undef,
+	_responsePort	=> undef,
+	_request	=> undef,
     };
 
     unless($accessorsDone) {
@@ -236,6 +345,25 @@ sub new($) {
 
     bless $self, $class;
 
+    # Create the SSDP request as a HTTP format request
+    # M-SEARCH (not part of HTTP 1.1).
+    # Host is the SSDP multicast address and port.
+    # MX is the maximum random delay (sec) that the responding
+    # device may insert before replying (collision mitigation).
+    # ST is the URI of the kind of devices that should respond.
+    # MAN is the SSDP operation URI.
+
+    my $req = HTTP::Request->new('M-SEARCH' => '*');
+    $req->protocol('HTTP/1.1');
+    $req->header(
+	    Host => SSDPPEER,
+	    MX   => SSDPMAXDELAY,
+	    ST   => 'urn:wizpnp-upnp-org:device:pvrtvdevice:1',
+	    MAN  => '"ssdp:discover"',
+	);
+
+    $self->_request($req);
+
     return $self;
 }
 
@@ -244,6 +372,10 @@ sub debug(;$) {
     my $old = $debug;
     $debug = $newDebug if(@_ > 0);
     return $old;
+}
+
+sub _isMacOSX {
+    return $^O eq 'darwin';
 }
 
 sub deviceNames($) {
@@ -323,6 +455,58 @@ sub process($$) {
     return undef;
 }
 
+sub _openRequestSock($) {
+    my ($self) = @_;
+
+    # Create the SSDP search output socket.
+
+    my $sout = IO::Socket::Multicast->new(Proto => 'udp',
+					  PeerAddr => SSDPPEER)
+		|| die 'Can\'t make WizPnP multicast request socket',
+		       " to configure WizPnP: $!\n";
+    $sout->mcast_loopback(0);
+    $sout->mcast_ttl(1);
+
+    $self->_requestSock($sout);
+
+    # The reply to the SSDP request is directed to the host
+    # issuing the request on the port that originated the request.
+    # Get the output port to use to construct the input socket.
+
+    my ($port) = sockaddr_in($sout->sockname);
+    $self->_responsePort($port);
+
+}
+
+sub _closeRequestSock($) {
+    my ($self) = @_;
+    !defined($self->_requestSock)
+	|| $self->_requestSock->close
+	|| die "Can't close WizPnP multicast request socket: $!\n";
+    $self->_requestSock(undef);
+}
+
+sub _openResponseSock($) {
+    my ($self) = @_;
+    # Create the SSDP search input socket on the same port as the
+    # request was sent.
+
+    my $sin = IO::Socket::INET->new(Proto => 'udp',
+				    LocalPort => $self->_responsePort,
+				    ReuseAddr => _isMacOSX)
+		|| die "Can't make response socket to configure WizPnP: $!\n";
+    $self->_responseSock($sin);
+}
+
+sub _closeResponseSock($) {
+    my ($self) = @_;
+    !defined($self->_responseSock)
+	|| $self->_responseSock->close
+	|| die "Can't close WizPnP response socket: $!\n";
+    $self->_responseSock(undef);
+    $self->_responsePort(undef);
+}
+
 sub search($) {
     my ($self) = @_;
 
@@ -334,72 +518,38 @@ sub search($) {
 	    "or name.\n"
 	unless($hasMulticast);
 
+    if(_isMacOSX) {
+	$self->_openRequestSock;
+	$self->_openResponseSock;
+    }
+
     for(my $i = 0;
-	   $i < SSDPNPOLL
+	   $i < $self->wizpnpPoll
 	   && (!$self->maxDevs || $self->ndevices < $self->maxDevs);
 	   $i++) {
 
-	# Create the SSDP search output socket.
+	$self->_openRequestSock unless(_isMacOSX);
 
-	my $sout = IO::Socket::Multicast->new(Proto => 'udp',
-					      PeerAddr => SSDPPEER)
-		    || die 'Can\'t make multicast socket',
-			   " to configure WizPnP: $!\n";
-	$sout->mcast_loopback(0);
-	$sout->mcast_ttl(1);
-
-	# The reply to the SSDP request is directed to the host
-	# issuing the request on the port that originated the request.
-	# Get the output port to use to construct the input socket.
-
-	my ($port) = sockaddr_in($sout->sockname);
-
-	# Create the SSDP request as a HTTP format request
-	# M-SEARCH (not part of HTTP 1.1).
-	# Host is the SSDP multicast address and port.
-	# MX is the maximum random delay (sec) that the responding
-	# device may insert before replying (collision mitigation).
-	# ST is the URI of the kind of devices that should respond.
-	# MAN is the SSDP operation URI.
-
-	my $req = HTTP::Request->new('M-SEARCH' => '*');
-	$req->protocol('HTTP/1.1');
-	$req->header(
-		Host => SSDPPEER,
-		MX   => SSDPMAXDELAY,
-		ST   => 'urn:wizpnp-upnp-org:device:pvrtvdevice:1',
-		MAN  => '"ssdp:discover"',
-	    );
-
-	warn "Send request:\n", $req->as_string, "\n" if($debug >= 1);
-	$sout->send($req->as_string)
+	warn "Send request:\n", $self->_request->as_string, "\n"
+	    if($debug >= 1);
+	$self->_requestSock->send($self->_request->as_string)
 	    or die "Can't send multicast WizPnP search request: $!\n";;
 
-	# If $sout is held open, the search fails at random on Windows
-	# (and Cygwin), so the socket is closed and reopened for each
-	# request.
-
-	$sout->close || die "Can't close WizPnP multicast socket: $!\n";
-
-	# Create the SSDP search input socket on the same port as the
-	# request was sent.
-
-	my $sin = IO::Socket::INET->new(Proto => 'udp',
-					LocalPort => $port)
-		    || die "Can't make input socket to configure WizPnP: $!\n";
+	$self->_closeRequestSock unless(_isMacOSX);
 
 	# Set up for select, so that the loop can time out.
 
+	$self->_openResponseSock unless(_isMacOSX);
+
 	my $sel = IO::Select->new;
-	$sel->add($sin);
+	$sel->add($self->_responseSock);
 
 	# Poll for responses and process them.
 
-	for(my $i = 0;
-	       $i < NPOLLS
-	       && (!$self->maxDevs || $self->ndevices < $self->maxDevs);
-	       $i++) {
-	    foreach my $sock ($sel->can_read(POLLTIME)) {
+	my $startTime = Time::HiRes::time;
+	while(Time::HiRes::time - $startTime < $self->wizpnpTimeout
+	       && (!$self->maxDevs || $self->ndevices < $self->maxDevs)) {
+	    foreach my $sock ($sel->can_read(SSDPPOLLTIME)) {
 		my $data;
 
 		if(defined $sock->recv($data, 1500)) {
@@ -410,7 +560,15 @@ sub search($) {
 		}
 	    }
 	}
-	$sin->close || die "Can't close WizPnP input socket: $!\n";
+	$self->_closeResponseSock unless(_isMacOSX);
+    }
+	# If $sout is held open, the search fails at random on Windows
+	# (and Cygwin), so the socket is closed and reopened for each
+	# request.
+
+    unless($^O eq 'MSWin32' || $^O eq 'cygwin') {
+	$self->_closeRequestSock;
+	$self->_closeResponseSock;
     }
     return $self->ndevices;
 }
