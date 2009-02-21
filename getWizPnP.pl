@@ -1440,7 +1440,8 @@ sub doRecordingOperation($$$$$$) {
 		print "\n" if($verbose >= 1);
 		return;
 	    }
-	} elsif($mode == MODE_COPY || $mode == MODE_MOVE) {
+	}
+	if($mode == MODE_COPY || $mode == MODE_MOVE) {
 	    if(!$trunc) {
 		$trunc = newTrunc($indir, $device, $ie);
 		$trunc->load;
