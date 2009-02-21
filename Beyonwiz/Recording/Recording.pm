@@ -315,6 +315,7 @@ sub getRecording($$$$$$) {
 
     } else {
 	$trunc = $trunc->makeFileTrunc;
+	$size = $trunc->recordingSize;
 	my $dirname = addDir($outdir, $name);
 	if(-d $dirname) {
 	    if(   -f catfile($dirname, TVHDR)
