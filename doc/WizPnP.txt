@@ -64,6 +64,10 @@ METHODS
         "$wpnp->search();" before terminating the search. Defaults to
         "SSDPNPOLL".
 
+    "$wpnp->useLongNames([$val]);"
+        Returns (sets) the flag to use the long or short form of device
+        names in searches and name functions. Defaults to *false*.
+
     "$wpnp->wizpnpTimeout([$val]);"
         Returns (sets) the maximum timeout used when waiting for a respnse
         to a WizPnP SSDP device search request. Defaults to SSDPTIMEOUT sec.
@@ -112,13 +116,18 @@ METHODS
         if the message contained an installable SSDP device, "undef"
         otherwise.
 
-    "$wpnp->search();"
+    "$wpnp->sort;"
+        Sort the devices by name, then host number, then port.
+
+    "$wpnp->search;"
         Search the local net for Beyonwiz PnP devices and install them in
         $wpnp.
 
         If "$wpnp->maxDevs" non-zero, terminate the search when
         "$self->maxDevs" devices have been installed, otherwise search until
         the search times out.
+
+        Sorts the device entries using "$wpnp->sort;".
 
         Returns the number of devices found.
 
@@ -174,11 +183,15 @@ INTERNAL METHODS
     "Beyonwiz::WizPnP::_isMacOs"
         Returns true if the system runnung is MacOS X or Darwin.
 
+    "Beyonwiz::WizPnP::_netmask"
+        Returns the local interface netmask, if known. Defaults to 0.0.0.0.
+
 PREREQUISITES
 
     Uses packages: "Beyonwiz::WizPnPDevice", "IO::Socket::Multicast",
-    "IO::Select", "HTTP::Response", "HTTP::Request", "HTTP::Status",
-    "LWP::Simple", "URI", "XML::DOM" "Time::HiRes".
+    "IO::Select", "IO::Interface::Simple", "HTTP::Response",
+    "HTTP::Request", "HTTP::Status", "LWP::Simple", "URI", "XML::DOM"
+    "Time::HiRes".
 
 BUGS
 

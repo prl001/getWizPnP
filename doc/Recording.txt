@@ -8,9 +8,9 @@ SYNOPSIS
 
 METHODS
 
-    "Beyonwiz::Recording::Recording->new($ts, $date, $episode, $resume,
+    "Beyonwiz::Recording::Recording->new($join, $date, $episode, $resume,
     $force)"
-        Create a new Beyonwiz recording downloader object. If $ts is true,
+        Create a new Beyonwiz recording downloader object. If $join is true,
         the download will be into a single ".ts" file, otherwise the
         recording will be copied as it is on the Beyonwiz. If $date is true,
         the recording date is added to the recording name. If $episode is
@@ -20,8 +20,9 @@ METHODS
         of recording download that appear to be incomplete. If $force is
         true, allow a download to overwrite an existing download.
 
-    "$r->ts([$val]);"
-        Returns (sets) the single-file TS flag.
+    "$r->join([$val]);"
+        Returns (sets) the flag indicating whether the recording should be
+        joined into a single file.
 
     "$r->date([$val]);"
         Returns (sets) the flag controlling whether the recording date is
@@ -39,11 +40,11 @@ METHODS
         If $dir is defined and not empty, return $dir prepended to $name,
         otherwise return $name.
 
-    "$r->getRecordingName($hdr, $path, $ts);"
-        $hdr is the recording's header. $path is the path name from the
-        recording's "Beyonwiz::Recording::IndexEntry". $ts is a flag to
-        indicate whether a recording folde or single recording TS file is to
-        be created.
+    "$r->getRecordingName($hdr, $indexName, $join);"
+        $hdr is the recording's header. $indexName is the index name from
+        the recording's "Beyonwiz::Recording::IndexEntry". $join is a flag
+        to indicate whether a recording folder or single recording or media
+        file is to be created from Beyonwiz folder media formats.
 
     "$r->getRecordingFileChunk($path, $name, $file, $outdir, $append, $off,
     $size, $outOff, $progressBar);"
@@ -52,9 +53,9 @@ METHODS
 
         $path is the path name from the recording's
         "Beyonwiz::Recording::IndexEntry". $name is the name of the
-        recording folder or file (if "$r->ts" is true). $file is the name of
-        the Beyonwiz file containing the chunk. $append is false if $file is
-        to be created, true if it is to be appended to. $off and $size is
+        recording folder or file (if "$r->join" is true). $file is the name
+        of the Beyonwiz file containing the chunk. $append is false if $file
+        is to be created, true if it is to be appended to. $off and $size is
         the chunk to be transferred. If $outdir is defined and not the empty
         string, the record file is placed in that directory, rather than the
         current directory. $outoff is the offset to where to write the chunk
@@ -77,9 +78,10 @@ METHODS
 
     "$r->getRecording($hdr, $trunc, $path, $outdir, $showProgress);"
         Download a Beyonwiz recording, either as a direct copy from the
-        Beyonwiz, or into a single ".ts" file (if "$r->ts" is true). $hdr is
-        the recording's header file object, $trunc is the recording's trunc
-        file object, and $path is the path name from the recording's
+        Beyonwiz, or combine tham into a single file (if "$r->join" is true
+        for Beyonwiz folder media formats). $hdr is the recording's header
+        file object, $trunc is the recording's trunc file object, and $path
+        is the path name from the recording's
         "Beyonwiz::Recording::IndexEntry". If $outdir is defined and not the
         empty string, the recording is placed in that directory, rather than
         the current directory. The name of the downloaded recording is
@@ -99,7 +101,7 @@ METHODS
 
         On Unix(-like) systems, "renameRecording" will fail if the source
         and destinations for the move are on different file systems. It will
-        also fail if "$r->ts" is true and it will fail if the source
+        also fail if "$r->join" is true and it will fail if the source
         recording is on the Beyonwiz. In all these cases, it will return
         "RC_NOT_IMPLEMENTED", and not print a warning.
 
@@ -119,7 +121,7 @@ PREREQUISITES
 
     Uses packages: "Beyonwiz::Recording::Trunc",
     "Beyonwiz::Recording::Header", "Beyonwiz::Utils", "HTTP::Status",
-    "File::Spec::Functions", "File::Basename".
+    "File::Spec::Functions", "File::Basename", "POSIX".
 
 BUGS
 

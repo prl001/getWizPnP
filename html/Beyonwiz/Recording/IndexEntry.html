@@ -4,7 +4,7 @@
 <head>
 <title>IndexEntry</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:root@omen.apple.com" />
+<link rev="made" href="mailto:_www@b04.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -42,12 +42,12 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::IndexEntry-&gt;new($name, $fullPath, [$makeSortTitle])</code></a></strong>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::IndexEntry-&gt;new($name, $path, [$makeSortTitle])</code></a></strong>
 
 <dd>
 <p>Create a new Beyonwiz recording index entry object.
 <code>$name</code> is the default name of the recording.
-<code>$fullPath</code> is the full path of the recording.
+<code>$path</code> is the path of the recording.
 This is the right-hand part of a <code>index.txt</code> entry
 for a recording. The last segment of this path
 is not used when constructing a URL or a file path (for local recordings).
@@ -69,19 +69,6 @@ for comparisons when sorting.</p>
 <p>Returns (sets) the default name of the recording.
 This is the left-hand part of a <code>index.txt</code> entry
 for a recording.</p>
-</dd>
-</li>
-<dt><strong><a name="item_fullpath"><code>$ie-&gt;fullPath([$val]);</code></a></strong>
-
-<dd>
-<p>Returns (sets) the full path of the recording.
-This is the right-hand part of a <code>index.txt</code> entry
-for a recording. The last segment of this path
-is not used when constructing a URL or file path.</p>
-</dd>
-<dd>
-<p>This method is abstract and must be overridden in
-derived classes.</p>
 </dd>
 </li>
 <dt><strong><a name="item_extractdetails"><code>$ie-&gt;extractDetails;</code></a></strong>

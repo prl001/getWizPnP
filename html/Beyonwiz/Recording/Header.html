@@ -4,7 +4,7 @@
 <head>
 <title>Header</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:root@omen.apple.com" />
+<link rev="made" href="mailto:_www@b04.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -23,6 +23,7 @@
 	<li><a href="#synopsis">SYNOPSIS</a></li>
 	<li><a href="#constants">CONSTANTS</a></li>
 	<li><a href="#methods">METHODS</a></li>
+	<li><a href="#internal_methods">INTERNAL METHODS</a></li>
 	<li><a href="#prerequisites">PREREQUISITES</a></li>
 	<li><a href="#bugs">BUGS</a></li>
 </ul>
@@ -104,29 +105,60 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Header-&gt;new()</code></a></strong>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Header-&gt;new($accessor, $ie)</code></a></strong>
 
 <dd>
-<p>Create a new Beyonwiz recording header object.</p>
+<p>Create a new Beyonwiz recording header object.
+<code>$accessor</code> is a reference to a
+<a href="../../../html/./Beyonwiz/Recording/Accessor.html"><code>Beyonwiz::Recording::Accessor</code></a>
+used to carry out the media file access functions in
+<a href="../../../html/./Beyonwiz/Recording/Header.html"><code>Beyonwiz::Recording::Header</code></a>.
+&lt;$ie&gt; is a reference to a 
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>
+used to retrieve name and path information for the recording.</p>
+</dd>
+</li>
+<dt><strong><a name="item_accessor"><code>$h-&gt;accessor([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the media file accessor object reference.</p>
+</dd>
+</li>
+<dt><strong><a name="item_ie"><code>$h-&gt;ie([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the associated
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_path"><code>$h-&gt;path;</code></a></strong>
+
+<dd>
+<p>Returns folder name part of the path in the associated
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_name"><code>$h-&gt;name;</code></a></strong>
+
+<dd>
+<p>Returns index name in the associated
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.</p>
 </dd>
 </li>
 <dt><strong><a name="item_headername"><code>$h-&gt;headerName([$val]);</code></a></strong>
 
 <dd>
-<p>Returns (sets) the name of the header document (path part only).</p>
+<p>Returns (sets) the name of the header document (file name part only).</p>
 </dd>
 </li>
-<dt><strong><code>$h-&gt;headerName([$val]);</code></strong>
-
-<dd>
-<p>Returns (sets) the name of the header document (path part only).</p>
-</dd>
-</li>
-<dt><strong><a name="item_istv"><code>$h-&gt;isTV; $h-&gt;isRadio;</code></a></strong>
+<dt><strong><a name="item_istv"><code>$h-&gt;isTV; $h-&gt;isRadio; $h-&gt;isMediaFolder $h-&gt;isMediaFile</code></a></strong>
 
 <dd>
 <p>Returns true if <a href="#item_validmain"><code>$h-&gt;validMain;</code></a> is true and the recording
-is digital TV (resp digital radio). Both can return false if
+is respectively digital TV, digital radio,
+a Beyonwiz folder format for large media files,
+or a single media file.
+All can return false if
 <a href="#item_headername"><code>$h-&gt;headerName</code></a> has not been set.</p>
 </dd>
 </li>
@@ -329,6 +361,10 @@ Returns 0 if <a href="#item_offsets"><code>$offset &lt;= $self-&gt;offsets-&gt;[
 </li>
 <dt><strong><a name="item_loadmain"><code>$h-&gt;loadMain;</code></a></strong>
 
+<dt><strong><a name="item_loadhdrwmmeta"><code>$h-&gt;loadHdrWmmeta;</code></a></strong>
+
+<dt><strong><a name="item_loadhdrfile"><code>$h-&gt;loadHdrFile;</code></a></strong>
+
 <dt><strong><a name="item_loadepisode"><code>$h-&gt;loadEpisode;</code></a></strong>
 
 <dt><strong><a name="item_loadextinfo"><code>$h-&gt;loadExtInfo;</code></a></strong>
@@ -344,6 +380,13 @@ Returns 0 if <a href="#item_offsets"><code>$offset &lt;= $self-&gt;offsets-&gt;[
 <a href="#item_loadextinfo"><code>$h-&gt;loadExtInfo</code></a> loads the extended event informtion,
 <a href="#item_loadbookmarks"><code>$h-&gt;loadBookmarks</code></a> loads the bookmark information
 and <a href="#item_loadoffsets"><code>$h-&gt;loadOffsets</code></a> loads the 10-second offset data.</p>
+</dd>
+<dd>
+<p><a href="#item_loadhdrwmmeta"><code>$h-&gt;loadHdrWmmeta;</code></a> and <a href="#item_loadhdrfile"><code>$h-&gt;loadHdrFile;</code></a> load as
+much of the header as possible with information about media
+content either in the Beyonwiz folder format for large
+files (<a href="#item_loadhdrwmmeta"><code>$h-&gt;loadHdrWmmeta;</code></a>),
+or in single files (<a href="#item_loadhdrfile"><code>$h-&gt;loadHdrFile;</code></a>).</p>
 </dd>
 </li>
 <dt><strong><a name="item_decodemain"><code>$h-&gt;decodeMain($hdr_data)</code></a></strong>
@@ -373,12 +416,45 @@ and <a href="#item_decodeoffsets"><code>$h-&gt;decodeOffsets</code></a> decodes 
 <p>
 </p>
 <hr />
+<h1><a name="internal_methods">INTERNAL METHODS</a></h1>
+<dl>
+<dt><strong><a name="item__setunixtime"><code>$h-&gt;_setUnixTime($time);</code></a></strong>
+
+<dd>
+<p>Set <a href="#item_mjd"><code>$h-&gt;mjd([$val]);</code></a> and <a href="#item_start"><code>$h-&gt;start([$val]);</code></a>
+from the given Unix time (seconds since 00:00:00 Jan 1 1097 UTC).</p>
+</dd>
+</li>
+<dt><strong><a name="item__setmainmediafile"><code>$h-&gt;_setMainMediaFile($size, $time);</code></a></strong>
+
+<dd>
+<p>Set as many fields as possible to reasonable values given the
+size and timestamp of a media file.</p>
+</dd>
+</li>
+<dt><strong><a name="item__readhdrchunk"><code>$h-&gt;_readHdrChunk($offset, $size);</code></a></strong>
+
+<dd>
+<p>Read a chunk of the header file.
+Reads from <a href="#item_headername"><code>$h-&gt;headerName([$val]);</code></a> if it
+is defined, otherwise tries reading from
+<code>/TVHDR</code> then <code>/RADHDR</code> and sets
+the header name from the first to succeed.
+Reads <code>$size</code> bytes at byte offst <code>$offset</code>
+from the start of the header file.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
 <h1><a name="prerequisites">PREREQUISITES</a></h1>
 <p>Uses packages:
 <a href="../../../html/./Beyonwiz/Utils.html"><code>Beyonwiz::Utils</code></a>,
 <code>LWP::Simple</code>,
 <code>URI</code>,
-<code>URI::Escape</code>.</p>
+<code>URI::Escape</code>,
+<code>Time::Local</code>.</p>
 <p>
 </p>
 <hr />

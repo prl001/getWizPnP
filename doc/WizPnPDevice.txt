@@ -1,6 +1,6 @@
 NAME
 
-        use Beyonwiz::Recording::WizPnPDevice;
+        use Beyonwiz::WizPnPDevice;
 
 SYNOPSIS
 
@@ -20,6 +20,14 @@ METHODS
     "$wpnpd->dom([$val]);"
         Returns (sets) the device description DOM tree.
 
+    "$wpnpd->netmask([$val]);"
+        Returns (sets) the netmask of the network the device is attached to,
+        as a packed IP address.
+
+    "$wpnpd->longNames([$val]);"
+        Returns (sets) the flag to use the long or short form of device
+        names in searches and name functions. Defaults to *false*.
+
     "$wpnpd->baseUrl;"
         Returns the base URL for the device.
 
@@ -29,14 +37,39 @@ METHODS
     "$wpnpd->deviceDom;"
         Returns the "<device>" DOM subtree of the description.
 
-    "$wpnpd->name;"
+    "$wpnpd->hostIP;"
+        Returns the WizPnP device's IP address as a string in in dotted quad
+        format (e.g. 10.1.1.4).
+
+    "$wpnpd->hostNum;"
+        Returns the WizPnP device's host num as a string in in dotted
+        format. This is the hostIP ("$wpnpd->hostIP;") anded with the
+        netmask ("$wpnpd->netmask;"), and with any leading 0. parts stripped
+        off. (e.g. with an IP address of 10.1.1.4, and netmask
+        255.255.255.0, returns 4, with a netmask 255.255.0.0, returns 1.4).
+
+    "$wpnpd->portNum;"
+        Returns the WizPnP device's port number as an integer (e.g. 49152).
+
+    "$wpnpd->shortName;"
         Returns the device's WizPnP name (as set in
-        Setup>Network>WizPnP>Name).
+        "Setup>Network>WizPnP>Name").
+
+    "$wpnpd->longName;"
+        Returns the device's WizPnP name ("$wpnpd->shortName;"), host number
+        ("$wpnpd->hostNum;"), and port number ("$wpnpd->portNum;") as a
+        string separated by "-". E.g. for device MyBeyonwiz, IP address of
+        10.1.1.4, netmask 255.255.255.0 and port 49152, returns
+        "MyBeyonwiz-4-49152".
+
+    "$wpnpd->name;"
+        Returns "$wpnpd->longName;" if "$wpnpd->longNames([$val]);" is
+        *true*, otherwise "$wpnpd->shortName;".
 
     "$wpnpd->presentationURL;"
         Returns the device's WizPnP presentationURL.
 
 PREREQUISITES
 
-    Uses packages: "URI", "XML::DOM", "File::Basename".
+    Uses packages: "URI", "XML::DOM", "Socket".
 

@@ -4,7 +4,7 @@
 <head>
 <title>Trunc</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:root@omen.apple.com" />
+<link rev="made" href="mailto:_www@b04.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -49,7 +49,13 @@ The trunc file is used to describe exactly which parts of the
 <dt><strong><a name="item_trunc"><code>TRUNC</code></a></strong>
 
 <dd>
-<p>The trunc url path component for the beyonwiz (<code>trunc</code>).</p>
+<p>The trunc url path component for the Beyonwiz (<code>trunc</code>).</p>
+</dd>
+</li>
+<dt><strong><a name="item_wmmeta"><code>WMMETA</code></a></strong>
+
+<dd>
+<p>The wmmeta url path component for the Beyonwiz (<code>wmmeta</code>).</p>
 </dd>
 </li>
 </dl>
@@ -70,6 +76,12 @@ the name in the Beyonwiz recording index, see</p>
 
 <dd>
 <p>Returns (sets) the default recording name.</p>
+</dd>
+</li>
+<dt><strong><a name="item_filename"><code>$t-&gt;fileName([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the name of the trunc file.</p>
 </dd>
 </li>
 <dt><strong><a name="item_entries"><code>$t-&gt;entries([$val]);</code></a></strong>
@@ -113,25 +125,36 @@ objects in for the recording.</p>
 <code>$hdr_data</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_completetruncs"><code>$t-&gt;completeTruncs( $offset)</code></a></strong>
+<dt><strong><a name="item_truncstart"><code>$t-&gt;truncStart($offset)</code></a></strong>
 
 <dd>
-<p>Return the number of complete
-<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>s
-up to the given <code>$offset</code> in the recording.</p>
+<p>Return the location of the logical <code>offset</code> (counting from 0
+at the start of the recording) as a (<em>truncIndex</em>, <em>fileOffset</em>)
+pair indicating which 
+<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
+contains the position and the corresponding offset into the file.</p>
 </dd>
 </li>
 <dt><strong><a name="item_makefiletrunc"><code>$t-&gt;makeFileTrunc;</code></a></strong>
 
 <dd>
 <p>Return a new
-<a href="../../../html/./Beyonwiz/Recording/HTTPTrunc.html"><code>Beyonwiz::Recording::HTTPTrunc</code></a>
+<a href="../../../html/Beyonwiz/Recording/HTTPTrunc.html"><code>Beyonwiz::Recording::HTTPTrunc</code></a>
 with a single
 <a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
 for each file to be downloaded.
 The chunk file sizes and offsets are adjusted to have a single trunc
 representing the whole file. The <code>wizOffset</code> values are not particularly
 meaningful.</p>
+</dd>
+</li>
+<dt><strong><a name="item_filetruncfromdir"><code>$t-&gt;fileTruncFromDir;</code></a></strong>
+
+<dd>
+<p>Return a new
+<a href="../../../html/Beyonwiz/Recording/FileTrunc.html"><code>Beyonwiz::Recording::FileTrunc</code></a>
+that reflect the files in the the directory pointed to by
+<code>$t-&gt;path([$val])</code>.</p>
 </dd>
 </li>
 </dl>
@@ -145,7 +168,8 @@ meaningful.</p>
 <code>File::Basename</code>,
 <code>LWP::Simple</code>,
 <code>URI</code>,
-<code>URI::Escape</code>.</p>
+<code>URI::Escape</code>,
+<code>File::Spec::Functions</code>.</p>
 <p>
 </p>
 <hr />

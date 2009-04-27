@@ -11,7 +11,10 @@ SYNOPSIS
 CONSTANTS
 
     "TRUNC"
-        The trunc url path component for the beyonwiz ("trunc").
+        The trunc url path component for the Beyonwiz ("trunc").
+
+    "WMMETA"
+        The wmmeta url path component for the Beyonwiz ("wmmeta").
 
 METHODS
 
@@ -22,6 +25,9 @@ METHODS
 
     "$t->name([$val]);"
         Returns (sets) the default recording name.
+
+    "$t->fileName([$val]);"
+        Returns (sets) the name of the trunc file.
 
     "$t->entries([$val]);"
         Returns (sets) the array reference containing the
@@ -44,9 +50,11 @@ METHODS
         Load the contents of $t by decoding the "trunc" file data in
         $hdr_data.
 
-    "$t->completeTruncs( $offset)"
-        Return the number of complete "Beyonwiz::Recording::TruncEntry"s up
-        to the given $offset in the recording.
+    "$t->truncStart($offset)"
+        Return the location of the logical "offset" (counting from 0 at the
+        start of the recording) as a (*truncIndex*, *fileOffset*) pair
+        indicating which "Beyonwiz::Recording::TruncEntry" contains the
+        position and the corresponding offset into the file.
 
     "$t->makeFileTrunc;"
         Return a new "Beyonwiz::Recording::HTTPTrunc" with a single
@@ -55,10 +63,15 @@ METHODS
         representing the whole file. The "wizOffset" values are not
         particularly meaningful.
 
+    "$t->fileTruncFromDir;"
+        Return a new "Beyonwiz::Recording::FileTrunc" that reflect the files
+        in the the directory pointed to by "$t->path([$val])".
+
 PREREQUISITES
 
     Uses packages: "Beyonwiz::Recording::TruncEntry", "Beyonwiz::Utils",
-    "File::Basename", "LWP::Simple", "URI", "URI::Escape".
+    "File::Basename", "LWP::Simple", "URI", "URI::Escape",
+    "File::Spec::Functions".
 
 BUGS
 

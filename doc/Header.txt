@@ -39,18 +39,35 @@ CONSTANTS
 
 METHODS
 
-    "Beyonwiz::Recording::Header->new()"
-        Create a new Beyonwiz recording header object.
+    "Beyonwiz::Recording::Header->new($accessor, $ie)"
+        Create a new Beyonwiz recording header object. $accessor is a
+        reference to a "Beyonwiz::Recording::Accessor" used to carry out the
+        media file access functions in "Beyonwiz::Recording::Header". <$ie>
+        is a reference to a "Beyonwiz::Recording::IndexEntry" used to
+        retrieve name and path information for the recording.
+
+    "$h->accessor([$val]);"
+        Returns (sets) the media file accessor object reference.
+
+    "$h->ie([$val]);"
+        Returns (sets) the associated "Beyonwiz::Recording::IndexEntry".
+
+    "$h->path;"
+        Returns folder name part of the path in the associated
+        "Beyonwiz::Recording::IndexEntry".
+
+    "$h->name;"
+        Returns index name in the associated
+        "Beyonwiz::Recording::IndexEntry".
 
     "$h->headerName([$val]);"
-        Returns (sets) the name of the header document (path part only).
+        Returns (sets) the name of the header document (file name part
+        only).
 
-    "$h->headerName([$val]);"
-        Returns (sets) the name of the header document (path part only).
-
-    "$h->isTV; $h->isRadio;"
+    "$h->isTV; $h->isRadio; $h->isMediaFolder $h->isMediaFile"
         Returns true if "$h->validMain;" is true and the recording is
-        digital TV (resp digital radio). Both can return false if
+        respectively digital TV, digital radio, a Beyonwiz folder format for
+        large media files, or a single media file. All can return false if
         "$h->headerName" has not been set.
 
     "$h->unknown([$val]);"
@@ -168,6 +185,8 @@ METHODS
         "$self->playtime" if "$offset >= $self->endOffset".
 
     "$h->loadMain;"
+    "$h->loadHdrWmmeta;"
+    "$h->loadHdrFile;"
     "$h->loadEpisode;"
     "$h->loadExtInfo;"
     "$h->loadBookmarks;"
@@ -177,6 +196,11 @@ METHODS
         name/subtitle informtion, "$h->loadExtInfo" loads the extended event
         informtion, "$h->loadBookmarks" loads the bookmark information and
         "$h->loadOffsets" loads the 10-second offset data.
+
+        "$h->loadHdrWmmeta;" and "$h->loadHdrFile;" load as much of the
+        header as possible with information about media content either in
+        the Beyonwiz folder format for large files ("$h->loadHdrWmmeta;"),
+        or in single files ("$h->loadHdrFile;").
 
     "$h->decodeMain($hdr_data)"
     "$h->decodeEpisode($hdr_data)"
@@ -193,9 +217,27 @@ METHODS
         bookmark information and "$h->decodeOffsets" decodes the 10-second
         offset data.
 
+INTERNAL METHODS
+
+    "$h->_setUnixTime($time);"
+        Set "$h->mjd([$val]);" and "$h->start([$val]);" from the given Unix
+        time (seconds since 00:00:00 Jan 1 1097 UTC).
+
+    "$h->_setMainMediaFile($size, $time);"
+        Set as many fields as possible to reasonable values given the size
+        and timestamp of a media file.
+
+    "$h->_readHdrChunk($offset, $size);"
+        Read a chunk of the header file. Reads from
+        "$h->headerName([$val]);" if it is defined, otherwise tries reading
+        from "TVHDR" then "RADHDR" and sets the header name from the first
+        to succeed. Reads $size bytes at byte offst $offset from the start
+        of the header file.
+
 PREREQUISITES
 
-    Uses packages: "Beyonwiz::Utils", "LWP::Simple", "URI", "URI::Escape".
+    Uses packages: "Beyonwiz::Utils", "LWP::Simple", "URI", "URI::Escape",
+    "Time::Local".
 
 BUGS
 

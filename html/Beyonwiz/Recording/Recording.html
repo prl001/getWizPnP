@@ -4,7 +4,7 @@
 <head>
 <title>Recording</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:root@omen.apple.com" />
+<link rev="made" href="mailto:_www@b04.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -43,11 +43,11 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Recording-&gt;new($ts, $date, $episode, $resume, $force)</code></a></strong>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Recording-&gt;new($join, $date, $episode, $resume, $force)</code></a></strong>
 
 <dd>
 <p>Create a new Beyonwiz recording downloader object.
-If <code>$ts</code> is true, the download will be into
+If <code>$join</code> is true, the download will be into
 a single <code>.ts</code> file, otherwise the recording will
 be copied as it is on the Beyonwiz.
 If <code>$date</code> is true, the recording date is added to
@@ -60,10 +60,11 @@ that appear to be incomplete.
 If <code>$force</code> is true, allow a download to overwrite an existing download.</p>
 </dd>
 </li>
-<dt><strong><a name="item_ts"><code>$r-&gt;ts([$val]);</code></a></strong>
+<dt><strong><a name="item_join"><code>$r-&gt;join([$val]);</code></a></strong>
 
 <dd>
-<p>Returns (sets) the single-file TS flag.</p>
+<p>Returns (sets) the flag indicating whether the recording
+should be joined into a single file.</p>
 </dd>
 </li>
 <dt><strong><a name="item_date"><code>$r-&gt;date([$val]);</code></a></strong>
@@ -93,14 +94,15 @@ is permitted.</p>
 otherwise return <code>$name</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_getrecordingname"><code>$r-&gt;getRecordingName($hdr, $path, $ts);</code></a></strong>
+<dt><strong><a name="item_getrecordingname"><code>$r-&gt;getRecordingName($hdr, $indexName, $join);</code></a></strong>
 
 <dd>
 <p><code>$hdr</code> is the recording's header.
-<code>$path</code> is the path name from the recording's
+<code>$indexName</code> is the index name from the recording's
 <a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.
-<code>$ts</code> is a flag to indicate whether a recording folde
-or single recording TS file is to be created.</p>
+<code>$join</code> is a flag to indicate whether a recording folder
+or single recording or media file is to be created from
+Beyonwiz folder media formats.</p>
 </dd>
 </li>
 <dt><strong><a name="item_getrecordingfilechunk"><code>$r-&gt;getRecordingFileChunk($path, $name, $file, $outdir,
@@ -114,7 +116,7 @@ or single recording TS file is to be created.</p>
 <p><code>$path</code> is the path name from the recording's
 <a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.
 <code>$name</code> is the name of the recording folder or file
-(if <a href="#item_ts"><code>$r-&gt;ts</code></a> is true).
+(if <a href="#item_join"><code>$r-&gt;join</code></a> is true).
 <code>$file</code> is the name of the Beyonwiz file containing the chunk.
 <code>$append</code> is false if <code>$file</code> is to be created, true if
 it is to be appended to.
@@ -150,7 +152,8 @@ derived classes.</p>
 
 <dd>
 <p>Download a Beyonwiz recording, either as a direct copy from the Beyonwiz, or
-into a single <code>.ts</code> file (if <a href="#item_ts"><code>$r-&gt;ts</code></a> is true).
+combine tham into a single file (if <a href="#item_join"><code>$r-&gt;join</code></a> is true
+for Beyonwiz folder media formats).
 <code>$hdr</code> is the recording's header file object,
 <code>$trunc</code> is the recording's trunc file object,
 and <code>$path</code> is the path name from the recording's
@@ -180,7 +183,7 @@ Returns <code>RC_OK</code> if successful.</p>
 <dd>
 <p>On <code>Unix(-like)</code> systems, <a href="#item_renamerecording"><code>renameRecording</code></a> will  fail if the source
 and destinations for the move are on different file systems.
-It will also fail if <a href="#item_ts"><code>$r-&gt;ts</code></a> is true and it will fail if
+It will also fail if <a href="#item_join"><code>$r-&gt;join</code></a> is true and it will fail if
 the source recording is on the Beyonwiz.
 In all these cases, it will return <code>RC_NOT_IMPLEMENTED</code>,
 and not print a warning.</p>
@@ -218,7 +221,8 @@ and <code>$path</code> is the path name from the recording's
 <a href="../../../html/./Beyonwiz/Utils.html"><code>Beyonwiz::Utils</code></a>,
 <code>HTTP::Status</code>,
 <code>File::Spec::Functions</code>,
-<code>File::Basename</code>.</p>
+<code>File::Basename</code>,
+<code>POSIX</code>.</p>
 <p>
 </p>
 <hr />

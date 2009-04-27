@@ -8,17 +8,15 @@ SYNOPSIS
 
 METHODS
 
-    "Beyonwiz::Recording::IndexEntry->new($name, $fullPath,
-    [$makeSortTitle])"
+    "Beyonwiz::Recording::IndexEntry->new($name, $path, [$makeSortTitle])"
         Create a new Beyonwiz recording index entry object. $name is the
-        default name of the recording. $fullPath is the full path of the
-        recording. This is the right-hand part of a "index.txt" entry for a
-        recording. The last segment of this path is not used when
-        constructing a URL or a file path (for local recordings).
-        $makeSortTitle is a function reference that takes a single string
-        argument, and its return value is used to construct
-        "$ie->sortTitle([$val]);". It should transform its input string to
-        the form used for comparisons when sorting.
+        default name of the recording. $path is the path of the recording.
+        This is the right-hand part of a "index.txt" entry for a recording.
+        The last segment of this path is not used when constructing a URL or
+        a file path (for local recordings). $makeSortTitle is a function
+        reference that takes a single string argument, and its return value
+        is used to construct "$ie->sortTitle([$val]);". It should transform
+        its input string to the form used for comparisons when sorting.
 
         Normally constructed from the Beyonwiz recording index by
         "Beyonwiz::Recording::Index".
@@ -26,14 +24,6 @@ METHODS
     "$ie->name([$val]);"
         Returns (sets) the default name of the recording. This is the
         left-hand part of a "index.txt" entry for a recording.
-
-    "$ie->fullPath([$val]);"
-        Returns (sets) the full path of the recording. This is the
-        right-hand part of a "index.txt" entry for a recording. The last
-        segment of this path is not used when constructing a URL or file
-        path.
-
-        This method is abstract and must be overridden in derived classes.
 
     "$ie->extractDetails;"
         Extracts the remaining information fields for the index entry from

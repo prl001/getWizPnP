@@ -4,7 +4,7 @@
 <head>
 <title>WizPnPDevice</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:root@omen.apple.com" />
+<link rev="made" href="mailto:_www@b04.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -31,7 +31,7 @@
 </p>
 <h1><a name="name">NAME</a></h1>
 <pre>
-    use Beyonwiz::Recording::WizPnPDevice;</pre>
+    use Beyonwiz::WizPnPDevice;</pre>
 <p>
 </p>
 <hr />
@@ -64,6 +64,21 @@ Normally constructed by
 <p>Returns (sets) the device description DOM tree.</p>
 </dd>
 </li>
+<dt><strong><a name="item_netmask"><code>$wpnpd-&gt;netmask([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the netmask of the network the device is attached to,
+as a packed IP address.</p>
+</dd>
+</li>
+<dt><strong><a name="item_longnames"><code>$wpnpd-&gt;longNames([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the flag to use the long or short form of
+device names in searches and name functions.
+Defaults to <em>false</em>.</p>
+</dd>
+</li>
 <dt><strong><a name="item_baseurl"><code>$wpnpd-&gt;baseUrl;</code></a></strong>
 
 <dd>
@@ -82,10 +97,52 @@ Normally constructed by
 <p>Returns the <code>&lt;device&gt;</code> DOM subtree of the description.</p>
 </dd>
 </li>
+<dt><strong><a name="item_hostip"><code>$wpnpd-&gt;hostIP;</code></a></strong>
+
+<dd>
+<p>Returns the WizPnP device's IP address as a string in in dotted quad format
+(e.g. <code>10.1.1.4</code>).</p>
+</dd>
+</li>
+<dt><strong><a name="item_hostnum"><code>$wpnpd-&gt;hostNum;</code></a></strong>
+
+<dd>
+<p>Returns the WizPnP device's host num as a string in in dotted format.
+This is the hostIP (<a href="#item_hostip"><code>$wpnpd-&gt;hostIP;</code></a>)
+anded with the netmask (<a href="#item_netmask"><code>$wpnpd-&gt;netmask;</code></a>),
+and with any leading <code>0.</code> parts stripped off.
+(e.g. with an IP address of <code>10.1.1.4</code>, and netmask <code>255.255.255.0</code>,
+returns <code>4</code>, with a netmask <code>255.255.0.0</code>, returns <code>1.4</code>).</p>
+</dd>
+</li>
+<dt><strong><a name="item_portnum"><code>$wpnpd-&gt;portNum;</code></a></strong>
+
+<dd>
+<p>Returns the WizPnP device's port number as an integer (e.g. <code>49152</code>).</p>
+</dd>
+</li>
+<dt><strong><a name="item_shortname"><code>$wpnpd-&gt;shortName;</code></a></strong>
+
+<dd>
+<p>Returns the device's WizPnP name (as set in <code>Setup&gt;Network&gt;WizPnP&gt;Name</code>).</p>
+</dd>
+</li>
+<dt><strong><a name="item_longname"><code>$wpnpd-&gt;longName;</code></a></strong>
+
+<dd>
+<p>Returns the device's WizPnP name (<a href="#item_shortname"><code>$wpnpd-&gt;shortName;</code></a>),
+host number (<a href="#item_hostnum"><code>$wpnpd-&gt;hostNum;</code></a>), and
+port number (<a href="#item_portnum"><code>$wpnpd-&gt;portNum;</code></a>) as a string separated by <code>-</code>.
+E.g. for device MyBeyonwiz, IP address of <code>10.1.1.4</code>,
+netmask <code>255.255.255.0</code> and port <code>49152</code>, returns
+<code>MyBeyonwiz-4-49152</code>.</p>
+</dd>
+</li>
 <dt><strong><a name="item_name"><code>$wpnpd-&gt;name;</code></a></strong>
 
 <dd>
-<p>Returns the device's WizPnP name (as set in Setup&gt;Network&gt;WizPnP&gt;Name).</p>
+<p>Returns <a href="#item_longname"><code>$wpnpd-&gt;longName;</code></a> if <a href="#item_longnames"><code>$wpnpd-&gt;longNames([$val]);</code></a>
+is <em>true</em>, otherwise <a href="#item_shortname"><code>$wpnpd-&gt;shortName;</code></a>.</p>
 </dd>
 </li>
 <dt><strong><a name="item_presentationurl"><code>$wpnpd-&gt;presentationURL;</code></a></strong>
@@ -102,7 +159,7 @@ Normally constructed by
 <p>Uses packages:
 <code>URI</code>,
 <code>XML::DOM</code>,
-<code>File::Basename</code>.</p>
+<code>Socket</code>.</p>
 <table border="0" width="100%" cellspacing="0" cellpadding="3">
 <tr><td class="block" style="background-color: #cccccc" valign="middle">
 <big><strong><span class="block">&nbsp;WizPnPDevice</span></strong></big>

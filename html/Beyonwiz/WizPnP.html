@@ -4,7 +4,7 @@
 <head>
 <title>WizPnP</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:root@omen.apple.com" />
+<link rev="made" href="mailto:_www@b04.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -145,6 +145,14 @@ before terminating the search.
 Defaults to <code>SSDPNPOLL</code>.</p>
 </dd>
 </li>
+<dt><strong><a name="item_uselongnames"><code>$wpnp-&gt;useLongNames([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the flag to use the long or short form of
+device names in searches and name functions.
+Defaults to <em>false</em>.</p>
+</dd>
+</li>
 <dt><strong><a name="item_wizpnptimeout"><code>$wpnp-&gt;wizpnpTimeout([$val]);</code></a></strong>
 
 <dd>
@@ -228,7 +236,13 @@ in the message.</p>
 if the message contained an installable SSDP device, <code>undef</code> otherwise.</p>
 </dd>
 </li>
-<dt><strong><a name="item_search"><code>$wpnp-&gt;search();</code></a></strong>
+<dt><strong><a name="item_sort"><code>$wpnp-&gt;sort;</code></a></strong>
+
+<dd>
+<p>Sort the devices by name, then host number, then port.</p>
+</dd>
+</li>
+<dt><strong><a name="item_search"><code>$wpnp-&gt;search;</code></a></strong>
 
 <dd>
 <p>Search the local net for Beyonwiz PnP devices and install
@@ -238,6 +252,9 @@ them in <code>$wpnp</code>.</p>
 <p>If <a href="#item_maxdevs"><code>$wpnp-&gt;maxDevs</code></a> non-zero, terminate
 the search when <a href="#item_maxdevs"><code>$self-&gt;maxDevs</code></a> devices have been installed,
 otherwise search until the search times out.</p>
+</dd>
+<dd>
+<p>Sorts the device entries using <a href="#item_sort"><code>$wpnp-&gt;sort;</code></a>.</p>
 </dd>
 <dd>
 <p>Returns the number of devices found.</p>
@@ -339,6 +356,13 @@ to <code>undef</code>.</p>
 <p>Returns true if the system runnung is MacOS X or Darwin.</p>
 </dd>
 </li>
+<dt><strong><a name="item_beyonwiz_3a_3awizpnp_3a_3a_netmask"><code>Beyonwiz::WizPnP::_netmask</code></a></strong>
+
+<dd>
+<p>Returns the local interface netmask, if known.
+Defaults to 0.0.0.0.</p>
+</dd>
+</li>
 </dl>
 <p>
 </p>
@@ -348,6 +372,7 @@ to <code>undef</code>.</p>
 <a href="../../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPDevice</code></a>,
 <code>IO::Socket::Multicast</code>,
 <code>IO::Select</code>,
+<code>IO::Interface::Simple</code>,
 <code>HTTP::Response</code>,
 <code>HTTP::Request</code>,
 <code>HTTP::Status</code>,
