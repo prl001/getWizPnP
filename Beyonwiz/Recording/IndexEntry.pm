@@ -12,11 +12,11 @@ Represents an entry in the Beyonwiz recordings index..
 
 =over
 
-=item C<< Beyonwiz::Recording::IndexEntry->new($name, $fullPath, [$makeSortTitle]) >>
+=item C<< Beyonwiz::Recording::IndexEntry->new($name, $path, [$makeSortTitle]) >>
 
 Create a new Beyonwiz recording index entry object.
 C<$name> is the default name of the recording.
-C<$fullPath> is the full path of the recording.
+C<$path> is the path of the recording.
 This is the right-hand part of a C<index.txt> entry
 for a recording. The last segment of this path
 is not used when constructing a URL or a file path (for local recordings).
@@ -35,16 +35,6 @@ L<C<Beyonwiz::Recording::Index>|Beyonwiz::Recording::Index>.
 Returns (sets) the default name of the recording.
 This is the left-hand part of a C<index.txt> entry
 for a recording.
-
-=item C<< $ie->fullPath([$val]); >>
-
-Returns (sets) the full path of the recording.
-This is the right-hand part of a C<index.txt> entry
-for a recording. The last segment of this path
-is not used when constructing a URL or file path.
-
-This method is abstract and must be overridden in
-derived classes.
 
 =item C<< $ie->extractDetails; >>
 
@@ -126,12 +116,12 @@ use URI::Escape;
 my $accessorsDone;
 
 sub new($$$) {
-    my ($class, $name, $path, $makeSortTitle) = @_;
+    my ($class, $accessor, $name, $path, $makeSortTitle) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
-	name		=> undef,
-	fullPath	=> undef,
-	path		=> undef,
+	accessor	=> $accessor,
+	name		=> $name,
+	path		=> $path,
 	title		=> undef,
 	folder		=> undef,
 	sortTitle	=> undef,
@@ -147,7 +137,6 @@ sub new($$$) {
 
     bless $self, $class;
 
-    $self->name($name);
     $self->extractDetails;
 
     return $self;
@@ -168,12 +157,6 @@ my %monthNum = (
     Dev => 12,
 );
 
-sub fullPath($;$) {
-    my ($self, $val) = @_;
-    die "Beyonwiz::Recording::IndexEntry::fullPath",
-	" is abstract and must be overridden in a subclass\n";
-}
-
 sub extractDetails() {
     my ($self) = @_;
     my $title;
@@ -183,16 +166,17 @@ sub extractDetails() {
     if(defined($val) && $val ne '') {
 	# Beyonwiz index name entry
 	$val =~ /^(.*\/)?(.*)(?:\s+|_)([a-z][a-z][a-z])\.(\d+)\.(\d+)_(\d+)\.(\d+)$/i;
-	$folder = $1;
-	$title = $2;
 	if(defined($2) && defined($3) && defined($4)
 	&& defined($5) && defined($6) && defined($7)
 	&& defined($monthNum{$3})) {
+	    $folder = $1;
+	    $title = $2;
 	    $time = sprintf '%04d%02d%02dT%02d%02d',
 					$5, $monthNum{$3}, $4, $6, $7;
 	    $self->time($time);
 	} else {
 	    $val =~ /^(.*\/)?(.*)$/;
+	    $folder = $1;
 	    $title = $2;
 	    $time = '19700101T0000';
 	    $self->time($time)
