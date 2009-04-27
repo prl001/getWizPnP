@@ -10,20 +10,18 @@ SCRIPTS=getWizPnP.pl
 BWMODULES=$(BWMODULEDIR)/Utils.pm $(BWMODULEDIR)/WizPnP.pm \
 	$(BWMODULEDIR)/WizPnPDevice.pm
 
-RECMODULES=$(RECMODULEDIR)/FileHeader.pm $(RECMODULEDIR)/FileIndex.pm \
-	$(RECMODULEDIR)/FileIndexEntry.pm $(RECMODULEDIR)/FileRecording.pm \
-	$(RECMODULEDIR)/FileTrunc.pm $(RECMODULEDIR)/HTTPHeader.pm \
-	$(RECMODULEDIR)/HTTPIndex.pm $(RECMODULEDIR)/HTTPIndexEntry.pm \
-	$(RECMODULEDIR)/HTTPRecording.pm $(RECMODULEDIR)/HTTPTrunc.pm \
-	$(RECMODULEDIR)/Header.pm $(RECMODULEDIR)/Index.pm \
-	$(RECMODULEDIR)/IndexEntry.pm $(RECMODULEDIR)/Recording.pm \
-	$(RECMODULEDIR)/Trunc.pm $(RECMODULEDIR)/TruncEntry.pm
+RECMODULES=$(RECMODULEDIR)/Accessor.pm $(RECMODULEDIR)/FileAccessor.pm \
+	$(RECMODULEDIR)/HTTPAccessor.pm $(RECMODULEDIR)/Header.pm \
+	$(RECMODULEDIR)/Index.pm $(RECMODULEDIR)/IndexEntry.pm \
+	$(RECMODULEDIR)/Recording.pm $(RECMODULEDIR)/Trunc.pm \
+	$(RECMODULEDIR)/TruncEntry.pm
+
 
 MODULES=$(BWMODULES) $(RECMODULES)
 
 all:
 
-install: all install_lib install_bin
+install: all check install_lib install_bin
 
 install_lib:
 	mkdir -p '$(LIB)/$(BWMODULEDIR)' '$(LIB)/$(RECMODULEDIR)'
@@ -42,6 +40,11 @@ uninstall_bin:
 uninstall_lib:
 	cd '$(LIB)' && rm -f $(MODULES)
 	-rmdir '$(LIB)/$(RECMODULEDIR)' '$(LIB)/$(BWMODULEDIR)'
+
+.PHONY: doc
 	
-doc::
+doc:
 	./make_doc.sh $(SCRIPTS) $(MODULES)
+
+check:
+	./checkModules.pl $(SCRIPTS) $(MODULES)
