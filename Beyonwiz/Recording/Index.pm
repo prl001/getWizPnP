@@ -115,9 +115,10 @@ our @EXPORT_OK = qw(INDEX);
 my $accessorsDone;
 
 sub new($;$) {
-    my ($class, $makeSortTitle) = @_;
+    my ($class, $accessor, $makeSortTitle) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
+	accessor	=> $accessor,
 	valid		=>  undef,
 	makeSortTitle	=> $makeSortTitle,
 	entries		=> [],
@@ -147,11 +148,18 @@ sub sort($$) {
     return @{$self->entries} = sort $makeSortTitle @{$self->entries};
 }
 
-sub newEntry($$$) {
-    my ($self, $name, $path, $makeSortTitle);
-    die "Beyonwiz::Recording::Index::newEntry",
-	" is abstract and must be overridden in a subclass\n";
-    return undef;
+sub load($) {
+    my ($self) = @_;
+
+    @{$self->entries} = ();
+
+
+    $self->decode($self->accessor->loadIndex());
+
+    $self->valid or die "Fetch of index for ",
+			    $self->accessor->base, " failed\n";
+
+    return $self->nentries;
 }
 
 sub decode($$) {
@@ -160,18 +168,13 @@ sub decode($$) {
     @{$self->entries} = ();
 
     if(defined $index_data) {
-	foreach my $rec (split /\r?\n/, $index_data) {
-	    my @parts = split /\|/, $rec;
-	    if(@parts == 2) {
-		push @{$self->entries},
-		    $self->newEntry(
-			    $parts[0], $parts[1], $self->makeSortTitle);
-	    } elsif(@parts == 1 || $parts[0] eq "\tidehdd/contents") {
-		# Can't handle media files in contents folder yet
-		last;
-	    } else {
-		warn "Unrecognised index entry: $rec\n";
-	    }
+	foreach my $rec (@$index_data) {
+	    $rec->[1] =~ s:/[^/]*\.((tv|rad)wizts|wiz)::;
+	    push @{$self->entries},
+		Beyonwiz::Recording::IndexEntry->new(
+			$self->accessor,
+			$rec->[0], $rec->[1],
+			$self->makeSortTitle);
 	}
 	$self->{valid} = 1;
     } else {
