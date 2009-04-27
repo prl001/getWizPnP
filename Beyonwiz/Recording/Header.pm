@@ -60,22 +60,47 @@ Offsets in the header and sizes for the sections of the header file.
 
 =over
 
-=item C<< Beyonwiz::Recording::Header->new() >>
+=item C<< Beyonwiz::Recording::Header->new($accessor, $ie) >>
 
 Create a new Beyonwiz recording header object.
+C<$accessor> is a reference to a
+L<C<Beyonwiz::Recording::Accessor>|Beyonwiz::Recording::Accessor>
+used to carry out the media file access functions in
+L<C<Beyonwiz::Recording::Header>|Beyonwiz::Recording::Header>.
+<$ie> is a reference to a 
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>
+used to retrieve name and path information for the recording.
+
+=item C<< $h->accessor([$val]); >>
+
+Returns (sets) the media file accessor object reference.
+
+=item C<< $h->ie([$val]); >>
+
+Returns (sets) the associated
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
+
+=item C<< $h->path; >>
+
+Returns folder name part of the path in the associated
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
+
+=item C<< $h->name; >>
+
+Returns index name in the associated
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
 
 =item C<< $h->headerName([$val]); >>
 
-Returns (sets) the name of the header document (path part only).
+Returns (sets) the name of the header document (file name part only).
 
-=item C<< $h->headerName([$val]); >>
-
-Returns (sets) the name of the header document (path part only).
-
-=item C<< $h->isTV; $h->isRadio; >>
+=item C<< $h->isTV; $h->isRadio; $h->isMediaFolder $h->isMediaFile >>
 
 Returns true if C<< $h->validMain; >> is true and the recording
-is digital TV (resp digital radio). Both can return false if
+is respectively digital TV, digital radio,
+a Beyonwiz folder format for large media files,
+or a single media file.
+All can return false if
 C<< $h->headerName >> has not been set.
 
 =item C<< $h->unknown([$val]); >>
@@ -229,6 +254,10 @@ C<< $self->playtime >> if C<< $offset >= $self->endOffset >>.
 
 =item C<< $h->loadMain; >>
 
+=item C<< $h->loadHdrWmmeta; >>
+
+=item C<< $h->loadHdrFile; >>
+
 =item C<< $h->loadEpisode; >>
 
 =item C<< $h->loadExtInfo; >>
@@ -243,6 +272,12 @@ C<< $h->loadEpisode >> loads the episode name/subtitle informtion,
 C<< $h->loadExtInfo >> loads the extended event informtion,
 C<< $h->loadBookmarks >> loads the bookmark information
 and C<< $h->loadOffsets >> loads the 10-second offset data.
+
+C<< $h->loadHdrWmmeta; >> and C<< $h->loadHdrFile; >> load as
+much of the header as possible with information about media
+content either in the Beyonwiz folder format for large
+files (C<< $h->loadHdrWmmeta; >>),
+or in single files (C<< $h->loadHdrFile; >>).
 
 =item C<< $h->decodeMain($hdr_data) >>
 
@@ -266,13 +301,40 @@ and C<< $h->decodeOffsets >> decodes the 10-second offset data.
 
 =back
 
+=head1 INTERNAL METHODS
+
+=over
+
+=item C<< $h->_setUnixTime($time); >>
+
+Set C<< $h->mjd([$val]); >> and C<< $h->start([$val]); >>
+from the given Unix time (seconds since 00:00:00 Jan 1 1097 UTC).
+
+=item C<< $h->_setMainMediaFile($size, $time); >>
+
+Set as many fields as possible to reasonable values given the
+size and timestamp of a media file.
+
+=item C<< $h->_readHdrChunk($offset, $size); >>
+
+Read a chunk of the header file.
+Reads from C<< $h->headerName([$val]); >> if it
+is defined, otherwise tries reading from
+C<L</TVHDR>> then C<L</RADHDR>> and sets
+the header name from the first to succeed.
+Reads C<$size> bytes at byte offst C<$offset>
+from the start of the header file.
+
+=back
+
 =head1 PREREQUISITES
 
 Uses packages:
 L<C<Beyonwiz::Utils>|Beyonwiz::Utils>,
 C<LWP::Simple>,
 C<URI>,
-C<URI::Escape>.
+C<URI::Escape>,
+C<Time::Local>.
 
 =head1 BUGS
 
@@ -289,9 +351,11 @@ use strict;
 use bignum;
 
 use Beyonwiz::Utils;
+use Beyonwiz::Recording::Trunc qw(WMMETA);
 use LWP::Simple qw(get $ua);
 use URI;
 use URI::Escape;
+use Time::Local;
 
 use constant DAY          => 24*60*60; # Seconds in a day
 use constant TVHDR        => 'header.tvwiz';
@@ -324,17 +388,17 @@ our @EXPORT_OK = qw(
 
 my $accessorsDone;
 
-sub new() {
-    my ($class, $name, $path) = @_;
+sub new($$$) {
+    my ($class, $accessor, $ie) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
+	accessor       => $accessor,
 	validMain      => undef,
 	validEpisode   => undef,
 	validExtInfo   => undef,
 	validBookmarks => undef,
 	validOffsets   => undef,
-	name           => $name,
-	path           => $path,
+	ie             => $ie,
 	headerName     => undef,
 	unknown        => [],
 	lock           => undef,
@@ -359,6 +423,14 @@ sub new() {
     }
 
     return bless $self, $class;
+}
+
+sub headerName($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{headerName};
+    $self->{headerName} = $val if(@_ == 2);
+    return $ret;
 }
 
 sub unknown($;$) {
@@ -499,13 +571,37 @@ sub longTitle($;$$) {
 sub isTV($) {
     my ($self) = @_;
     return defined($self->headerName)
-        && $self->headerName eq Beyonwiz::Recording::Header::TVHDR;
+        && $self->headerName eq TVHDR;
 }
 
 sub isRadio($) {
     my ($self) = @_;
     return defined($self->headerName)
-        && $self->headerName eq Beyonwiz::Recording::Header::RADHDR;
+        && $self->headerName eq RADHDR;
+}
+
+sub isMediaFolder($) {
+    my ($self) = @_;
+    return defined($self->headerName)
+        && $self->headerName eq WMMETA;
+}
+
+sub isMediaFile($) {
+    my ($self) = @_;
+    return defined($self->headerName)
+	&& !$self->isTV
+	&& !$self->isRadio
+	&& !$self->isMediaFolder
+}
+
+sub path($) {
+    my ($self) = @_;
+    $self->ie->path;
+}
+
+sub name($) {
+    my ($self) = @_;
+    $self->ie->name;
 }
 
 sub startOffset($;$) {
@@ -559,7 +655,9 @@ sub size($) {
 sub playtime($) {
     my ($self) = @_;
     # Magic formula from WizFX code
-    return $self->last*10 + $self->sec;
+    return ($self->last >= 0 && $self->sec >= 0)
+		? $self->last*10 + $self->sec
+		: -1;
 }
 
 sub starttime($) {
@@ -567,6 +665,18 @@ sub starttime($) {
     # Unix epoch, 00:00 1 Jan 1970 UTC, is 40587 days after MJD epoch,
     # 00:00 17 Nov 1858.
     return ($self->mjd - 40587) * DAY + $self->start;
+}
+
+sub _setUnixTime($$) {
+    my ($self, $time) = @_;
+    if(defined $time) {
+	my ($sec,$min,$hour,$mday,$mon,$year) = localtime $time;
+	$time = timegm $sec,$min,$hour,$mday,$mon,$year;
+    } else {
+	$time = time;
+    }
+    $self->mjd(int($time / DAY) + 40587);
+    $self->start($time % DAY);
 }
 
 sub offsetTime($$) {
@@ -706,43 +816,119 @@ sub decodeOffsets($$) {
 	}
     } else {
 	$self->{validOffsets} = 0;
-	@{$self->{offsets}} = ();
+	@{$self->{offsets}} = ($self->{offsets}[0]);
+    }
+}
+
+sub _setMainMediaFile($$$) {
+    my ($self, $size, $time)= @_;
+	$self->{lock}		= 0;
+	$self->{full}		= 0;
+	$self->{inRec}		= 0;
+	$self->{service}	= 'Content';
+	$self->{title}		= $self->name;
+	$self->{last}		= -1;
+	$self->{sec}		= -1;
+	$self->{validMain}	= 1;
+	$self->endOffset($size);
+	$self->{offsets}->[0]	= 0;
+	$self->_setUnixTime($time);
+
+	$self->{validEpisode}	= 1;
+	$self->episode('');
+
+	$self->{validExtInfo}	= 1;
+	$self->extInfo('');
+
+	$self->{validBookmarks}	= 1;
+	@{$self->bookmarks}	= ();
+
+	$self->{validOffsets}	= 1;
+	$self->size(0);
+}
+
+sub loadHdrWmmeta() {
+    my ($self) = @_;
+    if(substr($self->path, -4, 4) eq '.wiz') {
+	my ($size, $time) = $self->accessor->fileLenTime($self->path, WMMETA);
+	if(defined $size) {
+	    my $trunc = Beyonwiz::Recording::Trunc->new(
+					    $self->accessor,
+					    $self->name, $self->path
+					);
+	    $trunc->load;
+	    if($trunc->valid && $trunc->fileName eq WMMETA) {
+		$self->_setMainMediaFile($trunc->recordingSize, $time);
+		$self->{headerName} = WMMETA;
+	    }
+	}
+    }
+}
+
+sub loadHdrFile() {
+    my ($self) = @_;
+    my ($size, $time) = $self->accessor->fileLenTime($self->path);
+    if(defined $size) {
+	$self->_setMainMediaFile($size, $time);
+	$self->{headerName} = '';
     }
 }
 
 sub loadMain($) {
     my ($self) = @_;
+    $self->loadHdrFile;
     $self->decodeMain(
-	    $self->readHdrChunk(HDR_MAIN_OFF, HDR_MAIN_SZ)
-	);
+	    $self->_readHdrChunk(HDR_MAIN_OFF, HDR_MAIN_SZ)
+	) if(!$self->validMain);
+    $self->loadHdrWmmeta if(!$self->validMain);
 }
 
 sub loadEpisode($) {
     my ($self) = @_;
     $self->decodeEpisode(
-	    $self->readHdrChunk(HDR_EPISODE_OFF, HDR_EPISODE_SZ)
+	    $self->_readHdrChunk(HDR_EPISODE_OFF, HDR_EPISODE_SZ)
 	);
 }
 
 sub loadExtInfo($) {
     my ($self) = @_;
     $self->decodeExtInfo(
-	    $self->readHdrChunk(HDR_EXTINFO_OFF, HDR_EXTINFO_SZ)
+	    $self->_readHdrChunk(HDR_EXTINFO_OFF, HDR_EXTINFO_SZ)
 	);
 }
 
 sub loadBookmarks($) {
     my ($self) = @_;
     $self->decodeBookmarks(
-	    $self->readHdrChunk(HDR_BOOKMARKS_OFF, HDR_BOOKMARKS_SZ)
+	    $self->_readHdrChunk(HDR_BOOKMARKS_OFF, HDR_BOOKMARKS_SZ)
 	);
 }
 
 sub loadOffsets($) {
     my ($self) = @_;
     $self->decodeOffsets(
-	    $self->readHdrChunk(HDR_OFFSETS_OFF, HDR_OFFSETS_SIZE)
+	    $self->_readHdrChunk(HDR_OFFSETS_OFF, HDR_OFFSETS_SIZE)
 	);
+}
+
+sub _readHdrChunk($$$) {
+    my ($self, $offset, $size) = @_;
+
+    foreach my $h (defined($self->{headerName})
+			? ($self->headerName) : (TVHDR, RADHDR)) {
+
+        my $hdr_data = $self->accessor->readFileChunk(
+					$offset, $size, $self->path, $h
+				    );
+
+	if(defined($hdr_data) && length($hdr_data) > 0) {
+	    $self->{headerName} = $h;
+	    return $hdr_data;
+	}
+
+    }
+    $self->{headerName} = undef;
+    return '';
 }
 
 1;
