@@ -54,4 +54,20 @@ sub makeAccessors($@) {
     }
 }
 
+sub isAbstract {
+    my ($package, $filename, $line, $subroutine) = caller 1;
+    die $package, "::", $subroutine, "is abstract and must be derived from\n";
+}
+
+sub tryUse(*@) {
+    my ($package, @args) = @_;
+    eval "require $package";
+    if($@) {
+	return 0;
+    } else {
+	$package->import(@args);
+    }
+    return 1;
+}
+
 1;
