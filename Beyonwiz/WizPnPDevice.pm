@@ -2,7 +2,7 @@ package Beyonwiz::WizPnPDevice;
 
 =head1 NAME
 
-    use Beyonwiz::Recording::WizPnPDevice;
+    use Beyonwiz::WizPnPDevice;
 
 =head1 SYNOPSIS
 
@@ -28,6 +28,17 @@ Returns (sets) the URL for the device's XML description.
 
 Returns (sets) the device description DOM tree.
 
+=item C<< $wpnpd->netmask([$val]); >>
+
+Returns (sets) the netmask of the network the device is attached to,
+as a packed IP address.
+
+=item C<< $wpnpd->longNames([$val]); >>
+
+Returns (sets) the flag to use the long or short form of
+device names in searches and name functions.
+Defaults to I<false>.
+
 =item C<< $wpnpd->baseUrl; >>
 
 Returns the base URL for the device.
@@ -40,9 +51,41 @@ Returns the URL of the the device recording index document.
 
 Returns the C<< <device> >> DOM subtree of the description.
 
+=item C<< $wpnpd->hostIP; >>
+
+Returns the WizPnP device's IP address as a string in in dotted quad format
+(e.g. C<10.1.1.4>).
+
+=item C<< $wpnpd->hostNum; >>
+
+Returns the WizPnP device's host num as a string in in dotted format.
+This is the hostIP (C<< $wpnpd->hostIP; >>)
+anded with the netmask (C<< $wpnpd->netmask; >>),
+and with any leading C<0.> parts stripped off.
+(e.g. with an IP address of C<10.1.1.4>, and netmask C<255.255.255.0>,
+returns C<4>, with a netmask C<255.255.0.0>, returns C<1.4>).
+
+=item C<< $wpnpd->portNum; >>
+
+Returns the WizPnP device's port number as an integer (e.g. C<49152>).
+
+=item C<< $wpnpd->shortName; >>
+
+Returns the device's WizPnP name (as set in C<< Setup>Network>WizPnP>Name >>).
+
+=item C<< $wpnpd->longName; >>
+
+Returns the device's WizPnP name (C<< $wpnpd->shortName; >>),
+host number (C<< $wpnpd->hostNum; >>), and
+port number (C<< $wpnpd->portNum; >>) as a string separated by C<->.
+E.g. for device MyBeyonwiz, IP address of C<10.1.1.4>,
+netmask C<255.255.255.0> and port C<49152>, returns
+C<MyBeyonwiz-4-49152>.
+
 =item C<< $wpnpd->name; >>
 
-Returns the device's WizPnP name (as set in Setup>Network>WizPnP>Name).
+Returns C<< $wpnpd->longName; >> if C<< $wpnpd->longNames([$val]); >>
+is I<true>, otherwise C<< $wpnpd->shortName; >>.
 
 =item C<< $wpnpd->presentationURL; >>
 
@@ -55,7 +98,7 @@ Returns the device's WizPnP presentationURL.
 Uses packages:
 C<URI>,
 C<XML::DOM>,
-C<File::Basename>.
+C<Socket>.
 
 
 =cut
@@ -65,16 +108,18 @@ use warnings;
 
 use URI;
 use XML::DOM;
-use File::Basename;
+use Socket;
 
 my $accessorsDone;
 
-sub new($$$) {
-    my ($class, $location, $dom) = @_;
+sub new($$$$) {
+    my ($class, $location, $dom, $netmask) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
 	location	=> URI->new($location),
 	dom		=> $dom,
+	netmask		=> $netmask,
+	useLongName	=> 0,
     };
 
     unless($accessorsDone) {
@@ -112,14 +157,56 @@ sub deviceDom($) {
     return $dev[0];
 }
 
-sub name($) {
+sub hostIP($) {
+    my ($self) = @_;
+    if($self->location->authority) {
+	return $self->location->host;
+    }
+    return '';
+}
+
+sub hostNum($) {
+    my ($self) = @_;
+    my $host = $self->hostIP;
+    if(length($host) > 0) {
+	my $ip = gethostbyname($host);
+	if(defined $ip) {
+	    $host = inet_ntoa($ip & ~$self->netmask);
+	    $host =~ s/^(0+\.)+//;
+	}
+    }
+    return $host;
+}
+
+sub portNum($) {
+    my ($self) = @_;
+    if($self->location->authority) {
+	return $self->location->port;
+    }
+    return '';
+}
+
+sub shortName($) {
     my ($self) = @_;
     my $dom = $self->dom;
     return undef if(!defined $dom);
     my @dev = $dom->getElementsByTagName('friendlyName');
     return defined($dev[0]) && defined($dev[0]->getFirstChild)
 	   ? $dev[0]->getFirstChild->getData
-	   : undef;
+	   : '';
+}
+
+sub longName($) {
+    my ($self) = @_;
+    my $name = $self->shortName;
+    $name = '' if(!defined $name);
+    $name .= '-' . $self->hostNum . '-' . $self->portNum;
+    return $name
+}
+
+sub name($) {
+    my ($self) = @_;
+    return $self->useLongName ? $self->longName : $self->shortName;
 }
 
 sub presentationURL($) {
