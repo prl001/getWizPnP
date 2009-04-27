@@ -12,10 +12,10 @@ Download recordings from the Beyonwiz.
 
 =over 4
 
-=item C<< Beyonwiz::Recording::Recording->new($ts, $date, $episode, $resume, $force) >>
+=item C<< Beyonwiz::Recording::Recording->new($join, $date, $episode, $resume, $force) >>
 
 Create a new Beyonwiz recording downloader object.
-If C<$ts> is true, the download will be into
+If C<$join> is true, the download will be into
 a single C<.ts> file, otherwise the recording will
 be copied as it is on the Beyonwiz.
 If C<$date> is true, the recording date is added to
@@ -27,9 +27,10 @@ If C<$resume> is true, allow resumption of recording download
 that appear to be incomplete.
 If C<$force> is true, allow a download to overwrite an existing download.
 
-=item C<< $r->ts([$val]); >>
+=item C<< $r->join([$val]); >>
 
-Returns (sets) the single-file TS flag.
+Returns (sets) the flag indicating whether the recording
+should be joined into a single file.
 
 =item C<< $r->date([$val]); >>
 
@@ -50,13 +51,14 @@ is permitted.
 If C<$dir> is defined and not empty, return C<$dir> prepended to C<$name>,
 otherwise return C<$name>.
 
-=item C<< $r->getRecordingName($hdr, $path, $ts); >>
+=item C<< $r->getRecordingName($hdr, $indexName, $join); >>
 
 C<$hdr> is the recording's header.
-C<$path> is the path name from the recording's
+C<$indexName> is the index name from the recording's
 L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
-C<$ts> is a flag to indicate whether a recording folde
-or single recording TS file is to be created.
+C<$join> is a flag to indicate whether a recording folder
+or single recording or media file is to be created from
+Beyonwiz folder media formats.
 
 =item C<< $r->getRecordingFileChunk($path, $name, $file, $outdir,
         $append, $off, $size, $outOff, $progressBar); >>
@@ -67,7 +69,7 @@ L<C<Beyonwiz::Recording::TruncEntry>|Beyonwiz::Recording::TruncEntry>.
 C<$path> is the path name from the recording's
 L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
 C<$name> is the name of the recording folder or file
-(if C<< $r->ts >> is true).
+(if C<< $r->join >> is true).
 C<$file> is the name of the Beyonwiz file containing the chunk.
 C<$append> is false if C<$file> is to be created, true if
 it is to be appended to.
@@ -96,7 +98,8 @@ derived classes.
 =item C<< $r->getRecording($hdr, $trunc, $path, $outdir, $showProgress); >>
 
 Download a Beyonwiz recording, either as a direct copy from the Beyonwiz, or
-into a single C<.ts> file (if C<< $r->ts >> is true).
+combine tham into a single file (if C<< $r->join >> is true
+for Beyonwiz folder media formats).
 C<$hdr> is the recording's header file object,
 C<$trunc> is the recording's trunc file object,
 and C<$path> is the path name from the recording's
@@ -124,7 +127,7 @@ Returns C<RC_OK> if successful.
 
 On Unix(-like) systems, C<renameRecording> will  fail if the source
 and destinations for the move are on different file systems.
-It will also fail if C<< $r->ts >> is true and it will fail if
+It will also fail if C<< $r->join >> is true and it will fail if
 the source recording is on the Beyonwiz.
 In all these cases, it will return C<RC_NOT_IMPLEMENTED>,
 and not print a warning.
@@ -156,7 +159,8 @@ L<C<Beyonwiz::Recording::Header>|Beyonwiz::Recording::Header>,
 L<C<Beyonwiz::Utils>|Beyonwiz::Utils>,
 C<HTTP::Status>,
 C<File::Spec::Functions>,
-C<File::Basename>.
+C<File::Basename>,
+C<POSIX>.
 
 =head1 BUGS
 
@@ -173,12 +177,13 @@ use warnings;
 use strict;
 use bignum;
 
-use Beyonwiz::Recording::Trunc qw(TRUNC);
+use Beyonwiz::Recording::Trunc qw(TRUNC WMMETA FULLFILE);
 use Beyonwiz::Recording::Header qw(TVHDR RADHDR);
 use Beyonwiz::Utils;
 use HTTP::Status;
 use File::Spec::Functions;
 use File::Basename;
+use POSIX;
 
 use constant STAT => 'stat';
 use constant STATSIZE => 96;
@@ -192,14 +197,16 @@ our @EXPORT_OK = qw(STAT addDir);
 my $accessorsDone;
 
 sub new($$$$$$) {
-    my ($class, $ts, $date, $episode, $resume, $force) = @_;
+    my ($class, $accessor, $join, $nameFormat, $dateFormat,
+    						$resume, $force) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
-	ts	=> $ts,
-	date	=> $date,
-	episode => $episode,
-	resume	=> $resume,
-	force	=> $force,
+	accessor	=> $accessor,
+	join		=> $join,
+	nameFormat	=> $nameFormat,
+	dateFormat 	=> $dateFormat,
+	resume		=> $resume,
+	force		=> $force,
     };
     bless $self, $class;
 
@@ -211,26 +218,13 @@ sub new($$$$$$) {
     return $self;
 }
 
-sub getRecordingFileChunk($$$$$$$) {
-    my ($self, $path, $name, $file, $outdir,
-        $append, $off, $size, $outOff, $progressBar) = @_;
-
-    die __PACKAGE__
-	. "::getRecordingFileChunk should not be called directly\n"
-}
-
-sub getRecordingFile($$$$$$) {
-    my ($self, $path, $name, $file, $outdir, $append) = @_;
-
-    die __PACKAGE__
-	. "::getRecordingFile should not be called directly\n"
-}
-
 sub _deleteRecordingFiles($) {
     my ($dir) = @_;
     opendir DIR, $dir or die "Can't find ", $dir, ": $!\n";
     foreach my $ent (readdir(DIR)) {
-	if($ent eq TVHDR || $ent eq RADHDR || $ent eq TRUNC || $ent eq STAT
+	if($ent eq TVHDR || $ent eq RADHDR
+	|| $ent eq TRUNC || $ent eq WMMETA
+	|| $ent eq STAT
 	|| $ent =~ /\d\d\d\d/) {
 	    unlink catfile $dir, $ent
 		or warn "Can't delete $ent in $dir: $!\n";
@@ -244,44 +238,92 @@ sub addDir($$) {
     return $dir ? catfile($dir, $name) : $name;
 }
 
-sub getRecordingName($$$$) {
-    my ($self, $hdr, $path, $ts) = @_;
-    my $name = basename($path);
-    if(defined($hdr->title) && length($hdr->title) > 0) {
-	$name = $hdr->longTitle($self->episode, ' - ');
-	if($self->date) {
-	    my $d = gmtime($hdr->starttime);
-	    substr $d, 11, 9, '';
-	    $name .= ' - ' . $d;
-	}
+sub doFormatStr($$$) {
+    my ($self, $str, $sep) = @_;
+    my $val ='';
+    if(defined $str and $str ne '') {
+	$val .= " $sep " if(defined $sep);
+	$val .= $str;
     }
+    return $val;
+}
+
+sub doFormatDate($$$) {
+    my ($self, $date, $sep) = @_;
+    my $val = '';
+    if(defined $date) {
+	$val .= " $sep " if(defined $sep);
+	$val .= POSIX::strftime $self->dateFormat, gmtime $date;
+    }
+    return $val;
+}
+
+sub doFormat($$$) {
+    my ($self, $hdr, $indexName, $code) = @_;
+    my $sep;
+    my $type;
+    my $val;
+    if(length($code) == 4) {
+	$sep = substr $code, 2, 1;
+	$type = substr $code, 3, 1;
+    } elsif(length($code) == 3) {
+	$type = substr $code, 2, 1;
+    }
+    if(defined $type) {
+	if($type eq 'T') {
+	    my $title = $hdr->title;
+	    $title = basename($indexName)
+		if(!defined $hdr->title or $hdr->title eq '');
+	    $val = $self->doFormatStr($title, $sep);
+	}
+	$val = $self->doFormatStr($hdr->episode, $sep) if($type eq 'E');
+	$val = $self->doFormatDate($hdr->starttime, $sep) if($type eq 'D');
+	$val = $self->doFormatStr($hdr->service, $sep) if($type eq 'S');
+    }
+    $val = '%' . $code if(!defined $val);
+    return $val;
+}
+
+sub getRecordingName($$$$) {
+    my ($self, $hdr, $indexName, $join) = @_;
+    $join = 1 if($hdr->isMediaFile);
+    my $name = $self->nameFormat;
+    $name =~ s{
+		    (%=[^A-Za-z0-9%+]?[TEDS])
+	      }{
+		    $self->doFormat($hdr, $indexName, $1)
+	      }gex;
+    $name = POSIX::strftime $name, gmtime($hdr->starttime);
     # Strip the leading '*' from the name if there is one, and it's not
     # the only character
     $name =~ s/^\*(.)/$1/;
     # Some ugliness to interpolate BADCHARS into the character class
-    $name =~ s/[${\(BADCHARS)}]/_/g;
-    if($ts) {
-	$name =~ s/.(tv|rad)wiz$//;
-	$name .= '.ts';
-    } else {
-	$name .= $hdr->isRadio ? '.radwiz' : '.tvwiz';
-    }
+    $name =~ s/[${\(BADCHARS)}]/-/g;
+    $name .= $hdr->isRadio
+		    ? ($join ? '.ts' : '.radwiz')
+	   : $hdr->isTV
+		    ? ($join ? '.ts' : '.tvwiz')
+	   : $hdr->isMediaFolder
+		    ? ($join ? ''    : '.wiz')
+		    : '';
     return $name;
 }
 
-sub getRecording($$$$$$) {
-    my ($self, $hdr, $trunc, $path, $outdir, $progressBar) = @_;
+sub getRecording($$$$$$$) {
+    my ($self, $hdr, $trunc, $indexName, $path,
+					$outdir, $progressBar) = @_;
     my $status;
 
-    my $name = $self->getRecordingName($hdr, $path, $self->ts);
+    my $name = $self->getRecordingName($hdr, $path, $self->join);
 
     my $size = $trunc->recordingSize;
 
     my $done = 0;
-    my $startTrunc = 0;
-    my $startOff = 0;
+    my ($startTrunc, $inStartOff) = (0, 0);
+    my $outStartOff = 0;
+    $self->join(1) if($hdr->isMediaFile);
 
-    if($self->ts) {
+    if($self->join) {
 	my $fullname = addDir($outdir, $name);
 	if(-f $fullname) {
 	    my $recSize = (stat $fullname)[7];
@@ -291,9 +333,10 @@ sub getRecording($$$$$$) {
 	    }
 	    if($recSize < $size) {
 		if($self->resume) {
-		    $startTrunc = $trunc->completeTruncs($recSize);
-		    $startOff = $trunc->recordingSize($startTrunc);
-		    $size -= $startOff;
+		    ($startTrunc, $inStartOff) = $trunc->truncStart($recSize);
+		    $outStartOff = $trunc->recordingSize($startTrunc)
+					+ $inStartOff;
+		    $size -= $outStartOff;
 		} else {
 		    warn "Recording $name already exists, but is incomplete\n";
 		    warn "Use --resume to resume fetching it\n";
@@ -318,19 +361,25 @@ sub getRecording($$$$$$) {
 	$size = $trunc->recordingSize;
 	my $dirname = addDir($outdir, $name);
 	if(-d $dirname) {
-	    if(   -f catfile($dirname, TVHDR)
-		|| -f catfile($dirname, RADHDR)
-	    && -f catfile($dirname, TRUNC)) {
+	    if(    (   -f catfile($dirname, TVHDR)
+		    || -f catfile($dirname, RADHDR))
+	        && -f catfile($dirname, TRUNC)
+	    ||     -f catfile($dirname, WMMETA)) {
+		my $fileAccessor =
+			Beyonwiz::Recording::FileAccessor->new($outdir);
 		my $fileTrunc =
-			Beyonwiz::Recording::FileTrunc->new($name, $dirname);
+			Beyonwiz::Recording::Trunc->new($fileAccessor, $name, $name);
 		$fileTrunc->load;
 		if($fileTrunc->valid) {
 		    $fileTrunc = $fileTrunc->fileTruncFromDir;
 		    my $recSize = $fileTrunc->recordingSize;
 		    if($recSize < $size) {
 			if($self->resume) {
-			    $startTrunc = $fileTrunc->completeTruncs($recSize);
+			    ($startTrunc, $inStartOff) =
+					$fileTrunc->truncStart($recSize);
 			    $size -= $trunc->recordingSize($startTrunc);
+			    $size -= $inStartOff;
+			    $outStartOff = $inStartOff;
 			} else {
 			    warn "Recording $name already exists,",
 				" but is incomplete\n";
@@ -364,24 +413,26 @@ sub getRecording($$$$$$) {
 	    $progressBar->done($done);
 	}
 
-	$status = $self->getRecordingFile($path, $name,
-					$hdr->headerName, $outdir, 0);
-	return $status if(!is_success($status));
-	$done += $hdr->size;
-	$progressBar->done($done) if($progressBar);
-
-	$status = $self->getRecordingFile($path, $name, STAT, $outdir, 0);
-	if(is_success($status)) {
-	    $done += STATSIZE;
+	if($hdr->isRadio || $hdr->isTV) {
+	    $status = $self->accessor->getRecordingFile($self, $path, $name,
+					    $hdr->headerName, $outdir, 0);
+	    return $status if(!is_success($status));
+	    $done += $hdr->size;
 	    $progressBar->done($done) if($progressBar);
-	} else {
-	    warn "Stat file not found for $name: ",
-		    status_message($status),
-		    " - recording may not be playable\n"
-	}
 
-	$status = $self->getRecordingFile($path, $name,
-					TRUNC,
+	    $status = $self->accessor->getRecordingFile($self, $path, $name,
+					    STAT, $outdir, 0);
+	    if(is_success($status)) {
+		$done += STATSIZE;
+		$progressBar->done($done) if($progressBar);
+	    } else {
+		warn "Stat file not found for $name: ",
+			status_message($status),
+			" - recording may not be playable\n"
+	    }
+	}
+	$status = $self->accessor->getRecordingFile($self, $path, $name,
+					$trunc->fileName,
 					$outdir, 0);
 	return $status if(!is_success($status));
 	$done += $trunc->size;
@@ -389,59 +440,69 @@ sub getRecording($$$$$$) {
 
     }
 
-    my $append = $self->ts && $startOff > 0 ? 1 : 0;
+    my $append = $outStartOff > 0;
 
-    foreach my $tr (@{$trunc->entries}[$startTrunc..$trunc->nentries-1]) {
-	my $fn = sprintf "%04d", $tr->fileNum;
+    foreach my $i ($startTrunc..$trunc->nentries-1) {
+	my $tr = $trunc->entries->[$i];
+	my $fn = ($tr->flags & FULLFILE) ? '' : sprintf("%04d", $tr->fileNum);
 
-	$status = $self->getRecordingFileChunk(
-				$path, $name, $fn, $outdir, $append,
-				$tr->offset, $tr->size,
-				$startOff, $progressBar
+	my $offset = $tr->offset;
+	my $size   = $tr->size;
+	if($i == $startTrunc) {
+	    $offset = $inStartOff;
+	    $size  -= $inStartOff;
+	}
+	$status = $self->accessor->getRecordingFileChunk(
+				$self, $path, $name, $fn, $outdir, $append,
+				$offset, $size,
+				$outStartOff, $progressBar
 			    );
 	last if(!is_success($status));
 
-	if($self->ts) {
+	if($self->join) {
 	    $append = 1;
-	    $startOff += $tr->size;
+	    $outStartOff += $size;
+	} else {
+	    $append = 0;
+	    $outStartOff = 0;
 	}
 
-	$done += $tr->size;
+	$done += $size;
 
 	$progressBar->done($done) if($progressBar);
-
     }
     return $status;
 }
 
-sub renameRecording($$$$$$) {
+sub renameRecording($$$$) {
     my ($self, $hdr, $path, $outdir) = @_;
-
-    return RC_NOT_IMPLEMENTED;
+    return $self->accessor->renameRecording($self, $hdr, $path, $outdir);
 }
 
 sub deleteRecording($$$$$$) {
-    my ($self, $hdr, $trunc, $path) = @_;
+    my ($self, $hdr, $trunc, $indexName, $path) = @_;
     my $status;
 
-    my $name = $self->getRecordingName($hdr, $path, 0);
-
-    $status = $self->deleteRecordingFile($path, $name, $hdr->headerName);
-    return $status if(!is_success($status));
-
-    $status = $self->deleteRecordingFile($path, $name, TRUNC);
-    return $status if(!is_success($status));
-
-    $status = $self->deleteRecordingFile($path, $name, STAT);
-    return $status if(!is_success($status));
+    my $name = $self->getRecordingName($hdr, $indexName, 0);
 
     foreach my $tr (@{$trunc->entries}[0..$trunc->nentries-1]) {
 	my $fn = sprintf "%04d", $tr->fileNum;
 
-        $status = $self->deleteRecordingFile($path, $name, $fn);
+        $status = $self->accessor->deleteRecordingFile(
+				$self, $path, $name, $fn
+			    );
     }
 
-    $status = $self->deleteRecordingFile($path, $name, undef);
+    $status = $self->accessor->deleteRecordingFile($self, $path, $name, $hdr->headerName);
+    return $status if(!is_success($status));
+
+    $status = $self->accessor->deleteRecordingFile($self, $path, $name, TRUNC);
+    return $status if(!is_success($status));
+
+    $status = $self->accessor->deleteRecordingFile($self, $path, $name, STAT);
+    return $status if(!is_success($status));
+
+    $status = $self->accessor->deleteRecordingFile($self, $path, $name, undef);
     return $status if(!is_success($status));
 
     return $status;
