@@ -1,0 +1,109 @@
+NAME
+
+        use Beyonwiz::Recording::HTTPAccessor;
+
+SYNOPSIS
+
+    Provides access to media files via HTTP.
+
+SUPERCLASS
+
+    Inherits from "Beyonwiz::Recording::Accessor"
+
+METHODS
+
+    "Beyonwiz::Recording::Accessor->new($base)"
+        Create a new accessor object with the base URL $base.
+
+    "$a->base([$val]);"
+        Returns (sets) the base path.
+
+    "$a->fileLenTime(@path);"
+        Return "($size, $modifiedTime)" for the given @path, where the
+        components of @path are joined to form a single path name. $size in
+        bytes, $modifiedTime is the time the file was last modified as Unix
+        time (seconds since 00:00:00 Jan 1 1097 UTC).
+
+    "$a->readFileChunk($offset, $size, @path)"
+        Read and return a chunk of the file length $size at offset $offset
+        from the file specified by @path where the components of @path are
+        joined to form a single path name.
+
+        Returns '' on failure.
+
+    "$a->readFile(@path)"
+        Read and return the contents of the file specified by @path where
+        the components of @path are joined to form a single path name.
+
+        Returns "undef" on failure.
+
+    "$a->loadIndex;"
+        Read and return the contents of the WizPnP index file located at
+        "$h->base([$val]);".
+
+        Returns "undef" on failure.
+
+    "$a->getRecordingFileChunk($rec, $path, $name, $file, $outdir, $append,
+    $off, $size, $outOff, $progressBar);"
+        Fetch a chunk of a recording corresponding to a single
+        "Beyonwiz::Recording::TruncEntry".
+
+        $rec is the asociated "Beyonwiz::Recording::Recording". $path is the
+        path to the folder containing the recording's files on the Beyonwiz.
+        $name is the name of the recording folder or file (if "$rec->join"
+        is true). $file is the name of the Beyonwiz file containing the
+        chunk. $append is false if $file is to be created, true if it is to
+        be appended to. $off and $size is the chunk to be transferred. If
+        $outdir is defined and not the empty string, the record file is
+        placed in that directory, rather than the current directory. $outoff
+        is the offset to where to write the chunk into the output file.
+        $progressBar is as defined below in "$r->getRecordng(...)".
+
+        Returns "RC_OK" if successful. Otherwise it will print a warning
+        with the HTTP status message of the HTTP operation that failed, and
+        return that status.
+
+    "$r->getRecordingFile($rec, $path, $name, $outdir, $file, $append);"
+        Fetch a complete 0000, 0001, etc. recording file or header file from
+        the Beyonwiz. Note that more than one
+        "Beyonwiz::Recording::TruncEntry" may refer to any given file.
+
+        $rec $path, $name, $outdir, $file, $outdir and $append are as in
+        *getRecordingFileChunk*.
+
+        Returns "RC_OK" if successful. Otherwise it will print a warning
+        with the HTTP status message of the HTTP operation that failed, and
+        return that status.
+
+    "$r->renameRecording($hdr, $path, $outdir)"
+        Move a recording described by $hdr and the given source $path (from
+        the recording's "Beyonwiz::Recording::IndexEntry") to $outdir by
+        renaming the recording directory. Returns "RC_OK" if successful.
+
+        On Unix(-like) systems, "renameRecording" will fail if the source
+        and destinations for the move are on different file systems. It will
+        also fail if "$r->join" is true and it will fail if the source
+        recording is on the Beyonwiz. In all these cases, it will return
+        "RC_NOT_IMPLEMENTED", and not print a warning.
+
+        For other errors it will print a warning with the system error
+        message, and return one of "RC_FORBIDDEN", "RC_NOT_FOUND" or
+        "RC_INTERNAL_SERVER_ERROR".
+
+    "$r->deleteRecordingFile($path, $name, $file)"
+        Delete a recording file. $path is the path name from the recording's
+        "Beyonwiz::Recording::IndexEntry". $name is the name of the
+        recording, and $file is the name of the file within the recording to
+        delete.
+
+        Returns "RC_OK" if successful. Otherwise it will print a warning
+        with the HTTP status message of the HTTP operation that failed, and
+        return that status.
+
+PREREQUISITES
+
+    Uses packages: "Beyonwiz::Recording::Accessor",
+    "Beyonwiz::Recording::Index", "Beyonwiz::Recording::Trunc",
+    "Beyonwiz::Recording::Recording", "LWP::Simple", "URI", "URI::Escape",
+    "HTTP::Status", "POSIX".
+

@@ -1,0 +1,228 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Accessor</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:_www@b04.apple.com" />
+</head>
+
+<body style="background-color: white">
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;Accessor</span></strong></big>
+</td></tr>
+</table>
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#methods">METHODS</a></li>
+	<li><a href="#prerequisites">PREREQUISITES</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<pre>
+    use Beyonwiz::Recording::Accessor;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Provides (mostly) abstract access to media files independent
+of the access method (local files or HTTP).</p>
+<p>
+</p>
+<hr />
+<h1><a name="methods">METHODS</a></h1>
+<dl>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Accessor-&gt;new($base)</code></a></strong>
+
+<dd>
+<p>Create a new accessor object with the base path
+<code>$base</code>.</p>
+</dd>
+</li>
+<dt><strong><a name="item_base"><code>$a-&gt;base([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the base path.</p>
+</dd>
+</li>
+<dt><strong><a name="item_filelentime"><code>$a-&gt;fileLenTime(@path);</code></a></strong>
+
+<dd>
+<p>Return <code>($size, $modifiedTime)</code> for the given <code>@path</code>,
+where the components of <code>@path</code> are joined to form a single path name.
+<code>$size</code> in bytes, <code>$modifiedTime</code> is the time
+the file was last modified as
+Unix time (seconds since 00:00:00 Jan 1 1097 UTC).</p>
+</dd>
+</li>
+<dt><strong><a name="item_readfilechunk"><code>$a-&gt;readFileChunk($offset, $size, @path)</code></a></strong>
+
+<dd>
+<p>Read and return a chunk of the file length <code>$size</code> at offset <code>$offset</code>
+from the file specified by <code>@path</code>
+where the components of <code>@path</code> are joined to form a single path name.</p>
+</dd>
+<dd>
+<p>Returns <code>''</code> on failure.</p>
+</dd>
+<dd>
+<p>Abstract.</p>
+</dd>
+</li>
+<dt><strong><a name="item_readfile"><code>$a-&gt;readFile(@path)</code></a></strong>
+
+<dd>
+<p>Read and return the contents of the file specified by <code>@path</code>
+where the components of <code>@path</code> are joined to form a single path name.</p>
+</dd>
+<dd>
+<p>Returns <code>undef</code> on failure.</p>
+</dd>
+<dd>
+<p>Abstract.</p>
+</dd>
+</li>
+<dt><strong><a name="item_loadindex"><code>$a-&gt;loadIndex;</code></a></strong>
+
+<dd>
+<p>Read and return the contents of the WizPnP index file
+located at <a href="#item_base"><code>$h-&gt;base([$val]);</code></a>.</p>
+</dd>
+<dd>
+<p>Returns <code>undef</code> on failure.</p>
+</dd>
+<dd>
+<p>Abstract.</p>
+</dd>
+</li>
+<dt><strong><a name="item_getrecordingfilechunk"><code>$a-&gt;getRecordingFileChunk($rec, $path, $name, $file, $outdir,
+        $append, $off, $size, $outOff, $progressBar);</code></a></strong>
+
+<dd>
+<p>Fetch a chunk of a recording corresponding to a single
+<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>.</p>
+</dd>
+<dd>
+<p><code>$rec</code> is the asociated
+<a href="../../../html/./Beyonwiz/Recording/Recording.html"><code>Beyonwiz::Recording::Recording</code></a>.
+<code>$path</code> is the path to the folder containing the recording's
+files on the Beyonwiz.
+<code>$name</code> is the name of the recording folder or file
+(if <code>$rec-&gt;join</code> is true).
+<code>$file</code> is the name of the Beyonwiz file containing the chunk.
+<code>$append</code> is false if <code>$file</code> is to be created, true if
+it is to be appended to.
+<code>$off</code> and <code>$size</code> is the chunk to be transferred.
+If <code>$outdir</code> is defined and not the empty string, the record file is
+placed in that directory, rather than the current directory.
+<code>$outoff</code> is the offset to where to write the chunk into the output file.
+<code>$progressBar</code> is as defined below in <code>$r-&gt;getRecordng(...)</code>.</p>
+</dd>
+<dd>
+<p>Returns <code>RC_OK</code> if successful.
+Otherwise it will print a warning with the HTTP status
+message of the HTTP operation that failed, and return that status.</p>
+</dd>
+<dd>
+<p>Abstract.</p>
+</dd>
+</li>
+<dt><strong><a name="item_getrecordingfile"><code>$r-&gt;getRecordingFile($rec, $path, $name, $outdir, $file, $append);</code></a></strong>
+
+<dd>
+<p>Fetch a complete 0000, 0001, etc. recording file or header file from the
+Beyonwiz. Note that more than one
+<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
+may refer to any given file.</p>
+</dd>
+<dd>
+<p><code>$rec</code> <code>$path</code>, <code>$name</code>, <code>$outdir</code>, <code>$file</code>, <code>$outdir</code>
+and <code>$append</code> are as in <em>getRecordingFileChunk</em>.</p>
+</dd>
+<dd>
+<p>Returns <code>RC_OK</code> if successful.
+Otherwise it will print a warning with the HTTP status
+message of the HTTP operation that failed, and return that status.</p>
+</dd>
+<dd>
+<p>Abstract.</p>
+</dd>
+</li>
+<dt><strong><a name="item_renamerecording"><code>$r-&gt;renameRecording($hdr, $path, $outdir)</code></a></strong>
+
+<dd>
+<p>Move a recording described by <code>$hdr</code> and the given
+source <code>$path</code> (from the recording's
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>)
+to <code>$outdir</code> by renaming the recording directory.
+Returns <code>RC_OK</code> if successful.</p>
+</dd>
+<dd>
+<p>On <code>Unix(-like)</code> systems, <a href="#item_renamerecording"><code>renameRecording</code></a> will  fail if the source
+and destinations for the move are on different file systems.
+It will also fail if <code>$r-&gt;join</code> is true and it will fail if
+the source recording is on the Beyonwiz.
+In all these cases, it will return <code>RC_NOT_IMPLEMENTED</code>,
+and not print a warning.</p>
+</dd>
+<dd>
+<p>For other errors it will print a warning with the system error message,
+and return one of
+<code>RC_FORBIDDEN</code>,
+<code>RC_NOT_FOUND</code>
+or <code>RC_INTERNAL_SERVER_ERROR</code>.</p>
+</dd>
+<dd>
+<p>This implementation always does
+nothing and returns RC_NOT_IMPLEMENTED.</p>
+</dd>
+<dd>
+<p>Must be implemented in a derived class for it to have any effect.</p>
+</dd>
+</li>
+<dt><strong><a name="item_deleterecordingfile"><code>$r-&gt;deleteRecordingFile($path, $name, $file)</code></a></strong>
+
+<dd>
+<p>Delete a recording file.
+<code>$path</code> is the path name from the recording's
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.
+<code>$name</code> is the name of the recording,
+and <code>$file</code> is the name of the file within the recording to delete.</p>
+</dd>
+<dd>
+<p>Returns <code>RC_OK</code> if successful.
+Otherwise it will print a warning with the HTTP status
+message of the HTTP operation that failed, and return that status.</p>
+</dd>
+<dd>
+<p>Abstract.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="prerequisites">PREREQUISITES</a></h1>
+<p>Uses packages:
+<code>HTTP::Status</code>,
+<code>Beyonwiz::Utils</code>.</p>
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;Accessor</span></strong></big>
+</td></tr>
+</table>
+
+</body>
+
+</html>
