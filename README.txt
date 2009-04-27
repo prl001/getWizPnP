@@ -64,6 +64,15 @@ The Perl modules that you are most likely to need to install are:
 	XML::DOM
 	File::Slurp
 	IO::Socket::Multicast
+	IO::Interface::Simple
+
+Running:
+	make install
+also checks whether the installation needs any modules that aren't available,
+and won't complete the installation unless the modules are installed.
+
+You can just run this check by running
+	make check
 
 Windows
 =======
@@ -107,7 +116,14 @@ The Perl modules that you are most likely to need to install are:
 	XML::DOM
 	File::Slurp
 	IO::Socket::Multicast
+	IO::Interface::Simple
 
+Running:
+	@checkModules
+checks whether the installation needs any modules that aren't available.
+
+You can just run this check by running
+	make check
 Unfortunately, the module IO::Socket::Multicast is *not* available from
 ppm the default ppm repository, so if you want to have this functionality
 in Windows, use an alternative repository.
