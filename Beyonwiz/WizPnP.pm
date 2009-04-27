@@ -87,6 +87,12 @@ C<< $wpnp->search(); >>
 before terminating the search.
 Defaults to C<SSDPNPOLL>.
 
+=item C<< $wpnp->useLongNames([$val]); >>
+
+Returns (sets) the flag to use the long or short form of
+device names in searches and name functions.
+Defaults to I<false>.
+
 =item C<< $wpnp->wizpnpTimeout([$val]); >>
 
 Returns (sets) the maximum timeout used when waiting for a respnse
@@ -150,7 +156,11 @@ in the message.
 Returns the index name of the device (as in C<< $wpnp->deviceNames; >>)
 if the message contained an installable SSDP device, C<undef> otherwise.
 
-=item C<< $wpnp->search(); >>
+=item C<< $wpnp->sort; >>
+
+Sort the devices by name, then host number, then port.
+
+=item C<< $wpnp->search; >>
 
 Search the local net for Beyonwiz PnP devices and install
 them in C<$wpnp>.
@@ -158,6 +168,8 @@ them in C<$wpnp>.
 If C<< $wpnp->maxDevs >> non-zero, terminate
 the search when C<< $self->maxDevs >> devices have been installed,
 otherwise search until the search times out.
+
+Sorts the device entries using C<< $wpnp->sort; >>.
 
 Returns the number of devices found.
 
@@ -235,6 +247,11 @@ to C<undef>.
 
 Returns true if the system runnung is MacOS X or Darwin.
 
+=item C<< Beyonwiz::WizPnP::_netmask >>
+
+Returns the local interface netmask, if known.
+Defaults to 0.0.0.0.
+
 =back
 
 =head1 PREREQUISITES
@@ -243,6 +260,7 @@ Uses packages:
 L<C<Beyonwiz::WizPnPDevice>|Beyonwiz::WizPnPDevice>,
 C<IO::Socket::Multicast>,
 C<IO::Select>,
+C<IO::Interface::Simple>,
 C<HTTP::Response>,
 C<HTTP::Request>,
 C<HTTP::Status>,
@@ -268,6 +286,7 @@ use strict;
 use Beyonwiz::Utils;
 use Beyonwiz::WizPnPDevice;
 use IO::Select;
+use Socket;
 use HTTP::Response;
 use HTTP::Request;
 use HTTP::Status;
@@ -277,19 +296,10 @@ use XML::DOM;
 use Time::HiRes;
 
 # Test at runtime whether IO::Socket::Multicast exists,
-# and if it doesn't make new() die by setting $hasMulticast to fales.
+# and if it doesn't make new() die by setting $hasMulticast to false.
 
-my $hasMulticast;
-
-BEGIN {
-    eval 'require IO::Socket::Multicast';
-    if($@) {
-	$hasMulticast = 0;
-    } else {
-	$hasMulticast = 1;
-	IO::Socket::Multicast->import;
-    }
-}
+my $hasMulticast = Beyonwiz::Utils::tryUse IO::Socket::Multicast;
+my $hasInterfaceSimple = Beyonwiz::Utils::tryUse IO::Interface::Simple;
 
 use constant DESC => 'tvdevicedesc.xml';
 
@@ -325,7 +335,8 @@ sub new($) {
     $class = ref($class) if(ref($class));
     my $self = {
 	maxDevs		=> 0,
-	devices		=> {},
+	devices		=> [],
+	useLongNames	=> 0,
 	wizpnpTimeout	=> SSDPTIMEOUT,
 	wizpnpPoll	=> SSDPNPOLL,
 	httpTimeout	=> undef,
@@ -336,6 +347,7 @@ sub new($) {
 	_responseSock	=> undef,
 	_responsePort	=> undef,
 	_request	=> undef,
+	_netmask	=> inet_aton('0.0.0.0'),
     };
 
     unless($accessorsDone) {
@@ -380,17 +392,37 @@ sub _isMacOSX {
 
 sub deviceNames($) {
     my ($self) = @_;
-    return keys %{$self->devices};
+    return map {
+		    $self->useLongNames
+			? $_->longName
+			: $_->shortName;
+		} @{$self->devices};
 }
 
 sub ndevices($) {
     my ($self) = @_;
-    return scalar $self->deviceNames;
+    return scalar @{$self->devices};
 }
 
-sub device($$) {
+sub shortLookup($$) {
     my ($self, $name) = @_;
-    return $self->devices->{lc $name};
+    $name = lc $name;
+    return grep { defined($_->shortName) && index($_->shortName, $name) >= 0 }
+		    @{$self->devices};
+}
+
+sub longLookup($$) {
+    my ($self, $name) = @_;
+    $name = lc $name;
+    return grep { defined($_->longName) && index(lc $_->longName, $name) >= 0 }
+		    @{$self->devices};
+}
+
+sub lookup($$) {
+    my ($self, $name) = @_;
+    return $self->useLongNames
+		? $self->longLookup($name)
+		: $self->shortLookup($name);
 }
 
 sub addDevice($$) {
@@ -415,17 +447,19 @@ sub addDevice($$) {
 	    " returned from $location\n";
 	return undef;
     }
-    my $dev = Beyonwiz::WizPnPDevice->new($location, $dom);
-    my $name = $dev->name;
-    if(defined $name && $name ne '') {
-	$name = lc $name;
-	$self->devices->{$name} = $dev;
+    my $dev = Beyonwiz::WizPnPDevice->new($location, $dom, $self->_netmask);
+    my $longName = $dev->longName;
+    if(defined $longName) {
+	if(!$self->longLookup($longName)) {
+	    $dev->useLongName($self->useLongNames);
+	    push @{$self->devices}, $dev;
+	}
     } else {
 	warn "Bad WizPnP response: No name found for device description",
 	    " from $location\n";
 	return undef;
     }
-    return $name;
+    return $longName;
 }
 
 sub process($$) {
@@ -464,8 +498,6 @@ sub _openRequestSock($) {
 					  PeerAddr => SSDPPEER)
 		|| die 'Can\'t make WizPnP multicast request socket',
 		       " to configure WizPnP: $!\n";
-    $sout->mcast_loopback(0);
-    $sout->mcast_ttl(1);
 
     $self->_requestSock($sout);
 
@@ -473,9 +505,15 @@ sub _openRequestSock($) {
     # issuing the request on the port that originated the request.
     # Get the output port to use to construct the input socket.
 
-    my ($port) = sockaddr_in($sout->sockname);
-    $self->_responsePort($port);
+    my ($port, $addr) = sockaddr_in($sout->sockname);
 
+    if($hasInterfaceSimple) {
+	my $if   = IO::Interface::Simple->new_from_address(inet_ntoa($addr));
+
+	$self->_netmask(inet_aton($if->netmask)) if(defined $if);
+    }
+
+    $self->_responsePort($port);
 }
 
 sub _closeRequestSock($) {
@@ -505,6 +543,26 @@ sub _closeResponseSock($) {
 	|| die "Can't close WizPnP response socket: $!\n";
     $self->_responseSock(undef);
     $self->_responsePort(undef);
+}
+
+sub _sortCmp($$) {
+	my $cmp = $_[0]->shortName cmp $_[1]->shortName;
+	return $cmp if($cmp != 0);
+	my ($ip1, $ip2);
+	my $h1 = $_[0]->hostIP;
+	$ip1 = gethostbyname($h1) if(length($h1) > 0);
+	my $h2 = $_[1]->hostIP;
+	$ip2 = gethostbyname($h2) if(length($h2) > 0);
+	if(defined $ip1 and defined $ip2) {
+	    $cmp = $ip1 cmp $ip2;
+	    return $cmp if($cmp != 0);
+	}
+	return $_[0]->portNum <=> $_[1]->portNum;
+}
+
+sub sort($) {
+    my ($self) = @_;
+    @{$self->devices} = sort _sortCmp @{$self->devices};
 }
 
 sub search($) {
@@ -551,7 +609,6 @@ sub search($) {
 	       && (!$self->maxDevs || $self->ndevices < $self->maxDevs)) {
 	    foreach my $sock ($sel->can_read(SSDPPOLLTIME)) {
 		my $data;
-
 		if(defined $sock->recv($data, 1500)) {
 		    $self->process($data);
 		} else {
@@ -566,10 +623,11 @@ sub search($) {
 	# (and Cygwin), so the socket is closed and reopened for each
 	# request.
 
-    unless($^O eq 'MSWin32' || $^O eq 'cygwin') {
+    if(_isMacOSX) {
 	$self->_closeRequestSock;
 	$self->_closeResponseSock;
     }
+    $self->sort;
     return $self->ndevices;
 }
 
@@ -577,11 +635,13 @@ sub cacheFlush($) {
     my ($self) = @_;
 }
 
-sub main(;$) {
+sub main(;$$$) {
     my $pnp = Beyonwiz::WizPnP->new;
     debug(1);
-    $pnp->maxDevs(@_ > 0 ? $_[0] : 1);
-    $pnp->search(@_ > 0 ? $_[0] : 1);
+    $pnp->maxDevs(@_ >= 1 ? $_[0] : 1);
+    $pnp->wizpnpTimeout(@_ >= 2 ? $_[1] : 1);
+    $pnp->wizpnpPoll(@_ >= 3 ? $_[2] : 1);
+    $pnp->search;
     print 'Found ', $pnp->ndevices, ' device',
 	  ($pnp->ndevices == 1 ? '' :'s'), "\n";
     print 'Devices: (', join(', ', $pnp->deviceNames), ")\n"
