@@ -17,14 +17,21 @@ L<C<Beyonwiz::Recording::Accessor>|Beyonwiz::Recording::Accessor>
 
 =over
 
-=item C<< Beyonwiz::Recording::Accessor->new($base) >>
+=item C<< Beyonwiz::Recording::Accessor->new($base, $extensions) >>
 
 Create a new accessor object with the base URL
-C<$base>.
+C<$base>
+and list of extensions to be recognised as media files
+from the array reference C<$extensions>.
 
 =item C<< $a->base([$val]); >>
 
 Returns (sets) the base path.
+
+=item C<< $a->extensions([$val]); >>
+
+Returns (sets) the list of recognised media extensions
+Expects and returns an array reference.
 
 =item C<< $a->fileLenTime(@path); >>
 
@@ -169,11 +176,12 @@ our @ISA = qw( Beyonwiz::Recording::Accessor );
 my $accessorsDone;
 
 sub new() {
-    my ($class, $base) = @_;
+    my ($class, $base, $extensions) = @_;
     $class = ref($class) if(ref($class));
 
     my %fields = (
-	base    => $base,
+	base       => $base,
+	extensions => { map { ($_, 1) } @$extensions },
     );
 
     my $self = Beyonwiz::Recording::Accessor->new;
@@ -190,6 +198,15 @@ sub new() {
 
     return bless $self, $class;
 
+}
+
+sub extensions($;$) {
+    my ($self, $val) = @_;
+    my @oldval = keys %{$self->{extensions}};
+    if(@_ == 2) {
+	%{$self->{extensions}} = { map { ($_, 1) } %{$self->{extensions}} },
+    }
+    return [ @oldval ];
 }
 
 sub joinPaths($@) {
@@ -248,72 +265,92 @@ sub readFile($@) {
     return undef;
 }
 
-my %mediaExt = map { ($_, 1) }
-			qw (
-				263  aac      ac3  asf  avi bmp divx dts
-				gif  h263     iso  jpeg jpg m1s m1v  m2p
-				m2t  m2t_192  m2v  m4a  m4p m4t m4v  mov
-				mp3  mp4      mpeg mpg  ogg pcm png  rpcm
-				tiff vob      wav  wma  wmv wmv9
-			);
-
 my @monNames = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
 
 sub loadIndex($) {
     our ($self) = @_;
 
     our $indexData = [];
+
     our $base = canonpath($self->base);
-    our $dotBase = $base eq '' ? '.' : $base;
-    $base .= '\\' if($base =~ /^[A-Za-z]:$/ && $^O eq 'MSWin32');
+    $base = '.' if($base eq '');
+
+    if($^O eq 'MSWin32') {
+	# File::Find on windows doesn't find any files if the path
+	# is a bare drive letter, like X: Make it X:\
+
+	$base .= '\\' if($base =~ /^[[:alpha:]]:$/);
+
+	# File::Find uses '/' as a path separator, even on Windows!
+	# Change all the '\' characters in the path to '/' on Windows
+	# ('/' isn't a valid file name letter on Windows,
+	# so this won't break anything) so that paths in File::Find
+	# error messages have consistent path separtor characters,
+	# even if they're the "wrong" ones for Windows.
+
+	$base =~ s:\\:/:g;
+    }
+
+    our $baseLen = length($base);
 
     sub process() {
-	my $relpath = length($File::Find::name) > length($dotBase) + 1
-			? substr $File::Find::name, length($dotBase) + 1
+	my $cutBase = substr($File::Find::name, $baseLen, 1) eq '/'
+			? $baseLen + 1
+			: $baseLen;
+	my $relpath = length($File::Find::name) > $cutBase
+			? substr $File::Find::name, $cutBase
 			: $File::Find::name;
-	if(-d $_
+	/\.([^.]+)$/;
+	my $ext = lc $1;
+
+	# Fake up parsed index.txt lines for identified recordings/media files
+
+	if((   !defined($ext)
+	    || (   ($ext eq 'tvwiz' || $ext eq 'radwiz')
+	        && $self->{extensions}{$ext}
+		)
+	   )
+	&& -d $_
 	&& (-f $self->joinPaths($_, TVHDR) || -f $self->joinPaths($_, RADHDR))
 	&&  -f $self->joinPaths($_, TRUNC)) {
-	    # Fake up index.txt lines;
 	    my $name = $relpath;
 	    $name =~ s/\.(tv|rad)wiz$//;
 	    $name = join '/', splitdir($name);
-	    my $lastName = $_;
-	    $lastName =~ s/\.(tv|rad)wiz$//;
-	    $lastName .= '.tvwizts';
 	    my $mtime = (stat $_)[9];
 	    my ($min,$hour,$mday,$mon,$year) = (localtime($mtime))[1..5];
 	    $name .= sprintf ' %s.%d.%d_%d.%d',
 				$monNames[$mon], $mday, $year+1900, $hour, $min;
 	    push @$indexData,
-		    [ $name, $self->joinPaths($dotBase, $relpath, $lastName) ];
+		    [ $name,
+		      $self->joinPaths(
+				$base, $relpath
+			    )
+		    ];
 	    $File::Find::prune = 1;
-	} elsif(-d $_ && substr($_, -4, 4) eq '.wiz'
+	} elsif(defined($ext) && $ext eq 'wiz' && $self->{extensions}{$ext}
+	     && -d $_
 	     && -f $self->joinPaths($_, WMMETA)) {
 	    my $name = $relpath;
-	    my @comps = splitdir($name);
-	    $name = join '/', @comps, $comps[-1];
+	    $name = join '/', splitdir($name);
 	    push @$indexData,
 		    [ substr($name, 0, -4),
-			$self->joinPaths($dotBase, $relpath) ];
+			$self->joinPaths($base, $relpath) ];
 	    $File::Find::prune = 1;
-	} elsif(substr($_, 0, 1) ne '.') {
-	    /\.([^.]+)$/;
-	    if(defined($1) && $mediaExt{lc $1}) {
-	        my $name = $relpath;
-	        $name = join '/', splitdir($name);
-		push @$indexData,
-		    [ $name, $self->joinPaths($dotBase, $relpath) ];
-	    }
+	} elsif(defined($ext) && $self->{extensions}{$ext}
+	     && -f $_) {
+	    my $name = $relpath;
+	    $name = join '/', splitdir($name);
+	    push @$indexData,
+		[ $name, $self->joinPaths($base, $relpath) ];
 	}
     }
 
-    unless(-d $dotBase) {
-	warn "Can't find ", $dotBase, ": $!\n";
+    unless(-d $base) {
+	warn "Can't find ", $base, ": $!\n";
 	return undef;
     }
 
-    find({ wanted => \&process, follow => 0 }, $dotBase);
+    find({ wanted => \&process, follow => 0 }, $base);
 
     return $indexData;
 }
