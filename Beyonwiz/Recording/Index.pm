@@ -169,7 +169,6 @@ sub decode($$) {
 
     if(defined $index_data) {
 	foreach my $rec (@$index_data) {
-	    $rec->[1] =~ s:/[^/]*\.((tv|rad)wizts|wiz)::;
 	    push @{$self->entries},
 		Beyonwiz::Recording::IndexEntry->new(
 			$self->accessor,
