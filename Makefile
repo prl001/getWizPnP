@@ -16,6 +16,12 @@ RECMODULES=$(RECMODULEDIR)/Accessor.pm $(RECMODULEDIR)/FileAccessor.pm \
 	$(RECMODULEDIR)/Recording.pm $(RECMODULEDIR)/Trunc.pm \
 	$(RECMODULEDIR)/TruncEntry.pm
 
+CLEANUPMODULES=$(RECMODULEDIR)/HTTPIndex.pm $(RECMODULEDIR)/FileIndex.pm \
+	$(RECMODULEDIR)/HTTPRecording.pm $(RECMODULEDIR)/FileRecording.pm \
+	$(RECMODULEDIR)/HTTPHeader.pm $(RECMODULEDIR)/FileHeader.pm \
+	$(RECMODULEDIR)/FileIndexEntry.pm $(RECMODULEDIR)/HTTPIndexEntry.pm \
+	$(RECMODULEDIR)/FileTrunc.pm $(RECMODULEDIR)/HTTPTrunc.pm
+
 
 MODULES=$(BWMODULES) $(RECMODULES)
 
@@ -25,6 +31,7 @@ install: all check install_lib install_bin
 
 install_lib:
 	mkdir -p '$(LIB)/$(BWMODULEDIR)' '$(LIB)/$(RECMODULEDIR)'
+	cd '$(LIB)' && rm -f $(CLEANUPMODULES)
 	cp $(BWMODULES) '$(LIB)/$(BWMODULEDIR)'
 	cp $(RECMODULES) '$(LIB)/$(RECMODULEDIR)'
 
