@@ -334,7 +334,8 @@ L<C<Beyonwiz::Utils>|Beyonwiz::Utils>,
 C<LWP::Simple>,
 C<URI>,
 C<URI::Escape>,
-C<Time::Local>.
+C<Time::Local>,
+C<File::Basename>.
 
 =head1 BUGS
 
@@ -356,6 +357,7 @@ use LWP::Simple qw(get $ua);
 use URI;
 use URI::Escape;
 use Time::Local;
+use File::Basename;
 
 use constant DAY          => 24*60*60; # Seconds in a day
 use constant TVHDR        => 'header.tvwiz';
@@ -826,7 +828,7 @@ sub _setMainMediaFile($$$) {
 	$self->{full}		= 0;
 	$self->{inRec}		= 0;
 	$self->{service}	= 'Content';
-	$self->{title}		= $self->name;
+	$self->{title}		= basename($self->name);
 	$self->{last}		= -1;
 	$self->{sec}		= -1;
 	$self->{validMain}	= 1;
