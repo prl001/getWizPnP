@@ -154,7 +154,7 @@ my %monthNum = (
     Sep =>  9,
     Oct => 10,
     Nov => 11,
-    Dev => 12,
+    Dec => 12,
 );
 
 sub extractDetails() {
@@ -165,7 +165,17 @@ sub extractDetails() {
     my $val = $self->name;
     if(defined($val) && $val ne '') {
 	# Beyonwiz index name entry
-	$val =~ /^(.*\/)?(.*)(?:\s+|_)([a-z][a-z][a-z])\.(\d+)\.(\d+)_(\d+)\.(\d+)$/i;
+	$val =~ m{
+		    ^
+		    (.*\/)?		# folder part of path ($1)
+		    (.*)		# title part of path ($2)
+		    (?:\s+|_)		# White space or an '_'
+		    ([[:alpha:]]{3})	# Month name ($3)
+		    \.(\d+)		# .day ($4)
+		    \.(\d+)		# .year ($5)
+		    _(\d+)\.(\d+)	# _hh.mm ($6, $7)
+		    $
+		}x;
 	if(defined($2) && defined($3) && defined($4)
 	&& defined($5) && defined($6) && defined($7)
 	&& defined($monthNum{$3})) {
