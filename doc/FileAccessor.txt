@@ -12,11 +12,17 @@ SUPERCLASS
 
 METHODS
 
-    "Beyonwiz::Recording::Accessor->new($base)"
-        Create a new accessor object with the base URL $base.
+    "Beyonwiz::Recording::Accessor->new($base, $extensions)"
+        Create a new accessor object with the base URL $base and list of
+        extensions to be recognised as media files from the array reference
+        $extensions.
 
     "$a->base([$val]);"
         Returns (sets) the base path.
+
+    "$a->extensions([$val]);"
+        Returns (sets) the list of recognised media extensions Expects and
+        returns an array reference.
 
     "$a->fileLenTime(@path);"
         Return "($size, $modifiedTime)" for the given @path, where the

@@ -10,7 +10,7 @@ SYNOPSIS
                   [--longNames]
                   [--host=host|-H host] [--port=port|-p port]
                   [--list|-l] [--List|-L]
-                  [--delete|-X] [--move|-M] [--dryrun|-n]
+                  [--delete|-X] [--move|-M] [--dryrun|-n] [--media=exts]
                   [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]
                   [--folder=folderlist|-f folderlist]
                   [--recursive|--all|-a]
@@ -134,9 +134,9 @@ ARGUMENTS
 
         In a WizPnP search, stop searching when the number of WizPnP devices
         found is *devs*, rather than waiting for the search to time out
-        (currently 9 seconds). If set to zero, there is no limit; the search
-        continues looking for devices until it times out. *Devs* defaults to
-        0 (exhaustive search).
+        (currently 0.9 seconds). If set to zero, there is no limit; the
+        search continues looking for devices until it times out. *Devs*
+        defaults to 0 (exhaustive search).
 
     longNames
             --longNames
@@ -205,6 +205,42 @@ ARGUMENTS
         a copy followed by a delete for each matching recording. Move uses
         an undocumented feature of WizPnP. See "BUGS".
 
+    media
+            --media=exts
+
+        Specify the set of file name extensions that are recognised as media
+        files. The default set can also be specified in the configuration
+        file.
+
+        Media file name extension matching is case-insensitive.
+
+        Beyonwiz TV and radio recordings are also recognised if they have no
+        filename extension on their folder. Recognition of these recordings
+        cannot be controlled by "--media". This is to allow recognition of
+        recordings copied using old versions of getWizPnP which did not add
+        a .tvwiz/.radwiz extension to the folder name. This feature(?) may
+        be removed in future versions.
+
+        The user-specified default can be over-ridden by the program
+        defaults by specifying exactly one extension option with the name
+        default, i.e. "--media=default". This means that there is no way to
+        have "default" as the only recognised media file name extension.
+
+        Multiple extensions can be given either as a comma-separated list in
+        one option (e.g. "--media=jpg,mpg") or as multiple options (e.g.
+        "--media=jpg --media=mpg").
+
+        The program default set of extensions is:
+
+            263   aac ac3  asf avi  bmp    divx dts  gif
+            h263  iso jpeg jpg m1s  m1v    m2p  m2t  m2t_192
+            m2v   m4a m4p  m4t m4v  mkv    mov  mp3  mp4
+            mpeg  mpg ogg  pcm png  radwiz rpcm tiff ts
+            tvwiz vob wav  wiz wma  wmv    wmv9
+
+        This list was extracted from the wizdvp binary in the Beyonwiz
+        firmware, and may have errors or omissions.
+
     nameFormat
             --nameFormat=fmt
             -T fmt
@@ -217,7 +253,9 @@ ARGUMENTS
         separator character. If the field specified by *code* iexists and is
         not empty, then the field is preceded by a eaparator made up of
         *sep* with a single space before it, and a single space following
-        it. The allowed values for *code* are: S
+        it. The allowed values for *code* are:
+
+        S
 
         The name of the broadcast service (e.g. ABC1) that the file or
         recording was made from. Will not be set for media that are not
@@ -269,6 +307,10 @@ ARGUMENTS
 
         "%=S%=-T%=-D%=-E" - ABC2 - Scrapheap Challenge - 2009-03-04 18-33 -
         The Scrappy Races Part 2
+
+        episodeonly
+
+        "%=E'" - The Scrappy Races Part 2
 
         --nameFormat can be used to give a fixed name to a recording when it
         is copied or moved, but care should be taken that only a single

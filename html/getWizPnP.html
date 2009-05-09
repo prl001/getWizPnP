@@ -45,7 +45,7 @@
               [--longNames]
               [--host=host|-H host] [--port=port|-p port]
               [--list|-l] [--List|-L]
-              [--delete|-X] [--move|-M] [--dryrun|-n]
+              [--delete|-X] [--move|-M] [--dryrun|-n] [--media=exts]
               [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]
               [--folder=folderlist|-f folderlist]
               [--recursive|--all|-a]
@@ -183,7 +183,7 @@ the same name.</p>
 <dd>
 <p>In a WizPnP search, stop searching when the number of WizPnP
 devices found is <em>devs</em>, rather than waiting for the search to
-time out (currently 9 seconds).
+time out (currently 0.9 seconds).
 If set to zero, there is no limit; the search continues looking
 for devices until it times out.
 <em>Devs</em> defaults to 0 (exhaustive search).</p>
@@ -284,6 +284,54 @@ Delete uses an undocumented feature of WizPnP. See <strong><a href="#bugs">BUGS<
 Equivalent to a copy followed by a delete for each matching recording.
 Move uses an undocumented feature of WizPnP. See <strong><a href="#bugs">BUGS</a></strong>.</p>
 </dd>
+<dt><strong><a name="item_media">media</a></strong>
+
+<dd>
+<pre>
+    --media=exts</pre>
+</dd>
+<dd>
+<p>Specify the set of file name extensions that are recognised as media files.
+The default set can also be specified in the <strong><a href="#files">configuration file</a></strong>.</p>
+</dd>
+<dd>
+<p>Media file name extension matching is case-insensitive.</p>
+</dd>
+<dd>
+<p>Beyonwiz TV and radio recordings are also recognised if they have no
+filename extension on their folder.
+Recognition of these recordings cannot be controlled by <code>--media</code>.
+This is to allow recognition of recordings copied using old versions
+of getWizPnP which did not add a .tvwiz/.radwiz extension to the folder name.
+This <code>feature(?)</code> may be removed in future versions.</p>
+</dd>
+<dd>
+<p>The user-specified default can be over-ridden by the program defaults
+by specifying exactly one extension option with the name <strong>default</strong>,
+i.e. <code>--media=default</code>.
+This means that there is no way to have <code>default</code> as the only recognised
+media file name extension.</p>
+</dd>
+<dd>
+<p>Multiple extensions can be given either as a comma-separated list
+in one option (e.g. <code>--media=jpg,mpg</code>) or as multiple options
+(e.g. <code>--media=jpg --media=mpg</code>).</p>
+</dd>
+<dd>
+<p>The program default set of extensions is:</p>
+</dd>
+<dd>
+<pre>
+    263   aac ac3  asf avi  bmp    divx dts  gif
+    h263  iso jpeg jpg m1s  m1v    m2p  m2t  m2t_192
+    m2v   m4a m4p  m4t m4v  mkv    mov  mp3  mp4
+    mpeg  mpg ogg  pcm png  radwiz rpcm tiff ts
+    tvwiz vob wav  wiz wma  wmv    wmv9</pre>
+</dd>
+<dd>
+<p>This list was extracted from the <strong>wizdvp</strong> binary in the Beyonwiz
+firmware, and may have errors or omissions.</p>
+</dd>
 <dt><strong><a name="item_nameformat">nameFormat</a></strong>
 
 <dd>
@@ -303,8 +351,10 @@ file or folder name.</p>
 If the field specified by <em>code</em> iexists and is not empty,
 then the field is preceded by a eaparator made up of <em>sep</em>
 with a single space before it, and a single space following it.
-The allowed values for <em>code</em> are:
-<strong>S</strong></p>
+The allowed values for <em>code</em> are:</p>
+</dd>
+<dd>
+<p><strong>S</strong></p>
 </dd>
 <dd>
 <p>The name of the broadcast service (e.g. ABC1)
@@ -378,6 +428,13 @@ Scrapheap Challenge - 2009-03-04 18-33 - The Scrappy Races Part 2</p>
 <dd>
 <p><code>%=S%=-T%=-D%=-E</code> -
 ABC2 - Scrapheap Challenge - 2009-03-04 18-33 - The Scrappy Races Part 2</p>
+</dd>
+<dd>
+<p><strong>episodeonly</strong></p>
+</dd>
+<dd>
+<p><code>%=E'</code> -
+The Scrappy Races Part 2</p>
 </dd>
 <dd>
 <p><strong>--<a href="#item_nameformat">nameFormat</a></strong> can be used to give a fixed name to a recording when

@@ -49,17 +49,26 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Accessor-&gt;new($base)</code></a></strong>
+<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Accessor-&gt;new($base, $extensions)</code></a></strong>
 
 <dd>
 <p>Create a new accessor object with the base URL
-<code>$base</code>.</p>
+<code>$base</code>
+and list of extensions to be recognised as media files
+from the array reference <code>$extensions</code>.</p>
 </dd>
 </li>
 <dt><strong><a name="item_base"><code>$a-&gt;base([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the base path.</p>
+</dd>
+</li>
+<dt><strong><a name="item_extensions"><code>$a-&gt;extensions([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the list of recognised media extensions
+Expects and returns an array reference.</p>
 </dd>
 </li>
 <dt><strong><a name="item_filelentime"><code>$a-&gt;fileLenTime(@path);</code></a></strong>

@@ -237,7 +237,7 @@ INTERNAL METHODS
 PREREQUISITES
 
     Uses packages: "Beyonwiz::Utils", "LWP::Simple", "URI", "URI::Escape",
-    "Time::Local".
+    "Time::Local", "File::Basename".
 
 BUGS
 
