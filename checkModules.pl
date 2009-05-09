@@ -59,11 +59,14 @@ sub process($) {
 	warn "Can't open $file: $!\n";
 	return 0;
     }
+
+    my $moduleIdMatch = '[[:alpha:]_][[:word:]]*(::[[:alpha:]_][[:word:]]*)*';
     my $errors;
+
     while(<F>) {
 	chomp;
-	if(/^\s*(require|use)\s+([A-Za-z_][A-Za-z0-9_:]*).*;\s*(#.*)?$/
-	|| /^.*(Beyonwiz::Utils::tryUse)\s+([A-Za-z_][A-Za-z0-9_:]*).*;\s*(#.*)?$/) {
+	if(/^\s*(require|use)\s+($moduleIdMatch).*;\s*(#.*)?$/o
+	|| /^.*(Beyonwiz::Utils::tryUse)\s+($moduleIdMatch).*;\s*(#.*)?$/o) {
 	    $errors++ if(!checkRequire $2, $1, $file);
 	}
     }
