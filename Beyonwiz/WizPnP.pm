@@ -407,7 +407,8 @@ sub ndevices($) {
 sub shortLookup($$) {
     my ($self, $name) = @_;
     $name = lc $name;
-    return grep { defined($_->shortName) && index($_->shortName, $name) >= 0 }
+    return grep { defined($_->shortName)
+			&& index(lc $_->shortName, $name) >= 0 }
 		    @{$self->devices};
 }
 
