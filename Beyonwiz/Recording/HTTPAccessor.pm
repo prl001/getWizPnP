@@ -242,7 +242,7 @@ sub loadIndex($) {
 	foreach my $rec (split /\r?\n/, $index_data) {
 	    my @parts = split /\|/, $rec;
 	    if(@parts == 2) {
-		$parts[1] =~ s:/[^/]*\.((tv|rad)wizts|wiz)::;
+		$parts[1] =~ s:/[^/]*\.((tv|rad)wizts|wiz)$::;
 		push @$index,
 			[ join('/', $prefix, $parts[0]), $parts[1] ];
 	    } elsif(@parts == 1 && substr($parts[0], 0, 1) eq "\t") {
@@ -306,10 +306,11 @@ sub getRecordingFileChunk($$$$$$$) {
  
     $progressBar->done($progressBar->done + $progressCount) if($progressBar);
 
-    warn $name, ($rec->join && $file ne ''
-			? "/$file"
-			: ''
-		), ': ', status_message($status), "\n"
+    warn $name, ($rec->join && defined($file) && $file ne ''
+    		    ? '/'.$file
+		    : ''
+		), ': ',
+	    status_message($status), "\n"
 	if(!is_success($status));
     return $status;
 }
@@ -324,7 +325,11 @@ sub getRecordingFile($$$$$$) {
     $name = addDir($outdir, $name);
     $name = '>' . $name if($append);
     my $status = getstore($data_url, $name);
-    warn $name, ($rec->join ? "/$file" : ''), ': ', status_message($status), "\n"
+    warn $name, ($rec->join && defined($file) && $file ne ''
+    		    ? '/'.$file
+		    : ''
+		), ': ',
+	    status_message($status), "\n"
 	if(!is_success($status));
     return $status;
 }
@@ -344,7 +349,10 @@ sub deleteRecordingFile($$$$;$) {
     my $response = $ua->request($request);
     my $status = $response->code;
 
-    warn "$name", (defined($file) ? '/' .$file : ''), ': ',
+    warn $name, ($rec->join && defined($file) && $file ne ''
+    		    ? '/'.$file
+		    : ''
+		), ': ',
 	    status_message($status), "\n"
 	if(!is_success($status));
 
