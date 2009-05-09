@@ -12,7 +12,7 @@ getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network
               [--longNames]
               [--host=host|-H host] [--port=port|-p port]
               [--list|-l] [--List|-L]
-              [--delete|-X] [--move|-M] [--dryrun|-n]
+              [--delete|-X] [--move|-M] [--dryrun|-n] [--media=exts]
               [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]
               [--folder=folderlist|-f folderlist]
               [--recursive|--all|-a]
@@ -233,6 +233,43 @@ Move the specified recordings to the output directory.
 Equivalent to a copy followed by a delete for each matching recording.
 Move uses an undocumented feature of WizPnP. See B<L</BUGS>>.
 
+=item media
+
+    --media=exts
+
+Specify the set of file name extensions that are recognised as media files.
+The default set can also be specified in the B<L<configuration file|/FILES>>.
+
+Media file name extension matching is case-insensitive.
+
+Beyonwiz TV and radio recordings are also recognised if they have no
+filename extension on their folder.
+Recognition of these recordings cannot be controlled by C<--media>.
+This is to allow recognition of recordings copied using old versions
+of getWizPnP which did not add a .tvwiz/.radwiz extension to the folder name.
+This feature(?) may be removed in future versions.
+
+The user-specified default can be over-ridden by the program defaults
+by specifying exactly one extension option with the name B<default>,
+i.e. C<--media=default>.
+This means that there is no way to have C<default> as the only recognised
+media file name extension.
+
+Multiple extensions can be given either as a comma-separated list
+in one option (e.g. C<--media=jpg,mpg>) or as multiple options
+(e.g. C<--media=jpg --media=mpg>).
+
+The program default set of extensions is:
+
+    263   aac ac3  asf avi  bmp    divx dts  gif
+    h263  iso jpeg jpg m1s  m1v    m2p  m2t  m2t_192
+    m2v   m4a m4p  m4t m4v  mkv    mov  mp3  mp4
+    mpeg  mpg ogg  pcm png  radwiz rpcm tiff ts
+    tvwiz vob wav  wiz wma  wmv    wmv9
+
+This list was extracted from the B<wizdvp> binary in the Beyonwiz
+firmware, and may have errors or omissions.
+
 =item nameFormat
 
     --nameFormat=fmt
@@ -249,6 +286,7 @@ If the field specified by I<code> iexists and is not empty,
 then the field is preceded by a eaparator made up of I<sep>
 with a single space before it, and a single space following it.
 The allowed values for I<code> are:
+
 B<S>
 
 The name of the broadcast service (e.g. ABC1)
@@ -304,6 +342,12 @@ B<long>
 
 C<%=S%=-T%=-D%=-E> -
 ABC2 - Scrapheap Challenge - 2009-03-04 18-33 - The Scrappy Races Part 2
+
+B<episodeonly>
+
+C<%=E'> -
+The Scrappy Races Part 2
+
 
 B<--L<nameFormat>> can be used to give a fixed name to a recording when
 it is copied or moved, but care should be taken that only a single recording
@@ -1090,6 +1134,7 @@ my %nameFormats = (
     short	=> '%=T',
     series	=> '%=T%=-D%=-E',
     long	=> '%=S%=-T%=-D%=-E',
+    episodeonly	=> '%=E',
 );
 
 our %userNameFormats = ();
@@ -1105,6 +1150,15 @@ my %dateFormats = (
 
 our %userDateFormats = ();
 
+my @defaultMediaExtensions = qw (
+		263   aac ac3  asf avi  bmp    divx dts  gif
+		h263  iso jpeg jpg m1s  m1v    m2p  m2t  m2t_192
+		m2v   m4a m4p  m4t m4v  mkv    mov  mp3  mp4
+		mpeg  mpg ogg  pcm png  radwiz rpcm tiff ts
+		tvwiz vob wav  wiz wma  wmv    wmv9
+);
+our @mediaExtensions;
+
 my $dictStopRe;
 my %dictionarySort;
 my @dictStoplist;
@@ -1119,7 +1173,7 @@ sub Usage {
 	"                  [--longNames]\n",
 	"                  [--host=host|-H host] [--port=port|-p port]\n",
 	"                  [--list|-l] [--List|-L]\n",
-	"                  [--delete|-X] [--move|-M] [--dryrun|-n]\n",
+	"                  [--delete|-X] [--move|-M] [--dryrun|-n] [--media=exts]\n",
 	"                  [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]\n",
 	"                  [--folder=folderlist|-f folderlist]\n",
 	"                  [--recursive|--all|-a]\n",
@@ -1195,6 +1249,7 @@ GetOptions(
 	'B|BWName!'		=> \$bwName,
 	'O|outdir:s'		=> \$outdir,
 	'I|indir:s'		=> \$indir,
+	'media=s'		=> \@mediaExtensions,
 	'v|verbose+'		=> \$verbose,
 	'V|Verbose=i'		=> \$verbose,
 	'x|index!'		=> \$indexName,
@@ -1425,6 +1480,12 @@ sub processOpts() {
     die "--dictionarySort option errors\n"
         if($errs);
 
+    @mediaExtensions = @{expandCommaList(\@mediaExtensions, 1)};
+    if(@mediaExtensions == 0
+    || @mediaExtensions == 1 && $mediaExtensions[0] eq 'default') {
+	@mediaExtensions = @defaultMediaExtensions;
+    }
+
     mergeHash(\%nameFormats, \%userNameFormats);
     mergeHash(\%dateFormats, \%userDateFormats);
     $nameFormat = $nameFormats{$nameFormat}
@@ -1456,7 +1517,7 @@ sub makeSortTitle($) {
 	}
     }
     $title = lc $title if($dictionarySort{case});
-    $title =~ s/[^0-9a-z ]//g if($dictionarySort{punctuation});
+    $title =~ s/[^[:alnum:] ]//g if($dictionarySort{punctuation});
     $title =~ s/ //g if($dictionarySort{space});
     return $title;
 }
@@ -1782,7 +1843,7 @@ sub doRecordingOperation($$$$$$) {
 		    return;
 		}
 	    } else {
-		warn $ie->name, " skipped\n";
+		warn $ie->name, " skipped - load of trunc file failed\n";
 		return;
 	    }
 	}
@@ -1883,7 +1944,7 @@ if(!defined $indir) {
 
 $accessor = defined $indir
 			? Beyonwiz::Recording::FileAccessor->new(
-				$indir
+				$indir, \@mediaExtensions
 			    )
 			: Beyonwiz::Recording::HTTPAccessor->new(
 				$device->baseUrl
