@@ -287,9 +287,11 @@ sub doFormat($$$) {
 sub getRecordingName($$$$) {
     my ($self, $hdr, $indexName, $join) = @_;
     $join = 1 if($hdr->isMediaFile);
-    my $name = $self->nameFormat;
+    my $name = $hdr->isRadio || $hdr->isTV
+    		    ? $self->nameFormat
+		    : '%=T';
     $name =~ s{
-		    (%=[^A-Za-z0-9%+]?[TEDS])
+		    (%=[^[:alnum:]%+]?[TEDS])
 	      }{
 		    $self->doFormat($hdr, $indexName, $1)
 	      }gex;
