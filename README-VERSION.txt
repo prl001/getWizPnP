@@ -1,4 +1,17 @@
-Version 0.4
+Version 0.4a
+
+Main changes/differences/fixes in 0.4a:
+
+    * Added --media option to allow users to specify the list of
+      recognised media file extensions.
+    * Use the plain file name for the output name for media files.
+    * Fixed the recognition of December when decoding the time from
+      index.txt name entries.
+    * Correctly handle --indir=x: on Windows and Cygwin.
+    * Correctly match Beyonwiz device names when using --device.
+    * Use consistent (though non-Windows) path separators in File::Find
+      when constructing the index.txt data for local media files &
+      recordings.
 
 Main changes/differences/fixes in 0.4:
 
@@ -46,9 +59,27 @@ Main changes/differences/fixes in 0.4:
       checkModules.pl incorporated into "make install".
     * --date now includes the start time in the recording name.
 
+Known new bugs in 0.4:
 
-Known new bugs:
-
+    * File paths reported in errors from File::Find have inconsistent path
+      separator characters.
+    * .tvwiz and .radwiz recording folders weren't included in the default
+      list of recognised media file extensions for local files.
+    * Recording name formatting used inappropriately for media files.
+    * When decoding the recording time from index.txt, did not correctly match
+      December (lookup table had 'Dev' where it should have had 'Dec').
+    * Was intended to allow the specification of a whole device in --indir
+      (e.g. --indir=x:) on Windows, but this doesn't work. Workaround:
+      use --indir=x:\
+    * --device doesn't work correctly with --nolongNames. Uppercase
+      letters can't be matched in device names. This is only a problem if
+      you have more than one Beyonwiz device active on your net. Workarounds
+      are:
+        * Use partial matching in --device (e.g. --device=erxes to match
+          device Xerxes)
+        * Use --longNames. Partial matching allows you to leave off the
+          host address and port number in --device
+        * Change your Beyonwiz's WizPnP name to be all lower case.
     * The changes to the file indexing in 1.05.283 mean that if you delete
       a recording on the Beyonwiz (--delete/--move), it will remain
       in the internal index (i.e. visible in the file player, and
@@ -57,8 +88,77 @@ Known new bugs:
       is done. This can only be fixed in the Beyonwiz firmware.
 
 
-File changes
-============
+File changes in 0.4a
+===================
+
+checkModules.pl
+	Made the regular expression that extracts module names from the
+	source code more accurately match legal module names.
+
+getWizPnP.pl
+	Added option --media to specify what file name extensions are
+	recognised as media files when --indir is specified for
+	accessing local media files & recordings. Some tidying-up
+	of regular expressions.
+
+Beyonwiz/WizPnP.pm
+	Fixed the bug that caused problems matching Beyonwiz device names
+	containing upper-case letters.
+
+Beyonwiz/Recording/Index.pm
+	Trimming the extra path component in the Beyonwiz index.txt
+	format made sole responsibility of
+	Beyonwiz::Recording::HTTPAccessor.
+
+Beyonwiz/Recording/Header.pm
+	Use basename($self->name) as the default title, instead of
+	$self->name. Don't want the directory path name used in the title.
+
+Beyonwiz/Recording/IndexEntry.pm
+	Fixed 'Dev' to 'Dec' in %monthNum.
+	Made the index name decoding more readable by using Perl
+	extended RE.
+
+Beyonwiz/Recording/Recording.pm
+	Only format the copied recording title from --nameFormat when
+	when copying recordings, not for media files.
+
+Beyonwiz/Recording/FileAccessor.pm
+	Made the list of extensions used by the loadIndex programmable,
+	to support --media in getWizPnP.
+	Fixed the bug where the '\'was added to device names X: to make
+	X:\ on Windows in the wrong variable, so X: was actually used
+	by the code.
+	Tidied up the path generation code so that Windows-format
+	paths are used on Windows as far as possible, and so paths used
+	internally in File::Find are consistently Unix-format, even on
+	Windows, because File::Find uses '/' as a path separator.
+	Removed addition of extra path segments in .tvwiz/.radwiz recordings,
+	to match changes in Beyonwiz::Recording::Index
+
+Beyonwiz/Recording/HTTPAccessor.pm
+	Made sure regular expression trimming off extra path segment from
+	the index.txt path was anchored at the string end.
+	Tided up some error messages.
+
+Makefile
+	In install_lib, delete the files installed by getWizPnP 0.3.4b
+	and earlier.
+
+getwizpnp.conf
+	Added more comments for named user date and name formats.
+	Added config for mediaExtensions.
+
+html/Beyonwiz/Recording/FileAccessor.html
+html/Beyonwiz/Recording/Header.html
+html/getWizPnP.html
+doc/FileAccessor.txt
+doc/getWizPnP.txt
+doc/Header.txt
+	Generated documentation for modified scripts and modules.
+
+File changes in 0.4
+===================
 
 Beyonwiz/WizPnP.pm
 	Allows for naming of WizPnP servers when names aren't unique.
