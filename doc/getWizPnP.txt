@@ -10,7 +10,8 @@ SYNOPSIS
                   [--longNames]
                   [--host=host|-H host] [--port=port|-p port]
                   [--list|-l] [--List|-L]
-                  [--delete|-X] [--move|-M] [--dryrun|-n] [--media=exts]
+                  [--delete|-X] [--move|-M] [--dryrun|-n]
+                  [--media=exts] [--stopFolders=folderlist]
                   [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]
                   [--folder=folderlist|-f folderlist]
                   [--recursive|--all|-a]
@@ -232,14 +233,27 @@ ARGUMENTS
 
         The program default set of extensions is:
 
-            263   aac ac3  asf avi  bmp    divx dts  gif
-            h263  iso jpeg jpg m1s  m1v    m2p  m2t  m2t_192
-            m2v   m4a m4p  m4t m4v  mkv    mov  mp3  mp4
-            mpeg  mpg ogg  pcm png  radwiz rpcm tiff ts
-            tvwiz vob wav  wiz wma  wmv    wmv9
+            263   aac  ac3  asf   avi bmp    divx dts  gif
+            h263  iso  jpeg jpg   m1s m1v    m2p  m2t  m2t_192
+            m2v   m4a  m4p  m4t   m4v mkv    mov  mp3  mp4
+            mpeg  mpg  ogg  pcm   png radwiz rpcm smi  srt
+            sub   tiff ts   tvwiz vob wav    wiz  wma  wmv
+            wmv9
 
         This list was extracted from the wizdvp binary in the Beyonwiz
         firmware, and may have errors or omissions.
+
+    stopFolders
+            --stopFolders=folderlist
+
+        *folderList* is a comma-separated list of folder names that are to
+        be excluded when building the recordings & media list on the local
+        computer when --indir is used.
+
+        On Windows and Cygwin this defaults to the folders
+        "Recycled,RECYCLER,System Volume Information", on Mac OS X to
+        ".Trash,.Trashes", and on Unix and Linux systems to
+        "lost+found,.Trash".
 
     nameFormat
             --nameFormat=fmt
@@ -758,8 +772,8 @@ ARGUMENTS
     discover
           --discover
 
-        Print a list of the discovered Beyonwiz WizPnP servers, name and IP
-        address, and exit. As in normal operation, the maximum number of
+        Print a list of the discovered Beyonwiz WizPnP servers, IP address
+        and name, and exit. As in normal operation, the maximum number of
         devices to search for is set by --maxdevs. If --indir is set, no
         Beyonwiz device search is performed, and *getWizPnP* exits
         immediately.
