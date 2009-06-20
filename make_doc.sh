@@ -13,11 +13,11 @@ cat > $index << '_EOF'
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <title>BWFWTools documentation</title>
+   <title>getWizPnP documentation</title>
 <link rev="made" href="mailto:Peter.Lamb@dit.csiro.au">
 </head>
 <body>
-  <h1>BWFWTools documentation</h1>
+  <h1>getWizPnP documentation</h1>
   <dir>
 _EOF
 
