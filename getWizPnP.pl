@@ -12,7 +12,8 @@ getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network
               [--longNames]
               [--host=host|-H host] [--port=port|-p port]
               [--list|-l] [--List|-L]
-              [--delete|-X] [--move|-M] [--dryrun|-n] [--media=exts]
+              [--delete|-X] [--move|-M] [--dryrun|-n]
+              [--media=exts] [--stopFolders=folderlist]
               [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]
               [--folder=folderlist|-f folderlist]
               [--recursive|--all|-a]
@@ -261,14 +262,28 @@ in one option (e.g. C<--media=jpg,mpg>) or as multiple options
 
 The program default set of extensions is:
 
-    263   aac ac3  asf avi  bmp    divx dts  gif
-    h263  iso jpeg jpg m1s  m1v    m2p  m2t  m2t_192
-    m2v   m4a m4p  m4t m4v  mkv    mov  mp3  mp4
-    mpeg  mpg ogg  pcm png  radwiz rpcm tiff ts
-    tvwiz vob wav  wiz wma  wmv    wmv9
+    263   aac  ac3  asf   avi bmp    divx dts  gif
+    h263  iso  jpeg jpg   m1s m1v    m2p  m2t  m2t_192
+    m2v   m4a  m4p  m4t   m4v mkv    mov  mp3  mp4
+    mpeg  mpg  ogg  pcm   png radwiz rpcm smi  srt
+    sub   tiff ts   tvwiz vob wav    wiz  wma  wmv
+    wmv9
 
 This list was extracted from the B<wizdvp> binary in the Beyonwiz
 firmware, and may have errors or omissions.
+
+=item stopFolders
+
+    --stopFolders=folderlist
+
+I<folderList> is a comma-separated list of folder names that
+are to be excluded when building the recordings & media list
+on the local computer when B<--L<indir>> is used.
+
+On Windows and Cygwin this defaults to the folders
+C<Recycled,RECYCLER,System Volume Information>,
+on Mac OS X to C<.Trash,.Trashes>,
+and on Unix and Linux systems to C<lost+found,.Trash>.
 
 =item nameFormat
 
@@ -854,7 +869,7 @@ with B<--L<List>> to generate the index name(s).
   --discover
 
 Print a list of the discovered Beyonwiz WizPnP servers,
-name and IP address, and exit.
+IP address and name, and exit.
 As in normal operation, the maximum number of devices to search for
 is set by B<--L<maxdevs>>.
 If B<--L<indir>> is set, no Beyonwiz device search is performed,
@@ -1151,13 +1166,22 @@ my %dateFormats = (
 our %userDateFormats = ();
 
 my @defaultMediaExtensions = qw (
-		263   aac ac3  asf avi  bmp    divx dts  gif
-		h263  iso jpeg jpg m1s  m1v    m2p  m2t  m2t_192
-		m2v   m4a m4p  m4t m4v  mkv    mov  mp3  mp4
-		mpeg  mpg ogg  pcm png  radwiz rpcm tiff ts
-		tvwiz vob wav  wiz wma  wmv    wmv9
+		263   aac  ac3  asf   avi bmp    divx dts  gif
+		h263  iso  jpeg jpg   m1s m1v    m2p  m2t  m2t_192
+		m2v   m4a  m4p  m4t   m4v mkv    mov  mp3  mp4
+		mpeg  mpg  ogg  pcm   png radwiz rpcm smi  srt
+		sub   tiff ts   tvwiz vob wav    wiz  wma  wmv
+		wmv9
 );
 our @mediaExtensions;
+
+my @defaultStopFolders =
+	$^O eq 'MSWin32' || $^O eq 'cygwin'	# Windows
+	    ? ('Recycled', 'RECYCLER', 'System Volume Information')
+	: $^O eq 'darwin'			# OS X
+	    ? ('.Trash', '.Trashes')
+	:     ('lost+found', '.Trash');
+my @stopFolders;
 
 my $dictStopRe;
 my %dictionarySort;
@@ -1173,7 +1197,8 @@ sub Usage {
 	"                  [--longNames]\n",
 	"                  [--host=host|-H host] [--port=port|-p port]\n",
 	"                  [--list|-l] [--List|-L]\n",
-	"                  [--delete|-X] [--move|-M] [--dryrun|-n] [--media=exts]\n",
+	"                  [--delete|-X] [--move|-M] [--dryrun|-n]\n",
+	"                  [--media=exts] [--stopFolders=folderlist]\n",
 	"                  [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]\n",
 	"                  [--folder=folderlist|-f folderlist]\n",
 	"                  [--recursive|--all|-a]\n",
@@ -1222,7 +1247,7 @@ GetOptions(
 	'h|help'		=> \$help,
 	'H|host=s'		=> \$host,
 	'p|port=i'		=> \$port,
-	'D|device=s'		=> \$device_name,
+	'D|device:s'		=> \$device_name,
 	'm|maxdevs=i'		=> \$maxdevs,
 	'N|longNames!'		=> \$longNames,
 	'l|list'		=> \$list,
@@ -1250,6 +1275,7 @@ GetOptions(
 	'O|outdir:s'		=> \$outdir,
 	'I|indir:s'		=> \$indir,
 	'media=s'		=> \@mediaExtensions,
+	'stopFolders:s'		=> \@stopFolders,
 	'v|verbose+'		=> \$verbose,
 	'V|Verbose=i'		=> \$verbose,
 	'x|index!'		=> \$indexName,
@@ -1485,6 +1511,11 @@ sub processOpts() {
     || @mediaExtensions == 1 && $mediaExtensions[0] eq 'default') {
 	@mediaExtensions = @defaultMediaExtensions;
     }
+    @stopFolders = @{expandCommaList(\@stopFolders, 0)};
+    if(@stopFolders == 0
+    || @stopFolders == 1 && $stopFolders[0] eq 'default') {
+	@stopFolders = @defaultStopFolders;
+    }
 
     mergeHash(\%nameFormats, \%userNameFormats);
     mergeHash(\%dateFormats, \%userDateFormats);
@@ -1632,8 +1663,7 @@ sub connectToBW($$$) {
     }
     if($mode == MODE_SEARCH) {
 	foreach my $dev (@{$pnp->devices}) {
-	    printf "%-*s %s\n",  ($longNames ? 32 : 16), $dev->name,
-		deviceHostPort($dev);
+	    printf "%-21s %s\n", deviceHostPort($dev), $dev->name;
 	}
 	exit;
     }
@@ -1944,7 +1974,7 @@ if(!defined $indir) {
 
 $accessor = defined $indir
 			? Beyonwiz::Recording::FileAccessor->new(
-				$indir, \@mediaExtensions
+				$indir, \@mediaExtensions, \@stopFolders
 			    )
 			: Beyonwiz::Recording::HTTPAccessor->new(
 				$device->baseUrl
