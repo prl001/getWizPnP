@@ -20,8 +20,10 @@
 <ul>
 
 	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
 	<li><a href="#description">DESCRIPTION</a></li>
 	<li><a href="#beyonwiz_names">BEYONWIZ NAMES</a></li>
+	<li><a href="#arguments">ARGUMENTS</a></li>
 	<li><a href="#files">FILES</a></li>
 	<li><a href="#prerequsites">PREREQUSITES</a></li>
 	<li><a href="#bugs">BUGS</a></li>
@@ -33,9 +35,10 @@
 </p>
 <h1><a name="name">NAME</a></h1>
 <p>getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network using the WizPnP interface</p>
-<pre>
-
-=head1 SYNOPSIS</pre>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
 <pre>
     getWizPnP [--help|-h]
               [--device dev|-D dev] [--maxdevs=devs|-m devs]
@@ -131,9 +134,10 @@ set the <code>$longNames</code> variable in the
 must be installed on the machine running <strong>getWizPnP</strong>.
 See the <code>README.txt</code> file in the distribution folder for more details of
 how to install missing modules.</p>
-<pre>
-
-=head1 ARGUMENTS</pre>
+<p>
+</p>
+<hr />
+<h1><a name="arguments">ARGUMENTS</a></h1>
 <p><strong>GetWizPnP</strong> takes the following arguments:</p>
 <dl>
 <dt><strong><a name="item_help">help</a></strong>
@@ -452,11 +456,9 @@ ABC2 - Scrapheap Challenge - 2009-03-04 18-33 - The Scrappy Races Part 2</p>
 The Scrappy Races Part 2</p>
 </dd>
 <dd>
-<pre>
-
-B&lt;--L&lt;nameFormat&gt;&gt; can be used to give a fixed name to a recording when
+<p><strong>--<a href="#item_nameformat">nameFormat</a></strong> can be used to give a fixed name to a recording when
 it is copied or moved, but care should be taken that only a single recording
-is specified.</pre>
+is specified.</p>
 </dd>
 <dd>
 <p>The rules for eliminating characters not permitted by the file system
@@ -1245,9 +1247,8 @@ of 256kB. They can't be copied using WizFX.
 A recording deleted using <em>getWizPnP</em> on a Beyonwiz WizPnP server
 will appear normal in the file player on a Beyonwiz WizPnP client,
 but the recording cannot be played.</p>
-<pre>
-
-=back</pre>
+</li>
+</ul>
 <p>The inconsistencies in the file player and the WizPnP index can be fixed
 by entering the file player and pressing the Soundtrack
 (speaker/questionmark) button.</p>
@@ -1264,7 +1265,6 @@ with Beyonwiz firmware 01.05.261 and earlier.</p>
 not on the actual recording time when <strong>--<a href="#item_outdir">outdir</a></strong> is used.</p>
 <p>Instant recordings will not sort in their correct alphabetic sequence
 (sorting on time or date will work).</p>
-</dl>
 <table border="0" width="100%" cellspacing="0" cellpadding="3">
 <tr><td class="block" style="background-color: #cccccc" valign="middle">
 <big><strong><span class="block">&nbsp;getWizPnP</span></strong></big>
