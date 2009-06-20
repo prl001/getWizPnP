@@ -176,12 +176,13 @@ our @ISA = qw( Beyonwiz::Recording::Accessor );
 my $accessorsDone;
 
 sub new() {
-    my ($class, $base, $extensions) = @_;
+    my ($class, $base, $extensions, $stopFolders) = @_;
     $class = ref($class) if(ref($class));
 
     my %fields = (
-	base       => $base,
-	extensions => { map { ($_, 1) } @$extensions },
+	base        => $base,
+	extensions  => { map { ($_, 1) } @$extensions },
+	stopFolders => { map { ($_, 1) } @$stopFolders },
     );
 
     my $self = Beyonwiz::Recording::Accessor->new;
@@ -202,11 +203,20 @@ sub new() {
 
 sub extensions($;$) {
     my ($self, $val) = @_;
-    my @oldval = keys %{$self->{extensions}};
+    my $oldval = [ keys %{$self->{extensions}} ];
     if(@_ == 2) {
-	%{$self->{extensions}} = { map { ($_, 1) } %{$self->{extensions}} },
+	%{$self->{extensions}} = { map { ($_, 1) } @$val },
     }
-    return [ @oldval ];
+    return $oldval;
+}
+
+sub stopFolders($;$) {
+    my ($self, $val) = @_;
+    my $oldval = [ keys %{$self->{stopFolders}} ];
+    if(@_ == 2) {
+	%{$self->{stopFolders}} = { map { ($_, 1) } @$val },
+    }
+    return $oldval;
 }
 
 sub joinPaths($@) {
@@ -294,6 +304,12 @@ sub loadIndex($) {
     our $baseLen = length($base);
 
     sub process() {
+	# Prune search if the current folder's name is in the stop list
+	if(-d $_ && $self->{stopFolders}{basename($_)}) {
+	    $File::Find::prune = 1;
+	    return;
+	}
+
 	my $cutBase = substr($File::Find::name, $baseLen, 1) eq '/'
 			? $baseLen + 1
 			: $baseLen;
