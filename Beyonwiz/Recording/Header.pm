@@ -94,6 +94,44 @@ L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
 
 Returns (sets) the name of the header document (file name part only).
 
+=item C<< $h->magic([$val]); >>
+
+Returns (sets) the header magic number (0x1062). Returns C<undef>
+if the header is for a media file.
+
+=item C<< $h->version([$val]); >>
+
+Returns (sets) the header version number (0x1062). Returns C<undef>
+if the header is for a media file.
+
+=item C<< $h->pids([$val]); >>
+
+Returns (sets) a reference to a list of Packet IDs (PIDs) for the recording.
+C<< $h->pids->[0] >> is the video PID,
+C<< $h->pids->[1] >> is the main audio pid,
+C<< $h->pids->[2] >> is the Program Clock Reference (PCR) PID and
+C<< $h->pids->[3] >> is the Program Map table PID for the recorded program.
+Returns C<[0, 0, 0, 0]>
+if the header is for a media file.
+
+The lowest-order 13 bits of the values contain the PID
+C<< $h->pids->[$n] & 0x1fff >>.
+The remaining bits are reserved for flags.
+The only known flag is C<0x8000> in the main audio PID,
+which indicates that the audio AC3 (rather than MPEG-2).
+
+=item C<< $h->pid($n); >>
+=item C<< $h->pidFlags($n); >>
+
+Two utility that return, respectively,
+C<< $h->pids->[$n] & 0x1fff >>
+and
+C<< $h->pids->[$n] & ~0x1fff >>,
+the corresponding true PID value from C<< $h->pids->[$n] >>
+and the flags component.
+
+Both methods return 0 if the header is not for a Beyonwiz recording.
+
 =item C<< $h->isTV; $h->isRadio; $h->isMediaFolder $h->isMediaFile >>
 
 Returns true if C<< $h->validMain; >> is true and the recording
@@ -103,16 +141,10 @@ or a single media file.
 All can return false if
 C<< $h->headerName >> has not been set.
 
-=item C<< $h->unknown([$val]); >>
-
-Returns (sets) the array reference of the 5 words in the header file
-whose interpretation has not yet been made public.
-
 =item C<< $h->lock([$val]); >>
 
-Returns (sets) lock flag. Possibly the flag that indicates the
-recording has a parental lock set on the Beyonwiz.
-Unused in WizFX.
+Returns (sets) the flag implementing the Beyonwiz File Lock on
+the recording.
 
 =item C<< $h->full([$val]); >>
 
@@ -133,10 +165,23 @@ Returns (sets) the recording service (LCN) name.
 Returns (sets) the recording title (event name).
 Returns the non-folder part of recording's index name if
 it has no title set.
+Any leading ASCII control characters (0x00-0x1f) in the header value
+are stripped off.
 
 =item C<< $h->episode([$val]); >>
 
 Returns (sets) the recording episode name (subtitle).
+Any leading ASCII control characters (0x00-0x1f) in the header value
+are stripped off.
+
+In free-to-air EPGs, this field is sometimes used as the program
+synopsis (see C<< $h->extInfo >>), rather than the episode name.
+
+=item C<< $h->extInfo([$val]); >>
+
+Returns (sets) the recording extended information (program synopsis).
+Any leading ASCII control characters (0x00-0x1f) in the header value
+are stripped off.
 
 =item C<< $h->longTitle([$addEpisode[, $sep]]; >>
 
@@ -144,7 +189,7 @@ Returns C<< $h->title . '/' . $h->episode >> if the episode name
 can be loaded and is non-empty, otherwise returns
 C<< $h->title >>.
 If C<$addEpisode> is specified and false, the episode name is not
-added in ant case.
+added in any case.
 If C<$sep> is specified, it is used instead of C<'/'> as the separator
 between title and episode name.
 
@@ -394,29 +439,33 @@ sub new($$$) {
     my ($class, $accessor, $ie) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
-	accessor       => $accessor,
-	validMain      => undef,
-	validEpisode   => undef,
-	validExtInfo   => undef,
-	validBookmarks => undef,
-	validOffsets   => undef,
-	ie             => $ie,
-	headerName     => undef,
-	unknown        => [],
-	lock           => undef,
-	full           => undef,
-	inRec          => undef,
-	service        => undef,
-	title          => undef,
-	episode        => undef,
-	extInfo        => undef,
-	mjd            => undef,
-	start          => undef,
-	last           => undef,
-	sec            => undef,
-	endOffset      => undef,
-	offsets        => [],
-	bookmarks      => [],
+	accessor	=> $accessor,
+	validMain	=> undef,
+	validEpisode	=> undef,
+	validExtInfo	=> undef,
+	validBookmarks	=> undef,
+	validOffsets	=> undef,
+	ie		=> $ie,
+	headerName	=> undef,
+	magic		=> undef,
+	version		=> undef,
+	pids		=> [],
+	lock		=> undef,
+	full		=> undef,
+	inRec		=> undef,
+	autoDelete	=> undef,
+	autoDeleteFlags	=> undef,
+	service		=> undef,
+	title		=> undef,
+	episode		=> undef,
+	extInfo		=> undef,
+	mjd		=> undef,
+	start		=> undef,
+	last		=> undef,
+	sec		=> undef,
+	endOffset	=> undef,
+	offsets		=> [],
+	bookmarks	=> [],
     };
 
     unless($accessorsDone) {
@@ -427,6 +476,22 @@ sub new($$$) {
     return bless $self, $class;
 }
 
+sub magic($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{magic};
+    $self->{magic} = $val if(@_ == 2);
+    return $ret;
+}
+
+sub version($;$) {
+    my ($self, $val) = @_;
+    $self->loadMain if(!$self->validMain);
+    my $ret = $self->{version};
+    $self->{version} = $val if(@_ == 2);
+    return $ret;
+}
+
 sub headerName($;$) {
     my ($self, $val) = @_;
     $self->loadMain if(!$self->validMain);
@@ -435,13 +500,28 @@ sub headerName($;$) {
     return $ret;
 }
 
-sub unknown($;$) {
+sub pids($;$) {
     my ($self, $val) = @_;
     $self->loadMain if(!$self->validMain);
-    my $ret = $self->{unknown};
-    $self->{unknown} = $val if(@_ == 2);
+    my $ret = $self->{pids};
+    $self->{pids} = $val if(@_ == 2);
     return $ret;
 }
+
+sub pid($$) {
+    my ($self, $p) = @_;
+    my $pids = $self->pids;
+    return undef if(!defined $pids);
+    return $pids->[$p] & 0x1fff;
+}
+
+sub pidFlags($$) {
+    my ($self, $p) = @_;
+    my $pids = $self->pids;
+    return undef if(!defined $pids);
+    return $pids->[$p] & ~0x1fff;
+}
+
 
 sub lock($;$) {
     my ($self, $val) = @_;
@@ -722,17 +802,18 @@ sub decodeMain($$) {
 
     if(defined $hdr_data
     && length($hdr_data) >= HDR_MAIN_SZ) {
-	my ($so0, $so1, $eo0, $eo1);
+	my ($ad0, $ad1, $so0, $so1, $eo0, $eo1);
 	(
-	    $self->{unknown}[0],
-	    $self->{unknown}[1],
-	    $self->{unknown}[2],
-	    $self->{unknown}[3],
-	    $self->{unknown}[4],
-	    $self->{unknown}[5],
+	    $self->{magic},
+	    $self->{version},
+	    $self->{pids}[0],
+	    $self->{pids}[1],
+	    $self->{pids}[2],
+	    $self->{pids}[3],
 	    $self->{lock},
 	    $self->{full},
 	    $self->{inRec},
+	    $ad0, $ad1,
 	    $self->{service},
 	    $self->{title},
 	    $self->{mjd},
@@ -741,14 +822,16 @@ sub decodeMain($$) {
 	    $self->{sec},
 	    $eo0, $eo1,
 	    $so0, $so1,
-	) = unpack 'v6 C3 @1024 Z256 Z256 v x2 V v v @1548 (V2)2',
+	) = unpack 'v6 C3 x C2 @1024 Z256 Z256 v x2 V v v @1548 (V2)2',
 		$hdr_data;
 	$self->{validMain} = 1;
 	$self->endOffset(($eo1 << 32) | $eo0);
 	$self->{offsets}->[0] = (($so1 << 32) | $so0);
+	$self->{autoDelete} = (($ad0 & 0xf0) << 4) | $ad1;
+	$self->{autoDeleteFlags} = $ad0 & 0xf;
+	$self->{title} =~ s/^[\x00-\x1f]+//;
     } else {
 	$self->{validMain} = 0;
-	@{$self->{unknown}} = ();
     }
 }
 
@@ -760,6 +843,7 @@ sub decodeEpisode($$) {
 	my $len = unpack 'C', $hdr_data;
 	$len = HDR_EPISODE_SZ if($len > HDR_EPISODE_SZ);
 	my $episode = unpack '@1 Z' . $len, $hdr_data;
+	$episode =~ s/^[\x00-\x1f]+//;
 	$episode =~ s/^\s+//;
 	$episode =~ s/\s+$//;
 	$self->{validEpisode} = 1;
@@ -778,6 +862,7 @@ sub decodeExtInfo($$) {
 	my $len = unpack 'v', $hdr_data;
 	$len = HDR_EXTINFO_SZ if($len > HDR_EXTINFO_SZ);
 	my $extInfo = unpack '@2 Z' . $len, $hdr_data;
+	$extInfo =~ s/^[\x00-\x1f]+//;
 	$self->{validExtInfo} = 1;
 	$self->extInfo($extInfo);
     } else {
@@ -824,28 +909,33 @@ sub decodeOffsets($$) {
 
 sub _setMainMediaFile($$$) {
     my ($self, $size, $time)= @_;
-	$self->{lock}		= 0;
-	$self->{full}		= 0;
-	$self->{inRec}		= 0;
-	$self->{service}	= 'Content';
-	$self->{title}		= basename($self->name);
-	$self->{last}		= -1;
-	$self->{sec}		= -1;
-	$self->{validMain}	= 1;
+	$self->{magic}		 = undef,
+	$self->{version}	 = undef,
+	@{$self->{pids}}	 = [0, 0, 0, 0],
+	$self->{autoDelete}	 = undef,
+	$self->{autoDeleteFlags} = undef,
+	$self->{lock}		 = 0;
+	$self->{full}		 = 0;
+	$self->{inRec}		 = 0;
+	$self->{service}	 = 'Content';
+	$self->{title}		 = basename($self->name);
+	$self->{last}		 = -1;
+	$self->{sec}		 = -1;
+	$self->{validMain}	 = 1;
 	$self->endOffset($size);
-	$self->{offsets}->[0]	= 0;
+	$self->{offsets}->[0]	 = 0;
 	$self->_setUnixTime($time);
 
-	$self->{validEpisode}	= 1;
+	$self->{validEpisode}	 = 1;
 	$self->episode('');
 
-	$self->{validExtInfo}	= 1;
+	$self->{validExtInfo}	 = 1;
 	$self->extInfo('');
 
-	$self->{validBookmarks}	= 1;
-	@{$self->bookmarks}	= ();
+	$self->{validBookmarks}	 = 1;
+	@{$self->bookmarks}	 = ();
 
-	$self->{validOffsets}	= 1;
+	$self->{validOffsets}	 = 1;
 	$self->size(0);
 }
 
