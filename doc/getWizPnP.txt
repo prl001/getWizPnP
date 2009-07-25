@@ -65,8 +65,8 @@ DESCRIPTION
 
     When listing recordings, recordings that are currently recording are
     flagged with "*RECORDING NOW" next to the recording name, recordings
-    that have File Lock set are flagged with "LOCKED", and recordings with
-    AC3 (Dolby Digital) are flagged "AC3". The tags are not part of the name
+    that have File Lock set are flagged with *LOCKED, and recordings with
+    AC3 (Dolby Digital) are flagged *AC3. The tags are not part of the name
     for matching. *GetWizPnP* won't fetch recordings that are currently in
     progress.
 
@@ -197,16 +197,20 @@ ARGUMENTS
           --delete
           -X
 
-        Delete the matching recordings, rather than copying them. Delete
-        uses an undocumented feature of WizPnP. See "BUGS".
+        Delete the matching recordings, rather than copying them. If File
+        Lock is set on the recording, the operation will be skipped and a
+        warning message printed. The operation can be forced by using
+        --force Delete uses an undocumented feature of WizPnP. See "BUGS".
 
     move
           --move
           -M
 
         Move the specified recordings to the output directory. Equivalent to
-        a copy followed by a delete for each matching recording. Move uses
-        an undocumented feature of WizPnP. See "BUGS".
+        a copy followed by a delete for each matching recording. If File
+        Lock is set on the recording, the operation will be skipped and a
+        warning message printed. The operation can be forced by using
+        --force Move uses an undocumented feature of WizPnP. See "BUGS".
 
     media
             --media=exts
@@ -666,7 +670,7 @@ ARGUMENTS
         Allow resumption of downloading of recordings that appear to be
         incomplete.
 
-    resume
+    force
           --force
           -F
           --noforce

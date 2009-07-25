@@ -98,8 +98,8 @@ Downloaded recordings are placed in the current directory unless <strong>--<a hr
 has been specified.</p>
 <p>When listing recordings, recordings that are currently recording are flagged
 with <code>*RECORDING NOW</code> next to the recording name,
-recordings that have File Lock set are flagged with <code>LOCKED</code>,
-and recordings with AC3 (Dolby Digital) are flagged <code>AC3</code>.
+recordings that have File Lock set are flagged with <code>*LOCKED</code>,
+and recordings with AC3 (Dolby Digital) are flagged <code>*AC3</code>.
 The tags are not part of the name for matching.
 <em>GetWizPnP</em> won't fetch recordings that are currently in progress.</p>
 <p>The default is for <strong>getWizPnP</strong> to perform its operations on the
@@ -273,6 +273,9 @@ file (see <strong><a href="#files">FILES</a></strong> below).
 </dd>
 <dd>
 <p>Delete the matching recordings, rather than copying them.
+If File Lock is set on the recording, the operation will be skipped and
+a warning message printed.
+The operation can be forced by using <strong>--<a href="#item_force">force</a></strong>
 Delete uses an undocumented feature of WizPnP. See <strong><a href="#bugs">BUGS</a></strong>.</p>
 </dd>
 <dt><strong><a name="item_move">move</a></strong>
@@ -285,6 +288,9 @@ Delete uses an undocumented feature of WizPnP. See <strong><a href="#bugs">BUGS<
 <dd>
 <p>Move the specified recordings to the output directory.
 Equivalent to a copy followed by a delete for each matching recording.
+If File Lock is set on the recording, the operation will be skipped and
+a warning message printed.
+The operation can be forced by using <strong>--<a href="#item_force">force</a></strong>
 Move uses an undocumented feature of WizPnP. See <strong><a href="#bugs">BUGS</a></strong>.</p>
 </dd>
 <dt><strong><a name="item_media">media</a></strong>
@@ -959,7 +965,7 @@ from the Beyonwiz for examination on a PC.</p>
 <dd>
 <p>Allow resumption of downloading of recordings that appear to be incomplete.</p>
 </dd>
-<dt><strong>resume</strong>
+<dt><strong><a name="item_force">force</a></strong>
 
 <dd>
 <pre>

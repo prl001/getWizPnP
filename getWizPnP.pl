@@ -225,6 +225,9 @@ List the matching recordings, rather than copying them.
   -X
 
 Delete the matching recordings, rather than copying them.
+If File Lock is set on the recording, the operation will be skipped and
+a warning message printed.
+The operation can be forced by using B<--L<force>>
 Delete uses an undocumented feature of WizPnP. See B<L</BUGS>>.
 
 =item move
@@ -234,6 +237,9 @@ Delete uses an undocumented feature of WizPnP. See B<L</BUGS>>.
 
 Move the specified recordings to the output directory.
 Equivalent to a copy followed by a delete for each matching recording.
+If File Lock is set on the recording, the operation will be skipped and
+a warning message printed.
+The operation can be forced by using B<--L<force>>
 Move uses an undocumented feature of WizPnP. See B<L</BUGS>>.
 
 =item media
@@ -749,7 +755,7 @@ B<--noL<ts>> and B<--not> undo the setting of this option.
 
 Allow resumption of downloading of recordings that appear to be incomplete.
 
-=item resume
+=item force
 
   --force
   -F
