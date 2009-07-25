@@ -105,20 +105,6 @@ Returns (sets) the timeout used when fetching the Beyonwiz device descriptor
 using HTTP. Defaults to C<undef>. When set to C<undef> uses the C<LWP>
 default timeout (180 sec).
 
-=item C<< $wpnp->cacheEnable([$val]); >>
-
-Returns (sets) the enable flag for the device location
-lookup cache.
-Only has an effect if executed on a derived class that
-implements caching.
-
-=item C<< $wpnp->cacheLifetime([$val]); >>
-
-Returns (sets) the lifetime of a Beyonwiz location cache
-entry in seconds.
-Only has an effect if executed on a derived class that
-implements caching.
-
 =item C<< $wpnp->deviceNames; >>
 
 Returns the list of discovered device names.
@@ -173,12 +159,6 @@ Sorts the device entries using C<< $wpnp->sort; >>.
 
 Returns the number of devices found.
 
-=item C<< $wpnp->cacheFlush; >>
-
-Clear the Beyonwiz location cache.
-Only has an effect if executed on a derived class that
-implements caching.
-
 =back
 
 =head1 INTERNAL METHODS
@@ -189,7 +169,8 @@ implements caching.
 
 Returns (sets) a flag to suppress some warning messages during device
 location specifier processing. Intended for use by derived clases when
-they are testing for the presence of a Beyonwiz device and will take recovery action.
+they are testing for the presence of a Beyonwiz device
+and will take recovery action.
 
 =item C<< $wpnp->_requestSock([$val]); >>
 
@@ -340,8 +321,6 @@ sub new($) {
 	wizpnpTimeout	=> SSDPTIMEOUT,
 	wizpnpPoll	=> SSDPNPOLL,
 	httpTimeout	=> undef,
-	cacheEnable	=> undef,
-	cacheLifetime	=> undef,
 	_quietLocation	=> 0,
 	_requestSock	=> undef,
 	_responseSock	=> undef,
@@ -630,10 +609,6 @@ sub search($) {
     }
     $self->sort;
     return $self->ndevices;
-}
-
-sub cacheFlush($) {
-    my ($self) = @_;
 }
 
 sub main(;$$$) {
