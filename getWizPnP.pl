@@ -25,7 +25,7 @@ getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network
               [--resume|-R] [--force|-F]
               [--outdir=dir|-O dir] [--indir=dir|-I dir]
               [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
-              [--index|-x]
+              [--debug=debugcode] [--index|-x]
               [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]
               [ patterns... ]
 
@@ -70,8 +70,10 @@ Downloaded recordings are placed in the current directory unless B<--L<outdir>>
 has been specified.
 
 When listing recordings, recordings that are currently recording are flagged
-with C<*RECORDING NOW> next to the recording name.
-The tag is not part of the name for matching.
+with C<*RECORDING NOW> next to the recording name,
+recordings that have File Lock set are flagged with C<*LOCKED>,
+and recordings with AC3 (Dolby Digital) are flagged C<*AC3>.
+The tags are not part of the name for matching.
 I<GetWizPnP> won't fetch recordings that are currently in progress.
 
 The default is for B<getWizPnP> to perform its operations on the
@@ -771,11 +773,6 @@ copied while the transfer is running, and the average transfer rate
 for the copy when the copy completes.
 Level 2 includes the program synopsis, if there is one.
 Level 3 includes a display of any bookmarks in the file.
-Level 4 includes information from the C<trunc> header file, and displays
-a list of the file fragments that make up the recording.
-Level 5 includes a listing of the time/recording offset information
-for the file. This is a long listing (one line for every 10 seconds of
-the recording).
 
 The units used in the verbose listings are in terms of mebibytes (MiB)
 and mebibits (Mib).
@@ -802,6 +799,29 @@ Mixing B<--Verbose> and B<--L<verbose>> probably doesn't help with
 clarity in commands.
 
 See also B<--L<verbose>>.
+
+=item debug
+
+  --debug=debugcodes
+
+Prints some technical debugging information about a Beyonwiz recording.
+The options print nothing for non-Beyonwiz media files.
+The debug options are a comma-separated list of:
+
+B<pids> prints the Transport Stream Packet IDs in the recording header,
+along with the header "magic number" and version number.
+B<trunc> prints information from the C<trunc> header file, and displays
+a list of the file fragments that make up the recording.
+B<offsets> prints a listing of the time/recording offset information
+for the file. This is a long listing (one line for every 10 seconds of
+the recording).
+B<all> enables all debug options.
+
+Any valid substring in debugcodes matches the option.
+C<--debug=p,t> is equivalent to C<--debug=pids,trunc>.
+If a I<debugcode> matches more than one option, a warning is printed
+(this should not be possible with the current option set), but the operation
+proceeds.
 
 =item quiet
 
@@ -1067,6 +1087,18 @@ use constant MATCH_REGEXP => 1;
 use constant MATCH_EXPR   => 2;
 use constant MATCH_BWNAME => 3;
 
+use constant DEBUG_PIDS    => 1 << 0;
+use constant DEBUG_TRUNC   => 1 << 1;
+use constant DEBUG_OFFSETS => 1 << 2;
+use constant DEBUG_ALL     => DEBUG_PIDS | DEBUG_TRUNC | DEBUG_OFFSETS;
+
+my %debugOpts = (
+    pids    => DEBUG_PIDS,
+    trunc   => DEBUG_TRUNC,
+    offsets => DEBUG_OFFSETS,
+    all     => DEBUG_ALL,
+);
+
 our $device_name;
 our $host;
 our $port = 49152;
@@ -1095,6 +1127,7 @@ our (
 	$dateLast,
 	$episode,
 	$verbose,
+	$debug,
 	$indexName,
 	$longNames,
 	$quiet,
@@ -1105,7 +1138,7 @@ our (
 	$discover,
 	$wizpnpPoll,
 	$wizpnpTimeout,
-    ) = ((0) x 23);
+    ) = ((0) x 24);
 
 our (
 	# initialised to 1
@@ -1187,9 +1220,12 @@ my $dictStopRe;
 my %dictionarySort;
 my @dictStoplist;
 my @sortCmpFns;
+my $debugStr;
 my $mode = MODE_COPY;
 my $matchType = MATCH_SUBSTR;
 my $accessor;
+
+my @pids = qw( vidPID audPID PCRPID PMTPID );
 
 sub Usage {
     die "Usage: $0 [--help|-h]\n",
@@ -1210,7 +1246,7 @@ sub Usage {
 	"                  [--resume|-R] [--force|-F]\n",
 	"                  [--outdir=dir|-O dir] [--indir=dir|-I dir]\n",
 	"                  [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]\n",
-	"                  [--index|-x]\n",
+	"                  [--debug=debugcode] [--index|-x]\n",
 	"                  [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]\n",
 	"                  [ patterns... ]\n";
 }
@@ -1278,6 +1314,7 @@ GetOptions(
 	'stopFolders:s'		=> \@stopFolders,
 	'v|verbose+'		=> \$verbose,
 	'V|Verbose=i'		=> \$verbose,
+	'debug=s'		=> \$debugStr,
 	'x|index!'		=> \$indexName,
 	'discover'		=> \$discover,
 	'wizpnpPoll=i'		=> \$wizpnpPoll,
@@ -1430,6 +1467,27 @@ sub mergeHash($$) {
     }
 }
 
+sub processDebug($) {
+    my ($debugStr) = @_;
+    return if(!$debugStr);
+    my @opts = @{expandCommaList([$debugStr], 1)};
+    foreach my $o (@opts) {
+	my $matches = 0;
+	foreach my $k (keys %debugOpts) {
+	    if(length $o > 0 && $o eq substr $k, 0, length $o) {
+		$debug |= $debugOpts{$k};
+		$matches++;
+	    }
+	}
+	if($matches == 0) {
+	    warn "Unrecognised debug option $o\n";
+	}
+	if($matches > 1) {
+	    warn "Debug option $o matches more than one option\n";
+	}
+    }
+}
+
 sub processOpts() {
 
     $verbose = $verbose - $quiet;
@@ -1526,6 +1584,8 @@ sub processOpts() {
     $nameFormat .= "%=-D" if($date && !$dateLast);
     $nameFormat .= "%=-E" if($episode);
     $nameFormat .= "%=-D" if($date && $dateLast);
+
+    processDebug($debugStr);
 }
 
 sub joinFlag($) {
@@ -1772,10 +1832,12 @@ sub doRecordingOperation($$$$$$) {
     return if(!$hdr->validMain);
 
     print $hdr->service, ': ', $hdr->longTitle,
-		($hdr->inRec          ? ' *RECORDING NOW' : ''),
-		($mode == MODE_COPY   ? ' - Copy'         : ''),
-		($mode == MODE_DELETE ? ' - Delete'       : ''),
-		($mode == MODE_MOVE   ? ' - Move'         : ''),
+		($hdr->inRec			? ' *RECORDING NOW' : ''),
+		($hdr->lock			? ' *LOCKED'        : ''),
+		(($hdr->pidFlags(1) & 0x8000)	? ' *AC3'           : ''),
+		($mode == MODE_COPY		? ' - Copy'         : ''),
+		($mode == MODE_DELETE		? ' - Delete'       : ''),
+		($mode == MODE_MOVE		? ' - Move'         : ''),
 		"\n";
     if($verbose >= 2 && $hdr->extInfo && length($hdr->extInfo) > 0) {
 	$info = $hdr->extInfo;
@@ -1798,6 +1860,19 @@ sub doRecordingOperation($$$$$$) {
 		$hdr->playtime >= 0
 		    ? sprintf '%5.1f', $mbytes * 8 / $hdr->playtime
 		    : '-----';
+	if(defined $hdr->autoDelete) {
+	    if($hdr->autoDeleteFlags & 0x2) {
+		my $delTime = gmtime($hdr->starttime + $hdr->autoDelete);
+		$delTime = substr($delTime, 0, 10) . substr($delTime, 19);
+		printf "    autoDelete: %d day%s (on %s)",
+		    $hdr->autoDelete,
+		    ($hdr->autoDelete == 1 ? '' : 's'),
+		    $delTime;
+	    } else {
+		print "    autoDelete: Never";
+	    }
+	    print "\n";
+	}
 	printf "    recording name: %s\n",
 		$rec->getRecordingName($hdr, $ie->name, $rec->join)
 	    if($mode == MODE_COPY || $mode == MODE_MOVE);
@@ -1812,7 +1887,20 @@ sub doRecordingOperation($$$$$$) {
 	    }
 	}
     }
-    if($verbose >= 4) {
+    if(($debug & DEBUG_PIDS) && defined $hdr->magic) {
+	printf "    magic: 0x%04x version: %d\n",
+	    $hdr->magic, $hdr->version;
+	foreach my $p (0..3) {
+	    printf '   ' if(!($p & 1));
+	    my $pid = $hdr->pid($p);
+	    my $pFlags = $hdr->pidFlags($p);
+	    printf ' %s: %4d (0x%04x) %s',
+		$pids[$p], $pid, $pid,
+		($p == 1 && ($pFlags & 0x8000) ? ' AC3' : '');
+	    printf "\n" if($p & 1);
+	}
+    }
+    if($debug & DEBUG_TRUNC) {
 	$trunc = newTrunc($indir, $device, $ie);
 	$trunc->load;
 
@@ -1832,7 +1920,7 @@ sub doRecordingOperation($$$$$$) {
 	    }
 	}
     }
-    if($verbose >= 5) {
+    if($debug & DEBUG_OFFSETS) {
 	if($hdr->noffsets > 0) {
 	    printf "    %4s %7s %14s\n", 'Num', 'Time', 'Rec Offset';
 	    for(my $i = 0; $i < $hdr->noffsets; $i++) {
@@ -1840,6 +1928,12 @@ sub doRecordingOperation($$$$$$) {
 		    $i, int($i/6), $i * 10 % 60, $hdr->offsets->[$i];
 	    }
 	}
+    }
+    if(($mode == MODE_DELETE || $mode == MODE_MOVE)
+    && $hdr->lock && !$force) {
+	warn "Recording ", $hdr->longTitle, " is locked, skipped\n";
+	print "\n" if($verbose >= 1);
+	return;
     }
     if(!$dryrun) {
 	if($mode == MODE_MOVE) {
@@ -1898,7 +1992,7 @@ sub doRecordingOperation($$$$$$) {
 	    }
 	}
     }
-    print "\n" if($verbose >= 1);
+    print "\n" if($verbose >= 1 || $debug);
 
 }
 
