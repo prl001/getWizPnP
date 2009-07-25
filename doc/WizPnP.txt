@@ -77,16 +77,6 @@ METHODS
         descriptor using HTTP. Defaults to "undef". When set to "undef" uses
         the "LWP" default timeout (180 sec).
 
-    "$wpnp->cacheEnable([$val]);"
-        Returns (sets) the enable flag for the device location lookup cache.
-        Only has an effect if executed on a derived class that implements
-        caching.
-
-    "$wpnp->cacheLifetime([$val]);"
-        Returns (sets) the lifetime of a Beyonwiz location cache entry in
-        seconds. Only has an effect if executed on a derived class that
-        implements caching.
-
     "$wpnp->deviceNames;"
         Returns the list of discovered device names. All lower-cased. No
         particular order.
@@ -130,10 +120,6 @@ METHODS
         Sorts the device entries using "$wpnp->sort;".
 
         Returns the number of devices found.
-
-    "$wpnp->cacheFlush;"
-        Clear the Beyonwiz location cache. Only has an effect if executed on
-        a derived class that implements caching.
 
 INTERNAL METHODS
 

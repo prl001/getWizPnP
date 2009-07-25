@@ -151,6 +151,54 @@ used to retrieve name and path information for the recording.</p>
 <p>Returns (sets) the name of the header document (file name part only).</p>
 </dd>
 </li>
+<dt><strong><a name="item_magic"><code>$h-&gt;magic([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the header magic number (0x1062). Returns <code>undef</code>
+if the header is for a media file.</p>
+</dd>
+</li>
+<dt><strong><a name="item_version"><code>$h-&gt;version([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the header version number (0x1062). Returns <code>undef</code>
+if the header is for a media file.</p>
+</dd>
+</li>
+<dt><strong><a name="item_pids"><code>$h-&gt;pids([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) a reference to a list of Packet IDs (PIDs) for the recording.
+<a href="#item_pids"><code>$h-&gt;pids-&gt;[0]</code></a> is the video PID,
+<a href="#item_pids"><code>$h-&gt;pids-&gt;[1]</code></a> is the main audio pid,
+<a href="#item_pids"><code>$h-&gt;pids-&gt;[2]</code></a> is the Program Clock Reference (PCR) PID and
+<a href="#item_pids"><code>$h-&gt;pids-&gt;[3]</code></a> is the Program Map table PID for the recorded program.
+Returns <code>[0, 0, 0, 0]</code>
+if the header is for a media file.</p>
+</dd>
+<dd>
+<p>The lowest-order 13 bits of the values contain the PID
+<a href="#item_pids"><code>$h-&gt;pids-&gt;[$n] &amp; 0x1fff</code></a>.
+The remaining bits are reserved for flags.
+The only known flag is <code>0x8000</code> in the main audio PID,
+which indicates that the audio AC3 (rather than MPEG-2).</p>
+</dd>
+</li>
+<dt><strong><a name="item_pid"><code>$h-&gt;pid($n);</code>
+=item <code>$h-&gt;pidFlags($n);</code></a></strong>
+
+<dd>
+<p>Two utility that return, respectively,
+<a href="#item_pids"><code>$h-&gt;pids-&gt;[$n] &amp; 0x1fff</code></a>
+and
+<a href="#item_pids"><code>$h-&gt;pids-&gt;[$n] &amp; ~0x1fff</code></a>,
+the corresponding true PID value from <a href="#item_pids"><code>$h-&gt;pids-&gt;[$n]</code></a>
+and the flags component.</p>
+</dd>
+<dd>
+<p>Both methods return 0 if the header is not for a Beyonwiz recording.</p>
+</dd>
+</li>
 <dt><strong><a name="item_istv"><code>$h-&gt;isTV; $h-&gt;isRadio; $h-&gt;isMediaFolder $h-&gt;isMediaFile</code></a></strong>
 
 <dd>
@@ -162,19 +210,11 @@ All can return false if
 <a href="#item_headername"><code>$h-&gt;headerName</code></a> has not been set.</p>
 </dd>
 </li>
-<dt><strong><a name="item_unknown"><code>$h-&gt;unknown([$val]);</code></a></strong>
-
-<dd>
-<p>Returns (sets) the array reference of the 5 words in the header file
-whose interpretation has not yet been made public.</p>
-</dd>
-</li>
 <dt><strong><a name="item_lock"><code>$h-&gt;lock([$val]);</code></a></strong>
 
 <dd>
-<p>Returns (sets) lock flag. Possibly the flag that indicates the
-recording has a parental lock set on the Beyonwiz.
-Unused in WizFX.</p>
+<p>Returns (sets) the flag implementing the Beyonwiz File Lock on
+the recording.</p>
 </dd>
 </li>
 <dt><strong><a name="item_full"><code>$h-&gt;full([$val]);</code></a></strong>
@@ -202,13 +242,29 @@ Unused in WizFX.</p>
 <dd>
 <p>Returns (sets) the recording title (event name).
 Returns the non-folder part of recording's index name if
-it has no title set.</p>
+it has no title set.
+Any leading ASCII control characters (0x00-0x1f) in the header value
+are stripped off.</p>
 </dd>
 </li>
 <dt><strong><a name="item_episode"><code>$h-&gt;episode([$val]);</code></a></strong>
 
 <dd>
-<p>Returns (sets) the recording episode name (subtitle).</p>
+<p>Returns (sets) the recording episode name (subtitle).
+Any leading ASCII control characters (0x00-0x1f) in the header value
+are stripped off.</p>
+</dd>
+<dd>
+<p>In free-to-air EPGs, this field is sometimes used as the program
+synopsis (see <a href="#item_extinfo"><code>$h-&gt;extInfo</code></a>), rather than the episode name.</p>
+</dd>
+</li>
+<dt><strong><a name="item_extinfo"><code>$h-&gt;extInfo([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the recording extended information (program synopsis).
+Any leading ASCII control characters (0x00-0x1f) in the header value
+are stripped off.</p>
 </dd>
 </li>
 <dt><strong><a name="item_longtitle"><code>$h-&gt;longTitle([$addEpisode[, $sep]];</code></a></strong>
@@ -218,7 +274,7 @@ it has no title set.</p>
 can be loaded and is non-empty, otherwise returns
 <a href="#item_title"><code>$h-&gt;title</code></a>.
 If <code>$addEpisode</code> is specified and false, the episode name is not
-added in ant case.
+added in any case.
 If <code>$sep</code> is specified, it is used instead of <code>'/'</code> as the separator
 between title and episode name.</p>
 </dd>

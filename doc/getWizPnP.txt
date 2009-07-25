@@ -23,7 +23,7 @@ SYNOPSIS
                   [--resume|-R] [--force|-F]
                   [--outdir=dir|-O dir] [--indir=dir|-I dir]
                   [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
-                  [--index|-x]
+                  [--debug=debugcode] [--index|-x]
                   [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]
                   [ patterns... ]
 
@@ -64,9 +64,11 @@ DESCRIPTION
     --outdir has been specified.
 
     When listing recordings, recordings that are currently recording are
-    flagged with "*RECORDING NOW" next to the recording name. The tag is not
-    part of the name for matching. *GetWizPnP* won't fetch recordings that
-    are currently in progress.
+    flagged with "*RECORDING NOW" next to the recording name, recordings
+    that have File Lock set are flagged with "LOCKED", and recordings with
+    AC3 (Dolby Digital) are flagged "AC3". The tags are not part of the name
+    for matching. *GetWizPnP* won't fetch recordings that are currently in
+    progress.
 
     The default is for getWizPnP to perform its operations on the recordings
     directly in in the "recordings" folder (and not in its subfolders). See
@@ -686,11 +688,6 @@ ARGUMENTS
         transfer is running, and the average transfer rate for the copy when
         the copy completes. Level 2 includes the program synopsis, if there
         is one. Level 3 includes a display of any bookmarks in the file.
-        Level 4 includes information from the "trunc" header file, and
-        displays a list of the file fragments that make up the recording.
-        Level 5 includes a listing of the time/recording offset information
-        for the file. This is a long listing (one line for every 10 seconds
-        of the recording).
 
         The units used in the verbose listings are in terms of mebibytes
         (MiB) and mebibits (Mib). Mebi- is the ISO name for a multipler of
@@ -715,6 +712,26 @@ ARGUMENTS
         commands.
 
         See also --verbose.
+
+    debug
+          --debug=debugcodes
+
+        Prints some technical debugging information about a Beyonwiz
+        recording. The options print nothing for non-Beyonwiz media files.
+        The debug options are a comma-separated list of:
+
+        pids prints the Transport Stream Packet IDs in the recording header,
+        along with the header "magic number" and version number. trunc
+        prints information from the "trunc" header file, and displays a list
+        of the file fragments that make up the recording. offsets prints a
+        listing of the time/recording offset information for the file. This
+        is a long listing (one line for every 10 seconds of the recording).
+        all enables all debug options.
+
+        Any valid substring in debugcodes matches the option. "--debug=p,t"
+        is equivalent to "--debug=pids,trunc". If a *debugcode* matches more
+        than one option, a warning is printed (this should not be possible
+        with the current option set), but the operation proceeds.
 
     quiet
           --quiet

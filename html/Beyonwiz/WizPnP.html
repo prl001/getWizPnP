@@ -169,24 +169,6 @@ using HTTP. Defaults to <code>undef</code>. When set to <code>undef</code> uses 
 default timeout (180 sec).</p>
 </dd>
 </li>
-<dt><strong><a name="item_cacheenable"><code>$wpnp-&gt;cacheEnable([$val]);</code></a></strong>
-
-<dd>
-<p>Returns (sets) the enable flag for the device location
-lookup cache.
-Only has an effect if executed on a derived class that
-implements caching.</p>
-</dd>
-</li>
-<dt><strong><a name="item_cachelifetime"><code>$wpnp-&gt;cacheLifetime([$val]);</code></a></strong>
-
-<dd>
-<p>Returns (sets) the lifetime of a Beyonwiz location cache
-entry in seconds.
-Only has an effect if executed on a derived class that
-implements caching.</p>
-</dd>
-</li>
 <dt><strong><a name="item_devicenames"><code>$wpnp-&gt;deviceNames;</code></a></strong>
 
 <dd>
@@ -260,14 +242,6 @@ otherwise search until the search times out.</p>
 <p>Returns the number of devices found.</p>
 </dd>
 </li>
-<dt><strong><a name="item_cacheflush"><code>$wpnp-&gt;cacheFlush;</code></a></strong>
-
-<dd>
-<p>Clear the Beyonwiz location cache.
-Only has an effect if executed on a derived class that
-implements caching.</p>
-</dd>
-</li>
 </dl>
 <p>
 </p>
@@ -279,7 +253,8 @@ implements caching.</p>
 <dd>
 <p>Returns (sets) a flag to suppress some warning messages during device
 location specifier processing. Intended for use by derived clases when
-they are testing for the presence of a Beyonwiz device and will take recovery action.</p>
+they are testing for the presence of a Beyonwiz device
+and will take recovery action.</p>
 </dd>
 </li>
 <dt><strong><a name="item__requestsock"><code>$wpnp-&gt;_requestSock([$val]);</code></a></strong>

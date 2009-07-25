@@ -58,7 +58,7 @@
               [--resume|-R] [--force|-F]
               [--outdir=dir|-O dir] [--indir=dir|-I dir]
               [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
-              [--index|-x]
+              [--debug=debugcode] [--index|-x]
               [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]
               [ patterns... ]</pre>
 <p>
@@ -97,8 +97,10 @@ name (if there is one set)
 Downloaded recordings are placed in the current directory unless <strong>--<a href="#item_outdir">outdir</a></strong>
 has been specified.</p>
 <p>When listing recordings, recordings that are currently recording are flagged
-with <code>*RECORDING NOW</code> next to the recording name.
-The tag is not part of the name for matching.
+with <code>*RECORDING NOW</code> next to the recording name,
+recordings that have File Lock set are flagged with <code>LOCKED</code>,
+and recordings with AC3 (Dolby Digital) are flagged <code>AC3</code>.
+The tags are not part of the name for matching.
 <em>GetWizPnP</em> won't fetch recordings that are currently in progress.</p>
 <p>The default is for <strong>getWizPnP</strong> to perform its operations on the
 recordings directly in in the <code>recordings</code> folder (and not in its subfolders).
@@ -987,12 +989,7 @@ The progress indicator shows the transfer rate for the last 20 mebibytes
 copied while the transfer is running, and the average transfer rate
 for the copy when the copy completes.
 Level 2 includes the program synopsis, if there is one.
-Level 3 includes a display of any bookmarks in the file.
-Level 4 includes information from the <code>trunc</code> header file, and displays
-a list of the file fragments that make up the recording.
-Level 5 includes a listing of the time/recording offset information
-for the file. This is a long listing (one line for every 10 seconds of
-the recording).</p>
+Level 3 includes a display of any bookmarks in the file.</p>
 </dd>
 <dd>
 <p>The units used in the verbose listings are in terms of mebibytes (MiB)
@@ -1027,6 +1024,34 @@ clarity in commands.</p>
 </dd>
 <dd>
 <p>See also <strong>--<a href="#item_verbose">verbose</a></strong>.</p>
+</dd>
+<dt><strong><a name="item_debug">debug</a></strong>
+
+<dd>
+<pre>
+  --debug=debugcodes</pre>
+</dd>
+<dd>
+<p>Prints some technical debugging information about a Beyonwiz recording.
+The options print nothing for non-Beyonwiz media files.
+The debug options are a comma-separated list of:</p>
+</dd>
+<dd>
+<p><strong>pids</strong> prints the Transport Stream Packet IDs in the recording header,
+along with the header ``magic number'' and version number.
+<strong>trunc</strong> prints information from the <code>trunc</code> header file, and displays
+a list of the file fragments that make up the recording.
+<strong>offsets</strong> prints a listing of the time/recording offset information
+for the file. This is a long listing (one line for every 10 seconds of
+the recording).
+<strong>all</strong> enables all debug options.</p>
+</dd>
+<dd>
+<p>Any valid substring in debugcodes matches the option.
+<code>--debug=p,t</code> is equivalent to <code>--debug=pids,trunc</code>.
+If a <em>debugcode</em> matches more than one option, a warning is printed
+(this should not be possible with the current option set), but the operation
+proceeds.</p>
 </dd>
 <dt><strong><a name="item_quiet">quiet</a></strong>
 
