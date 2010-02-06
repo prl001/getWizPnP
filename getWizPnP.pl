@@ -780,11 +780,11 @@ for the copy when the copy completes.
 Level 2 includes the program synopsis, if there is one.
 Level 3 includes a display of any bookmarks in the file.
 
-The units used in the verbose listings are in terms of mebibytes (MiB)
-and mebibits (Mib).
-Mebi- is the ISO name for a multipler of 2^20 (1204*1024 = 1048576).
-In computing this multiplier is often (strictly incorrectly) called mega-
-(prefix M). Mega- should be used for a multiplier of 1000000.
+The units used in the verbose listings are in terms of megabytes (MB)
+and megabits (Mb).
+Mega- is strictly used as meaning 10^6 (1000000),
+not as a shorthand for mebi-, the ISO name for a multipler of
+2^20 (1204*1024 = 1048576).
 Mebi- is about 5% more than mega-.
 
 See also B<--L<Verbose>>
@@ -952,17 +952,15 @@ the file C<getwizpnp.conf>.
 
 =head1 PREREQUSITES
 
-Uses packages 
+Uses packages
 L<C<Beyonwiz::WizPnP>|Beyonwiz::WizPnP>,
-L<C<Beyonwiz::Recording::HTTPIndex>|Beyonwiz::Recording::HTTPIndex>,
-L<C<Beyonwiz::Recording::HTTPHeader>|Beyonwiz::Recording::HTTPHeader>,
-L<C<Beyonwiz::Recording::HTTPTrunc>|Beyonwiz::Recording::HTTPTrunc>,
-L<C<Beyonwiz::Recording::HTTPRecording>|Beyonwiz::Recording::HTTPRecording>,
-L<C<Beyonwiz::Recording::FileIndex>|Beyonwiz::Recording::FileIndex>,
-L<C<Beyonwiz::Recording::FileHeader>|Beyonwiz::Recording::FileHeader>,
-L<C<Beyonwiz::Recording::FileTrunc>|Beyonwiz::Recording::FileTrunc>,
-L<C<Beyonwiz::Recording::FileRecording>|Beyonwiz::Recording::FileRecording>,
-C<File::Spec::Functions >,
+L<C<Beyonwiz::Recording::HTTPAccessor>|Beyonwiz::Recording::HTTPAccessor>,
+L<C<Beyonwiz::Recording::FileAccessor>|Beyonwiz::Recording::FileAccessor>,
+L<C<Beyonwiz::Recording::Index>|Beyonwiz::Recording::Index>,
+L<C<Beyonwiz::Recording::Header>|Beyonwiz::Recording::Header>,
+L<C<Beyonwiz::Recording::Trunc>|Beyonwiz::Recording::Trunc>,
+L<C<Beyonwiz::Recording::Recording>|Beyonwiz::Recording::Recording>,
+C<File::Spec::Functions>,
 C<File::Path>,
 C<HTTP::Status>,
 C<Getopt::Long>.
@@ -1376,7 +1374,7 @@ GetOptions(
 	    $self->starttime(Time::HiRes::time);
 	    $self->percen(0);
 	    $self->mb(0);
-	    $self->totMb(int($val / (1024*1024) + 0.5));
+	    $self->totMb(int($val / 1000000 + 0.5));
 	    $self->display('');
 	}
 	return $ret;
@@ -1411,7 +1409,7 @@ GetOptions(
 	}
 	return $startt != 0 && $endt > $startt 
 		    ? ($endd - $startd)/
-		      (($endt - $startt)*1024*1024)
+		      (($endt - $startt)*1000000)
 		    : 0;
     }
 
@@ -1427,7 +1425,7 @@ GetOptions(
 	    my $percen = $self->{done} / $self->total * 100;
 	    my $donechars = int($percen / 2 + 0.5);
 	    $percen = int($percen + 0.5);
-	    my $mb = int($self->{done} / (1024*1024) + 0.5);
+	    my $mb = int($self->{done} / 1000000 + 0.5);
 	    if($percen != $self->percen
 	    || $mb != $self->mb
 	    || $self->display eq ''
@@ -1435,7 +1433,7 @@ GetOptions(
 		my $donestr = '=' x $donechars;
 		my $leftstr = '-' x (50 - $donechars);
 		my $now = Time::HiRes::time;
-		my $dispstr = sprintf "\r|%s%s|%4.1fMiB/s %3d%% %.0f/%.0fMiB",
+		my $dispstr = sprintf "\r|%s%s|%4.1fMB/s %3d%% %.0f/%.0fMB",
 		    $donestr, $leftstr,
 		    $self->rate,
 		    $percen,
@@ -1859,10 +1857,10 @@ sub doRecordingOperation($$$$$$) {
 		    ? sprintf '%4d:%02d', int($hdr->playtime/60),
 					     $hdr->playtime % 60
 		    : '----:--';
-	my $mbytes = ($hdr->endOffset - $hdr->startOffset)/(1024*1024);
-	printf "    recording size: %8.1f MiB",
+	my $mbytes = ($hdr->endOffset - $hdr->startOffset)/1000000;
+	printf "    recording size: %8.1f MB",
 		$mbytes;
-	printf "    bit rate: %s Mib/s\n",
+	printf "    bit rate: %s Mb/s\n",
 		$hdr->playtime >= 0
 		    ? sprintf '%5.1f', $mbytes * 8 / $hdr->playtime
 		    : '-----';
