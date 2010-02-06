@@ -4,7 +4,7 @@
 <head>
 <title>WizPnP</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:_www@b02.apple.com" />
+<link rev="made" href="mailto:_postfix@neige.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -14,8 +14,10 @@
 </td></tr>
 </table>
 
-<p><a name="__index__"></a></p>
+
 <!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
 
 <ul>
 
@@ -27,9 +29,11 @@
 	<li><a href="#prerequisites">PREREQUISITES</a></li>
 	<li><a href="#bugs">BUGS</a></li>
 </ul>
+
+<hr name="index" />
+</div>
 <!-- INDEX END -->
 
-<hr />
 <p>
 </p>
 <h1><a name="name">NAME</a></h1>
@@ -46,28 +50,28 @@ network using WizPnP.</p>
 <hr />
 <h1><a name="constants">CONSTANTS</a></h1>
 <dl>
-<dt><strong><a name="item_desc"><code>DESC</code></a></strong>
+<dt><strong><a name="desc" class="item"><code>DESC</code></a></strong>
 
 <dd>
 <p>The URL path part for the WizPnP device descriptor
 document on the Beyonwiz PVR (<code>tvdevicedesc.xml</code>;</p>
 </dd>
 </li>
-<dt><strong><a name="item_ssdpaddr"><code>SSDPADDR</code></a></strong>
+<dt><strong><a name="ssdpaddr" class="item"><code>SSDPADDR</code></a></strong>
 
 <dd>
 <p>The IP multicast address used for Simple Service Discovery Protocol
 (SSDP) used to search for PnP devices (<code>239.255.255.250</code>).</p>
 </dd>
 </li>
-<dt><strong><a name="item_ssdpport"><code>SSDPPORT</code></a></strong>
+<dt><strong><a name="ssdpport" class="item"><code>SSDPPORT</code></a></strong>
 
 <dd>
 <p>The IP multicast port number used for Simple Service Discovery Protocol
 (SSDP) used to search for PnP devices (<code>1900</code>);</p>
 </dd>
 </li>
-<dt><strong><a name="item_ssdppeer"><code>SSDPPEER</code></a></strong>
+<dt><strong><a name="ssdppeer" class="item"><code>SSDPPEER</code></a></strong>
 
 <dd>
 <p><em>SSDPADDR</em>:&lt;SSDPPORT&gt;; <code>239.255.255.250:1900</code></p>
@@ -83,7 +87,7 @@ document on the Beyonwiz PVR (<code>tvdevicedesc.xml</code>;</p>
 for a search to complete ~= SSDPNPOLL * SSDPTIMEOUT = 0.9 sec</p>
 </dd>
 </li>
-<dt><strong><a name="item_ssdpmaxdelay"><code>SSDPMAXDELAY</code></a></strong>
+<dt><strong><a name="ssdpmaxdelay" class="item"><code>SSDPMAXDELAY</code></a></strong>
 
 <dd>
 <p>Default maximum random delay (3 seconds, integer) that a responding
@@ -92,16 +96,16 @@ The Beyonwiz WizPnP server seems to ignore
 this, and replys in about 35-40ms.</p>
 </dd>
 </li>
-<dt><strong><a name="item_ssdptimeout"><code>SSDPTIMEOUT</code></a></strong>
+<dt><strong><a name="ssdptimeout" class="item"><code>SSDPTIMEOUT</code></a></strong>
 
 <dd>
 <p>Default time to wait (0.3 sec) for an SSDP response.
-Should be &gt; <a href="#item_ssdpmaxdelay"><code>SSDPMAXDELAY</code></a>, but testing shows 0.3 sec to be adequate
+Should be &gt; <a href="#ssdpmaxdelay"><code>SSDPMAXDELAY</code></a>, but testing shows 0.3 sec to be adequate
 with <code>SSDPNPOLL</code> set to 3.
-See comment about response delay in <code>/SSDPMAXDELAY</code>.</p>
+See comment about response delay in <a href="#ssdpmaxdelay"><code>/SSDPMAXDELAY</code></a>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_ssdppolltime"><code>SSDPPOLLTIME</code></a></strong>
+<dt><strong><a name="ssdppolltime" class="item"><code>SSDPPOLLTIME</code></a></strong>
 
 <dd>
 <p>Response polling timeout granularity (0.1 sec).</p>
@@ -113,13 +117,13 @@ See comment about response delay in <code>/SSDPMAXDELAY</code>.</p>
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::WizPnP-&gt;new</code></a></strong>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::WizPnP-&gt;new</code></a></strong>
 
 <dd>
 <p>Create a new Beyonwiz WizPnP search object.</p>
 </dd>
 </li>
-<dt><strong><a name="item_maxdevs"><code>$wpnp-&gt;maxDevs([$val]);</code></a></strong>
+<dt><strong><a name="maxdevs" class="item"><code>$wpnp-&gt;maxDevs([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the maximum number of devices to search
@@ -128,7 +132,7 @@ If set to 0, the search is unlimited, and runs until it times out.
 Defaults to 0.</p>
 </dd>
 </li>
-<dt><strong><a name="item_devices"><code>$wpnp-&gt;devices([$val]);</code></a></strong>
+<dt><strong><a name="devices" class="item"><code>$wpnp-&gt;devices([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the reference to the hash of discovered devices
@@ -136,16 +140,16 @@ Defaults to 0.</p>
 indexed by the lower-case version of the device name.</p>
 </dd>
 </li>
-<dt><strong><a name="item_wizpnppoll"><code>$wpnp-&gt;wizpnpPoll([$val]);</code></a></strong>
+<dt><strong><a name="wizpnppoll" class="item"><code>$wpnp-&gt;wizpnpPoll([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the maximum number of search requests sent by 
-<a href="#item_search"><code>$wpnp-&gt;search();</code></a>
+<a href="#search"><code>$wpnp-&gt;search();</code></a>
 before terminating the search.
 Defaults to <code>SSDPNPOLL</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_uselongnames"><code>$wpnp-&gt;useLongNames([$val]);</code></a></strong>
+<dt><strong><a name="uselongnames" class="item"><code>$wpnp-&gt;useLongNames([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the flag to use the long or short form of
@@ -153,7 +157,7 @@ device names in searches and name functions.
 Defaults to <em>false</em>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_wizpnptimeout"><code>$wpnp-&gt;wizpnpTimeout([$val]);</code></a></strong>
+<dt><strong><a name="wizpnptimeout" class="item"><code>$wpnp-&gt;wizpnpTimeout([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the maximum timeout used when waiting for a respnse
@@ -161,7 +165,7 @@ to a WizPnP SSDP device search request.
 Defaults to SSDPTIMEOUT sec.</p>
 </dd>
 </li>
-<dt><strong><a name="item_httptimeout"><code>$wpnp-&gt;httpTimeout([$val]);</code></a></strong>
+<dt><strong><a name="httptimeout" class="item"><code>$wpnp-&gt;httpTimeout([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the timeout used when fetching the Beyonwiz device descriptor
@@ -169,14 +173,14 @@ using HTTP. Defaults to <code>undef</code>. When set to <code>undef</code> uses 
 default timeout (180 sec).</p>
 </dd>
 </li>
-<dt><strong><a name="item_devicenames"><code>$wpnp-&gt;deviceNames;</code></a></strong>
+<dt><strong><a name="devicenames" class="item"><code>$wpnp-&gt;deviceNames;</code></a></strong>
 
 <dd>
 <p>Returns the list of discovered device names.
 All lower-cased. No particular order.</p>
 </dd>
 </li>
-<dt><strong><a name="item_device"><code>$wpnp-&gt;device($name);</code></a></strong>
+<dt><strong><a name="device" class="item"><code>$wpnp-&gt;device($name);</code></a></strong>
 
 <dd>
 <p>Return the named device's
@@ -185,13 +189,13 @@ entry.
 Lookup is case-insensitive.</p>
 </dd>
 </li>
-<dt><strong><a name="item_ndevices"><code>$wpnp-&gt;ndevices;</code></a></strong>
+<dt><strong><a name="ndevices" class="item"><code>$wpnp-&gt;ndevices;</code></a></strong>
 
 <dd>
 <p>Returns the number of discovered devices.</p>
 </dd>
 </li>
-<dt><strong><a name="item_adddevice"><code>$wpnp-&gt;addDevice($location);</code></a></strong>
+<dt><strong><a name="adddevice" class="item"><code>$wpnp-&gt;addDevice($location);</code></a></strong>
 
 <dd>
 <p>Request the device description XML from the URL
@@ -201,11 +205,11 @@ device <a href="../../html/./Beyonwiz/WizPnPDevice.html"><code>Beyonwiz::WizPnPD
 response to an SDDP <code>M-SEARCH</code> request.</p>
 </dd>
 <dd>
-<p>Returns the index name of the device (as in <a href="#item_devicenames"><code>$wpnp-&gt;deviceNames;</code></a>)
+<p>Returns the index name of the device (as in <a href="#devicenames"><code>$wpnp-&gt;deviceNames;</code></a>)
 if successful, <code>undef</code> otherwise.</p>
 </dd>
 </li>
-<dt><strong><a name="item_process"><code>$wpnp-&gt;process($data);</code></a></strong>
+<dt><strong><a name="process" class="item"><code>$wpnp-&gt;process($data);</code></a></strong>
 
 <dd>
 <p>Process an SDDP <code>M-SEARCH</code> response
@@ -214,29 +218,29 @@ and install the device pointed to by the <code>LOCATION</code> header
 in the message.</p>
 </dd>
 <dd>
-<p>Returns the index name of the device (as in <a href="#item_devicenames"><code>$wpnp-&gt;deviceNames;</code></a>)
+<p>Returns the index name of the device (as in <a href="#devicenames"><code>$wpnp-&gt;deviceNames;</code></a>)
 if the message contained an installable SSDP device, <code>undef</code> otherwise.</p>
 </dd>
 </li>
-<dt><strong><a name="item_sort"><code>$wpnp-&gt;sort;</code></a></strong>
+<dt><strong><a name="sort" class="item"><code>$wpnp-&gt;sort;</code></a></strong>
 
 <dd>
 <p>Sort the devices by name, then host number, then port.</p>
 </dd>
 </li>
-<dt><strong><a name="item_search"><code>$wpnp-&gt;search;</code></a></strong>
+<dt><strong><a name="search" class="item"><code>$wpnp-&gt;search;</code></a></strong>
 
 <dd>
 <p>Search the local net for Beyonwiz PnP devices and install
 them in <code>$wpnp</code>.</p>
 </dd>
 <dd>
-<p>If <a href="#item_maxdevs"><code>$wpnp-&gt;maxDevs</code></a> non-zero, terminate
-the search when <a href="#item_maxdevs"><code>$self-&gt;maxDevs</code></a> devices have been installed,
+<p>If <a href="#maxdevs"><code>$wpnp-&gt;maxDevs</code></a> non-zero, terminate
+the search when <a href="#maxdevs"><code>$self-&gt;maxDevs</code></a> devices have been installed,
 otherwise search until the search times out.</p>
 </dd>
 <dd>
-<p>Sorts the device entries using <a href="#item_sort"><code>$wpnp-&gt;sort;</code></a>.</p>
+<p>Sorts the device entries using <a href="#sort"><code>$wpnp-&gt;sort;</code></a>.</p>
 </dd>
 <dd>
 <p>Returns the number of devices found.</p>
@@ -248,7 +252,7 @@ otherwise search until the search times out.</p>
 <hr />
 <h1><a name="internal_methods">INTERNAL METHODS</a></h1>
 <dl>
-<dt><strong><a name="item__quietlocation"><code>$wpnp-&gt;_quietLocation([$val]);</code></a></strong>
+<dt><strong><a name="_quietlocation" class="item"><code>$wpnp-&gt;_quietLocation([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) a flag to suppress some warning messages during device
@@ -257,34 +261,34 @@ they are testing for the presence of a Beyonwiz device
 and will take recovery action.</p>
 </dd>
 </li>
-<dt><strong><a name="item__requestsock"><code>$wpnp-&gt;_requestSock([$val]);</code></a></strong>
+<dt><strong><a name="_requestsock" class="item"><code>$wpnp-&gt;_requestSock([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the multicast socket on which WizPnP's SSDP search
 requests are sent.
-Normally set by <a href="#item__openrequestsock"><code>$wpnp-&gt;_openRequestSock();</code></a>
-and <a href="#item__closerequestsock"><code>$wpnp-&gt;_closeRequestSock();</code></a>.</p>
+Normally set by <a href="#_openrequestsock"><code>$wpnp-&gt;_openRequestSock();</code></a>
+and <a href="#_closerequestsock"><code>$wpnp-&gt;_closeRequestSock();</code></a>.</p>
 </dd>
 </li>
-<dt><strong><a name="item__responsesock"><code>$wpnp-&gt;_responseSock([$val]);</code></a></strong>
+<dt><strong><a name="_responsesock" class="item"><code>$wpnp-&gt;_responseSock([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the socket on which WizPnP's SSDP search
 responses are received.
-Normally set by <a href="#item__openresponsesock"><code>$wpnp-&gt;_openResponseSock();</code></a>
-and <a href="#item__closeresponsesock"><code>$wpnp-&gt;_closeResponseSock();</code></a>.</p>
+Normally set by <a href="#_openresponsesock"><code>$wpnp-&gt;_openResponseSock();</code></a>
+and <a href="#_closeresponsesock"><code>$wpnp-&gt;_closeResponseSock();</code></a>.</p>
 </dd>
 </li>
-<dt><strong><a name="item__responseport"><code>$wpnp-&gt;_responsePort([$val]);</code></a></strong>
+<dt><strong><a name="_responseport" class="item"><code>$wpnp-&gt;_responsePort([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the port on which WizPnP's SSDP search
 requests were sent and on which its responses are received.
-Normally set by <a href="#item__openrequestsock"><code>$wpnp-&gt;_openRequestSock();</code></a>
-and <a href="#item__openrequestsock"><code>$wpnp-&gt;_openRequestSock();</code></a>.</p>
+Normally set by <a href="#_openrequestsock"><code>$wpnp-&gt;_openRequestSock();</code></a>
+and <a href="#_openrequestsock"><code>$wpnp-&gt;_openRequestSock();</code></a>.</p>
 </dd>
 </li>
-<dt><strong><a name="item__request"><code>$wpnp-&gt;_request([$val]);</code></a></strong>
+<dt><strong><a name="_request" class="item"><code>$wpnp-&gt;_request([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the <code>HTTP::Request</code> that will be sent
@@ -292,46 +296,46 @@ by WizPnP's SSDP search requests.
 Normally set in the class constructor.</p>
 </dd>
 </li>
-<dt><strong><a name="item__openrequestsock"><code>$wpnp-&gt;_openRequestSock;</code></a></strong>
+<dt><strong><a name="_openrequestsock" class="item"><code>$wpnp-&gt;_openRequestSock;</code></a></strong>
 
 <dd>
 <p>Opens the multicast socket on which WizPnP's SSDP search
 requests are sent.
-Also sets <a href="#item__requestsock"><code>$wpnp-&gt;_requestSock;</code></a> and <a href="#item__responseport"><code>$wpnp-&gt;_responsePort;</code></a></p>
+Also sets <a href="#_requestsock"><code>$wpnp-&gt;_requestSock;</code></a> and <a href="#_responseport"><code>$wpnp-&gt;_responsePort;</code></a></p>
 </dd>
 </li>
-<dt><strong><a name="item__closerequestsock"><code>$wpnp-&gt;_closeRequestSock;</code></a></strong>
+<dt><strong><a name="_closerequestsock" class="item"><code>$wpnp-&gt;_closeRequestSock;</code></a></strong>
 
 <dd>
 <p>Closes the socket on which WizPnP's SSDP search
 requests are sent.
-Sets <a href="#item__requestsock"><code>$wpnp-&gt;_requestSock;</code></a> to <code>undef</code>.</p>
+Sets <a href="#_requestsock"><code>$wpnp-&gt;_requestSock;</code></a> to <code>undef</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item__openresponsesock"><code>$wpnp-&gt;_openResponseSock();</code></a></strong>
+<dt><strong><a name="_openresponsesock" class="item"><code>$wpnp-&gt;_openResponseSock();</code></a></strong>
 
 <dd>
 <p>Opens the socket on which WizPnP's SSDP search
 responses are received.
-Sets <a href="#item__responsesock"><code>$wpnp-&gt;_responseSock;</code></a> to <code>undef</code>.</p>
+Sets <a href="#_responsesock"><code>$wpnp-&gt;_responseSock;</code></a> to <code>undef</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item__closeresponsesock"><code>$wpnp-&gt;_closeResponseSock();</code></a></strong>
+<dt><strong><a name="_closeresponsesock" class="item"><code>$wpnp-&gt;_closeResponseSock();</code></a></strong>
 
 <dd>
 <p>Opens the socket on which WizPnP's SSDP search
 responses are received.
-Sets <a href="#item__responsesock"><code>$wpnp-&gt;_responseSock;</code></a> and <a href="#item__responseport"><code>$wpnp-&gt;_responsePort;</code></a>
+Sets <a href="#_responsesock"><code>$wpnp-&gt;_responseSock;</code></a> and <a href="#_responseport"><code>$wpnp-&gt;_responsePort;</code></a>
 to <code>undef</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_beyonwiz_3a_3awizpnp_3a_3a_ismacos"><code>Beyonwiz::WizPnP::_isMacOs</code></a></strong>
+<dt><strong><a name="beyonwiz_wizpnp_ismacos" class="item"><code>Beyonwiz::WizPnP::_isMacOs</code></a></strong>
 
 <dd>
 <p>Returns true if the system runnung is MacOS X or Darwin.</p>
 </dd>
 </li>
-<dt><strong><a name="item_beyonwiz_3a_3awizpnp_3a_3a_netmask"><code>Beyonwiz::WizPnP::_netmask</code></a></strong>
+<dt><strong><a name="beyonwiz_wizpnp_netmask" class="item"><code>Beyonwiz::WizPnP::_netmask</code></a></strong>
 
 <dd>
 <p>Returns the local interface netmask, if known.
@@ -361,7 +365,7 @@ Defaults to 0.0.0.0.</p>
 <h1><a name="bugs">BUGS</a></h1>
 <p><code>IO::Socket::Multicast</code> is not available in ActivePerl's
 PPM for Windows, see README.txt for a download location.</p>
-<p><a href="#item_new"><code>Beyonwiz::Recording::WizPnP-&gt;new</code></a> will die with a
+<p><a href="#new"><code>Beyonwiz::Recording::WizPnP-&gt;new</code></a> will die with a
 message suggesting workarounds if <code>IO::Socket::Multicast</code>
 can't be loaded.</p>
 <table border="0" width="100%" cellspacing="0" cellpadding="3">

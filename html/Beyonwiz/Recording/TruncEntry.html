@@ -4,7 +4,7 @@
 <head>
 <title>TruncEntry</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:_www@b02.apple.com" />
+<link rev="made" href="mailto:_postfix@neige.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -14,8 +14,10 @@
 </td></tr>
 </table>
 
-<p><a name="__index__"></a></p>
+
 <!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
 
 <ul>
 
@@ -25,9 +27,11 @@
 	<li><a href="#prerequisites">PREREQUISITES</a></li>
 	<li><a href="#bugs">BUGS</a></li>
 </ul>
+
+<hr name="index" />
+</div>
 <!-- INDEX END -->
 
-<hr />
 <p>
 </p>
 <h1><a name="name">NAME</a></h1>
@@ -43,7 +47,7 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::TruncEntry-&gt;new($wizOffset, $fileNum, $flags, $offset, $size)</code></a></strong>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::TruncEntry-&gt;new($wizOffset, $fileNum, $flags, $offset, $size)</code></a></strong>
 
 <dd>
 <p>Create a new Beyonwiz recording index entry object.
@@ -62,31 +66,31 @@ can refer to a given file.</p>
 <a href="../../../html/./Beyonwiz/Recording/Trunc.html"><code>Beyonwiz::Recording::Trunc</code></a>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_wizoffset"><code>$te-&gt;wizOffset([$val]);</code></a></strong>
+<dt><strong><a name="wizoffset" class="item"><code>$te-&gt;wizOffset([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the logical byte offset of the entry in the recording.</p>
 </dd>
 </li>
-<dt><strong><a name="item_filenum"><code>$te-&gt;filenum([$val]);</code></a></strong>
+<dt><strong><a name="filenum" class="item"><code>$te-&gt;filenum([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the numbered recording file that the entry refers to.</p>
 </dd>
 </li>
-<dt><strong><a name="item_flags"><code>$te-&gt;flags([$val]);</code></a></strong>
+<dt><strong><a name="flags" class="item"><code>$te-&gt;flags([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the flags for the entry - unknown purpose.</p>
 </dd>
 </li>
-<dt><strong><a name="item_offset"><code>$te-&gt;offset([$val]);</code></a></strong>
+<dt><strong><a name="offset" class="item"><code>$te-&gt;offset([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the offset of the recording data chunk in the file (<code>bignum</code>).</p>
 </dd>
 </li>
-<dt><strong><a name="item_size"><code>$te-&gt;size([$val]);</code></a></strong>
+<dt><strong><a name="size" class="item"><code>$te-&gt;size([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the size of the recodding data chunk in the file.</p>

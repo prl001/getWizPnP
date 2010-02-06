@@ -4,7 +4,7 @@
 <head>
 <title>IndexEntry</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:_www@b02.apple.com" />
+<link rev="made" href="mailto:_postfix@neige.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -14,8 +14,10 @@
 </td></tr>
 </table>
 
-<p><a name="__index__"></a></p>
+
 <!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
 
 <ul>
 
@@ -24,9 +26,11 @@
 	<li><a href="#methods">METHODS</a></li>
 	<li><a href="#prerequisites">PREREQUISITES</a></li>
 </ul>
+
+<hr name="index" />
+</div>
 <!-- INDEX END -->
 
-<hr />
 <p>
 </p>
 <h1><a name="name">NAME</a></h1>
@@ -42,7 +46,7 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::IndexEntry-&gt;new($name, $path, [$makeSortTitle])</code></a></strong>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::IndexEntry-&gt;new($name, $path, [$makeSortTitle])</code></a></strong>
 
 <dd>
 <p>Create a new Beyonwiz recording index entry object.
@@ -54,7 +58,7 @@ is not used when constructing a URL or a file path (for local recordings).
 <code>$makeSortTitle</code> is a function reference that
 takes a single string argument, and
 its return value is used to construct 
-<a href="#item_sorttitle"><code>$ie-&gt;sortTitle([$val]);</code></a>.
+<a href="#sorttitle"><code>$ie-&gt;sortTitle([$val]);</code></a>.
 It should transform its input string to the form used
 for comparisons when sorting.</p>
 </dd>
@@ -63,7 +67,7 @@ for comparisons when sorting.</p>
 <a href="../../../html/./Beyonwiz/Recording/Index.html"><code>Beyonwiz::Recording::Index</code></a>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_name"><code>$ie-&gt;name([$val]);</code></a></strong>
+<dt><strong><a name="name" class="item"><code>$ie-&gt;name([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the default name of the recording.
@@ -71,82 +75,82 @@ This is the left-hand part of a <code>index.txt</code> entry
 for a recording.</p>
 </dd>
 </li>
-<dt><strong><a name="item_extractdetails"><code>$ie-&gt;extractDetails;</code></a></strong>
+<dt><strong><a name="extractdetails" class="item"><code>$ie-&gt;extractDetails;</code></a></strong>
 
 <dd>
 <p>Extracts the remaining information fields for the index
-entry from <a href="#item_name"><code>$ie-&gt;name([$val]);</code></a>.
+entry from <a href="#name"><code>$ie-&gt;name([$val]);</code></a>.
 Called automatically from the constructor.</p>
 </dd>
 </li>
-<dt><strong><a name="item_path"><code>$ie-&gt;path([$val]);</code></a></strong>
+<dt><strong><a name="path" class="item"><code>$ie-&gt;path([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) path part of the recording URL.</p>
 </dd>
 </li>
-<dt><strong><a name="item_title"><code>$ie-&gt;title([$val]);</code></a></strong>
+<dt><strong><a name="title" class="item"><code>$ie-&gt;title([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the program title.
 Constructed automatically from <code>$val</code> when
-<a href="#item_name"><code>$ie-&gt;name([$val]);</code></a>
+<a href="#name"><code>$ie-&gt;name([$val]);</code></a>
 sets the recording name.
 This title is similar to, but not identical with,
 the title saved in the recording header file.</p>
 </dd>
 </li>
-<dt><strong><a name="item_sorttitle"><code>$ie-&gt;sortTitle([$val]);</code></a></strong>
+<dt><strong><a name="sorttitle" class="item"><code>$ie-&gt;sortTitle([$val]);</code></a></strong>
 
 <dd>
-<p>Returns (sets) a sorting value for <a href="#item_title"><code>$ie-&gt;title([$val]);</code></a>.
+<p>Returns (sets) a sorting value for <a href="#title"><code>$ie-&gt;title([$val]);</code></a>.
 Constructed automatically as
-<a href="#item_makesorttitle"><code>$ie-&gt;makeSortTitle($ie-&gt;title);</code></a>
+<a href="#makesorttitle"><code>$ie-&gt;makeSortTitle($ie-&gt;title);</code></a>
 when
-<a href="#item_name"><code>$ie-&gt;name([$val]);</code></a>
+<a href="#name"><code>$ie-&gt;name([$val]);</code></a>
 sets the recording name.</p>
 </dd>
 </li>
-<dt><strong><a name="item_folder"><code>$ie-&gt;folder([$val]);</code></a></strong>
+<dt><strong><a name="folder" class="item"><code>$ie-&gt;folder([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the name of the recording folder on the Beyonwiz.
 Constructed automatically from <code>$val</code> when
-<a href="#item_name"><code>$ie-&gt;name([$val]);</code></a>
+<a href="#name"><code>$ie-&gt;name([$val]);</code></a>
 sets the recording name.</p>
 </dd>
 </li>
-<dt><strong><a name="item_sortfolder"><code>$ie-&gt;sortFolder([$val]);</code></a></strong>
+<dt><strong><a name="sortfolder" class="item"><code>$ie-&gt;sortFolder([$val]);</code></a></strong>
 
 <dd>
-<p>Returns (sets) a sorting value for <a href="#item_folder"><code>$ie-&gt;folder([$val]);</code></a>.
+<p>Returns (sets) a sorting value for <a href="#folder"><code>$ie-&gt;folder([$val]);</code></a>.
 Constructed automatically
-as <a href="#item_folder"><code>lc $ie-&gt;folder([$val]);</code></a>
+as <a href="#folder"><code>lc $ie-&gt;folder([$val]);</code></a>
 when
-<a href="#item_name"><code>$ie-&gt;name([$val]);</code></a>
+<a href="#name"><code>$ie-&gt;name([$val]);</code></a>
 sets the recording name
 or
-<a href="#item_path"><code>$ie-&gt;path([$val]);</code></a>
+<a href="#path"><code>$ie-&gt;path([$val]);</code></a>
 sets the recording path.</p>
 </dd>
 </li>
-<dt><strong><a name="item_time"><code>$ie-&gt;time([$val]);</code></a></strong>
+<dt><strong><a name="time" class="item"><code>$ie-&gt;time([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the recording start time as a Unix
 <em>time(2)</em> value.
 Constructed automatically from <code>$val</code> when
-<a href="#item_name"><code>$ie-&gt;name([$val]);</code></a>
+<a href="#name"><code>$ie-&gt;name([$val]);</code></a>
 sets the recording name.</p>
 </dd>
 </li>
-<dt><strong><a name="item_makesorttitle"><code>$ie-&gt;makeSortTitle([$val]);</code></a></strong>
+<dt><strong><a name="makesorttitle" class="item"><code>$ie-&gt;makeSortTitle([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the function used to construct
-<a href="#item_sorttitle"><code>$ie-&gt;sortTitle([$val]);</code></a>
+<a href="#sorttitle"><code>$ie-&gt;sortTitle([$val]);</code></a>
 when
-<a href="#item_name"><code>$ie-&gt;name([$val]);</code></a>
+<a href="#name"><code>$ie-&gt;name([$val]);</code></a>
 sets the recording name.</p>
 </dd>
 </li>

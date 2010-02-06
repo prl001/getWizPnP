@@ -4,7 +4,7 @@
 <head>
 <title>Header</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:_www@b02.apple.com" />
+<link rev="made" href="mailto:_postfix@neige.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -14,8 +14,10 @@
 </td></tr>
 </table>
 
-<p><a name="__index__"></a></p>
+
 <!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
 
 <ul>
 
@@ -27,9 +29,11 @@
 	<li><a href="#prerequisites">PREREQUISITES</a></li>
 	<li><a href="#bugs">BUGS</a></li>
 </ul>
+
+<hr name="index" />
+</div>
 <!-- INDEX END -->
 
-<hr />
 <p>
 </p>
 <h1><a name="name">NAME</a></h1>
@@ -45,55 +49,55 @@
 <hr />
 <h1><a name="constants">CONSTANTS</a></h1>
 <dl>
-<dt><strong><a name="item_tvhdr"><code>TVHDR</code></a></strong>
+<dt><strong><a name="tvhdr" class="item"><code>TVHDR</code></a></strong>
 
 <dd>
 <p>The name of the header file for a digital TV recording (<code>header.tvwiz</code>).</p>
 </dd>
 </li>
-<dt><strong><a name="item_radhdr"><code>RADHDR</code></a></strong>
+<dt><strong><a name="radhdr" class="item"><code>RADHDR</code></a></strong>
 
 <dd>
 <p>The name of the header file for a digital radio recording (<code>header.radwiz</code>).</p>
 </dd>
 </li>
-<dt><strong><a name="item_day"><code>DAY</code></a></strong>
+<dt><strong><a name="day" class="item"><code>DAY</code></a></strong>
 
 <dd>
 <p>Number of seconds in a day. Used internally for time conversion.</p>
 </dd>
 </li>
-<dt><strong><a name="item_max_ts_point"><code>MAX_TS_POINT</code></a></strong>
+<dt><strong><a name="max_ts_point" class="item"><code>MAX_TS_POINT</code></a></strong>
 
 <dd>
 <p>Maximum number of offsets in <em>offsets</em> (8640).</p>
 </dd>
 </li>
-<dt><strong><a name="item_hdr_size"><code>HDR_SIZE</code></a></strong>
+<dt><strong><a name="hdr_size" class="item"><code>HDR_SIZE</code></a></strong>
 
 <dd>
 <p>Total size of the header (256kiB).</p>
 </dd>
 </li>
-<dt><strong><a name="item_hdr_main_off"><code>HDR_MAIN_OFF</code></a></strong>
+<dt><strong><a name="hdr_main_off" class="item"><code>HDR_MAIN_OFF</code></a></strong>
 
-<dt><strong><a name="item_hdr_main_size"><code>HDR_MAIN_SIZE</code></a></strong>
+<dt><strong><a name="hdr_main_size" class="item"><code>HDR_MAIN_SIZE</code></a></strong>
 
-<dt><strong><a name="item_hdr_offsets_off"><code>HDR_OFFSETS_OFF</code></a></strong>
+<dt><strong><a name="hdr_offsets_off" class="item"><code>HDR_OFFSETS_OFF</code></a></strong>
 
-<dt><strong><a name="item_hdr_offsets_size"><code>HDR_OFFSETS_SIZE</code></a></strong>
+<dt><strong><a name="hdr_offsets_size" class="item"><code>HDR_OFFSETS_SIZE</code></a></strong>
 
-<dt><strong><a name="item_hdr_bookmarks_off"><code>HDR_BOOKMARKS_OFF</code></a></strong>
+<dt><strong><a name="hdr_bookmarks_off" class="item"><code>HDR_BOOKMARKS_OFF</code></a></strong>
 
-<dt><strong><a name="item_hdr_bookmarks_sz"><code>HDR_BOOKMARKS_SZ</code></a></strong>
+<dt><strong><a name="hdr_bookmarks_sz" class="item"><code>HDR_BOOKMARKS_SZ</code></a></strong>
 
-<dt><strong><a name="item_hdr_episode_off"><code>HDR_EPISODE_OFF</code></a></strong>
+<dt><strong><a name="hdr_episode_off" class="item"><code>HDR_EPISODE_OFF</code></a></strong>
 
-<dt><strong><a name="item_hdr_episode_sz"><code>HDR_EPISODE_SZ</code></a></strong>
+<dt><strong><a name="hdr_episode_sz" class="item"><code>HDR_EPISODE_SZ</code></a></strong>
 
-<dt><strong><a name="item_hdr_extinfo_off"><code>HDR_EXTINFO_OFF</code></a></strong>
+<dt><strong><a name="hdr_extinfo_off" class="item"><code>HDR_EXTINFO_OFF</code></a></strong>
 
-<dt><strong><a name="item_hdr_extinfo_sz"><code>HDR_EXTINFO_SZ</code></a></strong>
+<dt><strong><a name="hdr_extinfo_sz" class="item"><code>HDR_EXTINFO_SZ</code></a></strong>
 
 <dd>
 <p>Offsets in the header and sizes for the sections of the header file.</p>
@@ -105,7 +109,7 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Header-&gt;new($accessor, $ie)</code></a></strong>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::Header-&gt;new($accessor, $ie)</code></a></strong>
 
 <dd>
 <p>Create a new Beyonwiz recording header object.
@@ -118,106 +122,106 @@ used to carry out the media file access functions in
 used to retrieve name and path information for the recording.</p>
 </dd>
 </li>
-<dt><strong><a name="item_accessor"><code>$h-&gt;accessor([$val]);</code></a></strong>
+<dt><strong><a name="accessor" class="item"><code>$h-&gt;accessor([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the media file accessor object reference.</p>
 </dd>
 </li>
-<dt><strong><a name="item_ie"><code>$h-&gt;ie([$val]);</code></a></strong>
+<dt><strong><a name="ie" class="item"><code>$h-&gt;ie([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the associated
 <a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_path"><code>$h-&gt;path;</code></a></strong>
+<dt><strong><a name="path" class="item"><code>$h-&gt;path;</code></a></strong>
 
 <dd>
 <p>Returns folder name part of the path in the associated
 <a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_name"><code>$h-&gt;name;</code></a></strong>
+<dt><strong><a name="name" class="item"><code>$h-&gt;name;</code></a></strong>
 
 <dd>
 <p>Returns index name in the associated
 <a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_headername"><code>$h-&gt;headerName([$val]);</code></a></strong>
+<dt><strong><a name="headername" class="item"><code>$h-&gt;headerName([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the name of the header document (file name part only).</p>
 </dd>
 </li>
-<dt><strong><a name="item_magic"><code>$h-&gt;magic([$val]);</code></a></strong>
+<dt><strong><a name="magic" class="item"><code>$h-&gt;magic([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the header magic number (0x1062). Returns <code>undef</code>
 if the header is for a media file.</p>
 </dd>
 </li>
-<dt><strong><a name="item_version"><code>$h-&gt;version([$val]);</code></a></strong>
+<dt><strong><a name="version" class="item"><code>$h-&gt;version([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the header version number (0x1062). Returns <code>undef</code>
 if the header is for a media file.</p>
 </dd>
 </li>
-<dt><strong><a name="item_pids"><code>$h-&gt;pids([$val]);</code></a></strong>
+<dt><strong><a name="pids" class="item"><code>$h-&gt;pids([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) a reference to a list of Packet IDs (PIDs) for the recording.
-<a href="#item_pids"><code>$h-&gt;pids-&gt;[0]</code></a> is the video PID,
-<a href="#item_pids"><code>$h-&gt;pids-&gt;[1]</code></a> is the main audio pid,
-<a href="#item_pids"><code>$h-&gt;pids-&gt;[2]</code></a> is the Program Clock Reference (PCR) PID and
-<a href="#item_pids"><code>$h-&gt;pids-&gt;[3]</code></a> is the Program Map table PID for the recorded program.
+<a href="#pids"><code>$h-&gt;pids-&gt;[0]</code></a> is the video PID,
+<a href="#pids"><code>$h-&gt;pids-&gt;[1]</code></a> is the main audio pid,
+<a href="#pids"><code>$h-&gt;pids-&gt;[2]</code></a> is the Program Clock Reference (PCR) PID and
+<a href="#pids"><code>$h-&gt;pids-&gt;[3]</code></a> is the Program Map table PID for the recorded program.
 Returns <code>[0, 0, 0, 0]</code>
 if the header is for a media file.</p>
 </dd>
 <dd>
 <p>The lowest-order 13 bits of the values contain the PID
-<a href="#item_pids"><code>$h-&gt;pids-&gt;[$n] &amp; 0x1fff</code></a>.
+<a href="#pids"><code>$h-&gt;pids-&gt;[$n] &amp; 0x1fff</code></a>.
 The remaining bits are reserved for flags.
 The only known flag is <code>0x8000</code> in the main audio PID,
 which indicates that the audio AC3 (rather than MPEG-2).</p>
 </dd>
 </li>
-<dt><strong><a name="item_pid"><code>$h-&gt;pid($n);</code>
+<dt><strong><a name="pid" class="item"><code>$h-&gt;pid($n);</code>
 =item <code>$h-&gt;pidFlags($n);</code></a></strong>
 
 <dd>
 <p>Two utility that return, respectively,
-<a href="#item_pids"><code>$h-&gt;pids-&gt;[$n] &amp; 0x1fff</code></a>
+<a href="#pids"><code>$h-&gt;pids-&gt;[$n] &amp; 0x1fff</code></a>
 and
-<a href="#item_pids"><code>$h-&gt;pids-&gt;[$n] &amp; ~0x1fff</code></a>,
-the corresponding true PID value from <a href="#item_pids"><code>$h-&gt;pids-&gt;[$n]</code></a>
+<a href="#pids"><code>$h-&gt;pids-&gt;[$n] &amp; ~0x1fff</code></a>,
+the corresponding true PID value from <a href="#pids"><code>$h-&gt;pids-&gt;[$n]</code></a>
 and the flags component.</p>
 </dd>
 <dd>
 <p>Both methods return 0 if the header is not for a Beyonwiz recording.</p>
 </dd>
 </li>
-<dt><strong><a name="item_istv"><code>$h-&gt;isTV; $h-&gt;isRadio; $h-&gt;isMediaFolder $h-&gt;isMediaFile</code></a></strong>
+<dt><strong><a name="istv" class="item"><code>$h-&gt;isTV; $h-&gt;isRadio; $h-&gt;isMediaFolder $h-&gt;isMediaFile</code></a></strong>
 
 <dd>
-<p>Returns true if <a href="#item_validmain"><code>$h-&gt;validMain;</code></a> is true and the recording
+<p>Returns true if <a href="#validmain"><code>$h-&gt;validMain;</code></a> is true and the recording
 is respectively digital TV, digital radio,
 a Beyonwiz folder format for large media files,
 or a single media file.
 All can return false if
-<a href="#item_headername"><code>$h-&gt;headerName</code></a> has not been set.</p>
+<a href="#headername"><code>$h-&gt;headerName</code></a> has not been set.</p>
 </dd>
 </li>
-<dt><strong><a name="item_lock"><code>$h-&gt;lock([$val]);</code></a></strong>
+<dt><strong><a name="lock" class="item"><code>$h-&gt;lock([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the flag implementing the Beyonwiz File Lock on
 the recording.</p>
 </dd>
 </li>
-<dt><strong><a name="item_full"><code>$h-&gt;full([$val]);</code></a></strong>
+<dt><strong><a name="full" class="item"><code>$h-&gt;full([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the full flag.
@@ -225,19 +229,19 @@ Purpose unknown.
 Unused in WizFX.</p>
 </dd>
 </li>
-<dt><strong><a name="item_inrec"><code>$h-&gt;inRec([$val]);</code></a></strong>
+<dt><strong><a name="inrec" class="item"><code>$h-&gt;inRec([$val]);</code></a></strong>
 
 <dd>
-<p>Returns (sets) the ``currently recording'' flag.</p>
+<p>Returns (sets) the &quot;currently recording&quot; flag.</p>
 </dd>
 </li>
-<dt><strong><a name="item_service"><code>$h-&gt;service([$val]);</code></a></strong>
+<dt><strong><a name="service" class="item"><code>$h-&gt;service([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the recording service (LCN) name.</p>
 </dd>
 </li>
-<dt><strong><a name="item_title"><code>$h-&gt;title([$val]);</code></a></strong>
+<dt><strong><a name="title" class="item"><code>$h-&gt;title([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the recording title (event name).
@@ -247,7 +251,7 @@ Any leading ASCII control characters (0x00-0x1f) in the header value
 are stripped off.</p>
 </dd>
 </li>
-<dt><strong><a name="item_episode"><code>$h-&gt;episode([$val]);</code></a></strong>
+<dt><strong><a name="episode" class="item"><code>$h-&gt;episode([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the recording episode name (subtitle).
@@ -256,10 +260,10 @@ are stripped off.</p>
 </dd>
 <dd>
 <p>In free-to-air EPGs, this field is sometimes used as the program
-synopsis (see <a href="#item_extinfo"><code>$h-&gt;extInfo</code></a>), rather than the episode name.</p>
+synopsis (see <a href="#extinfo"><code>$h-&gt;extInfo</code></a>), rather than the episode name.</p>
 </dd>
 </li>
-<dt><strong><a name="item_extinfo"><code>$h-&gt;extInfo([$val]);</code></a></strong>
+<dt><strong><a name="extinfo" class="item"><code>$h-&gt;extInfo([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the recording extended information (program synopsis).
@@ -267,19 +271,19 @@ Any leading ASCII control characters (0x00-0x1f) in the header value
 are stripped off.</p>
 </dd>
 </li>
-<dt><strong><a name="item_longtitle"><code>$h-&gt;longTitle([$addEpisode[, $sep]];</code></a></strong>
+<dt><strong><a name="longtitle" class="item"><code>$h-&gt;longTitle([$addEpisode[, $sep]];</code></a></strong>
 
 <dd>
-<p>Returns <a href="#item_title"><code>$h-&gt;title . '/' . $h-&gt;episode</code></a> if the episode name
+<p>Returns <a href="#title"><code>$h-&gt;title . '/' . $h-&gt;episode</code></a> if the episode name
 can be loaded and is non-empty, otherwise returns
-<a href="#item_title"><code>$h-&gt;title</code></a>.
+<a href="#title"><code>$h-&gt;title</code></a>.
 If <code>$addEpisode</code> is specified and false, the episode name is not
 added in any case.
 If <code>$sep</code> is specified, it is used instead of <code>'/'</code> as the separator
 between title and episode name.</p>
 </dd>
 </li>
-<dt><strong><a name="item_mjd"><code>$h-&gt;mjd([$val]);</code></a></strong>
+<dt><strong><a name="mjd" class="item"><code>$h-&gt;mjd([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the recording start date.
@@ -295,34 +299,34 @@ minutes current at the start of the recording.</p>
 <p>The Beyonwiz appears to keep local time rather than UTC as its internal time.</p>
 </dd>
 </li>
-<dt><strong><a name="item_start"><code>$h-&gt;start([$val]);</code></a></strong>
+<dt><strong><a name="start" class="item"><code>$h-&gt;start([$val]);</code></a></strong>
 
 <dd>
-<p>Returns (sets) number of seconds into the day indicated by <a href="#item_mjd"><code>$h-&gt;mjd</code></a>
+<p>Returns (sets) number of seconds into the day indicated by <a href="#mjd"><code>$h-&gt;mjd</code></a>
 when the recording started.</p>
 </dd>
 </li>
-<dt><strong><a name="item_last"><code>$h-&gt;last([$val]); $h-&gt;sec([$val]);</code></a></strong>
+<dt><strong><a name="last" class="item"><code>$h-&gt;last([$val]); $h-&gt;sec([$val]);</code></a></strong>
 
 <dd>
 <p>Return (set) two parameters describing the recording duration.
-The recording duration in seconds is: <a href="#item_last"><code>$self-&gt;last*10 + $self-&gt;sec</code></a>.
-<a href="#item_playtime"><code>$h-&gt;playtime</code></a> is a convenience method that calculates the playtime
+The recording duration in seconds is: <a href="#last"><code>$self-&gt;last*10 + $self-&gt;sec</code></a>.
+<a href="#playtime"><code>$h-&gt;playtime</code></a> is a convenience method that calculates the playtime
 from <em>last</em> and <em>sec</em>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_endoffset"><code>$h-&gt;endOffset([$val]);</code></a></strong>
+<dt><strong><a name="endoffset" class="item"><code>$h-&gt;endOffset([$val]);</code></a></strong>
 
 <dd>
 <p>Return the offset of the logical end of the recording.
 Returns a <code>bignum</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_offsets"><code>$h-&gt;offsets([$val]);</code></a></strong>
+<dt><strong><a name="offsets" class="item"><code>$h-&gt;offsets([$val]);</code></a></strong>
 
 <dd>
 <p>Return (set) the table of offsets (possibly at even time intervals?)
-of logical file offsets (as described in <a href="#item_endoffset"><code>$h-&gt;endOffset([$val]);</code></a>).
+of logical file offsets (as described in <a href="#endoffset"><code>$h-&gt;endOffset([$val]);</code></a>).
 Offsets are returned as <code>bignum</code>s.</p>
 </dd>
 <dd>
@@ -332,62 +336,62 @@ Offsets are returned as <code>bignum</code>s.</p>
 <p>For efficiency reasons, only populated for <code>$h-&gt;load(1)</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_noffsets"><code>$h-&gt;noffsets;</code></a></strong>
+<dt><strong><a name="noffsets" class="item"><code>$h-&gt;noffsets;</code></a></strong>
 
 <dd>
 <p>Returns the number of offsets.</p>
 </dd>
 </li>
-<dt><strong><a name="item_bookmarks"><code>$h-&gt;bookmarks([$val]);</code></a></strong>
+<dt><strong><a name="bookmarks" class="item"><code>$h-&gt;bookmarks([$val]);</code></a></strong>
 
 <dd>
 <p>Return (set) the table of bookmarks (possibly at even time intervals?)
-of logical file offsets (as described in <a href="#item_endoffset"><code>$h-&gt;endOffset([$val]);</code></a>).
+of logical file offsets (as described in <a href="#endoffset"><code>$h-&gt;endOffset([$val]);</code></a>).
 Offsets are returned as <code>bignum</code>s.</p>
 </dd>
 <dd>
 <p>For efficiency reasons, only populated for <code>$h-&gt;load(1)</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_nbookmarks"><code>$h-&gt;nbookmarks;</code></a></strong>
+<dt><strong><a name="nbookmarks" class="item"><code>$h-&gt;nbookmarks;</code></a></strong>
 
 <dd>
 <p>Returns the number of bookmarks.</p>
 </dd>
 </li>
-<dt><strong><a name="item_validmain"><code>$h-&gt;validMain;</code></a></strong>
+<dt><strong><a name="validmain" class="item"><code>$h-&gt;validMain;</code></a></strong>
 
-<dt><strong><a name="item_validepisode"><code>$h-&gt;validEpisode;</code></a></strong>
+<dt><strong><a name="validepisode" class="item"><code>$h-&gt;validEpisode;</code></a></strong>
 
-<dt><strong><a name="item_validextinfo"><code>$h-&gt;validExtInfo;</code></a></strong>
+<dt><strong><a name="validextinfo" class="item"><code>$h-&gt;validExtInfo;</code></a></strong>
 
-<dt><strong><a name="item_validbookmarks"><code>$h-&gt;validBookmarks;</code></a></strong>
+<dt><strong><a name="validbookmarks" class="item"><code>$h-&gt;validBookmarks;</code></a></strong>
 
-<dt><strong><a name="item_validoffsets"><code>$h-&gt;validOffsets;</code></a></strong>
+<dt><strong><a name="validoffsets" class="item"><code>$h-&gt;validOffsets;</code></a></strong>
 
 <dd>
-<p>Returns true if the last <a href="#item_loadmain"><code>$h-&gt;loadMain;</code></a>
-(resp. <a href="#item_loadepisode"><code>$h-&gt;loadEpisode</code></a>,
-<a href="#item_loadextinfo"><code>$h-&gt;loadExtInfo</code></a>,
-<a href="#item_loadbookmarks"><code>$h-&gt;loadBookmarks</code></a>,
-or  <a href="#item_loadoffsets"><code>$h-&gt;loadOffsets</code></a>)
+<p>Returns true if the last <a href="#loadmain"><code>$h-&gt;loadMain;</code></a>
+(resp. <a href="#loadepisode"><code>$h-&gt;loadEpisode</code></a>,
+<a href="#loadextinfo"><code>$h-&gt;loadExtInfo</code></a>,
+<a href="#loadbookmarks"><code>$h-&gt;loadBookmarks</code></a>,
+or  <a href="#loadoffsets"><code>$h-&gt;loadOffsets</code></a>)
 was successful.</p>
 </dd>
 </li>
-<dt><strong><a name="item_size"><code>$h-&gt;size;</code></a></strong>
+<dt><strong><a name="size" class="item"><code>$h-&gt;size;</code></a></strong>
 
 <dd>
 <p>Returns the size of the header file (256kB).</p>
 </dd>
 </li>
-<dt><strong><a name="item_playtime"><code>$h-&gt;playtime</code></a></strong>
+<dt><strong><a name="playtime" class="item"><code>$h-&gt;playtime</code></a></strong>
 
 <dd>
 <p>A convenience method that returns the duration of
 the recording in seconds.</p>
 </dd>
 </li>
-<dt><strong><a name="item_starttime"><code>$h-&gt;starttime</code></a></strong>
+<dt><strong><a name="starttime" class="item"><code>$h-&gt;starttime</code></a></strong>
 
 <dd>
 <p>Returns a Unix-like timestamp for the start time of the recording
@@ -406,54 +410,54 @@ local time at the start of the recording using <code>gmtime</code>
 using <code>Time::Local::timelocal</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_offsettime"><code>$h-&gt;offsetTime($offset)</code></a></strong>
+<dt><strong><a name="offsettime" class="item"><code>$h-&gt;offsetTime($offset)</code></a></strong>
 
 <dd>
-<p>Convert an offset into a time. <a href="#item_loadoffsets"><code>$h-&gt;loadOffsets</code></a> must have been called,
+<p>Convert an offset into a time. <a href="#loadoffsets"><code>$h-&gt;loadOffsets</code></a> must have been called,
 otherwise -1 is returned. Interpolates between values in the offset table.
-Returns 0 if <a href="#item_offsets"><code>$offset &lt;= $self-&gt;offsets-&gt;[0]</code></a> and
-<a href="#item_playtime"><code>$self-&gt;playtime</code></a> if <a href="#item_endoffset"><code>$offset &gt;= $self-&gt;endOffset</code></a>.</p>
+Returns 0 if <a href="#offsets"><code>$offset &lt;= $self-&gt;offsets-&gt;[0]</code></a> and
+<a href="#playtime"><code>$self-&gt;playtime</code></a> if <a href="#endoffset"><code>$offset &gt;= $self-&gt;endOffset</code></a>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_loadmain"><code>$h-&gt;loadMain;</code></a></strong>
+<dt><strong><a name="loadmain" class="item"><code>$h-&gt;loadMain;</code></a></strong>
 
-<dt><strong><a name="item_loadhdrwmmeta"><code>$h-&gt;loadHdrWmmeta;</code></a></strong>
+<dt><strong><a name="loadhdrwmmeta" class="item"><code>$h-&gt;loadHdrWmmeta;</code></a></strong>
 
-<dt><strong><a name="item_loadhdrfile"><code>$h-&gt;loadHdrFile;</code></a></strong>
+<dt><strong><a name="loadhdrfile" class="item"><code>$h-&gt;loadHdrFile;</code></a></strong>
 
-<dt><strong><a name="item_loadepisode"><code>$h-&gt;loadEpisode;</code></a></strong>
+<dt><strong><a name="loadepisode" class="item"><code>$h-&gt;loadEpisode;</code></a></strong>
 
-<dt><strong><a name="item_loadextinfo"><code>$h-&gt;loadExtInfo;</code></a></strong>
+<dt><strong><a name="loadextinfo" class="item"><code>$h-&gt;loadExtInfo;</code></a></strong>
 
-<dt><strong><a name="item_loadbookmarks"><code>$h-&gt;loadBookmarks;</code></a></strong>
+<dt><strong><a name="loadbookmarks" class="item"><code>$h-&gt;loadBookmarks;</code></a></strong>
 
-<dt><strong><a name="item_loadoffsets"><code>$h-&gt;loadOffsets;</code></a></strong>
+<dt><strong><a name="loadoffsets" class="item"><code>$h-&gt;loadOffsets;</code></a></strong>
 
 <dd>
 <p>Load parts of the header object from the header on the Beyonwiz.
-<a href="#item_loadmain"><code>$h-&gt;loadMain</code></a> loads the basics,
-<a href="#item_loadepisode"><code>$h-&gt;loadEpisode</code></a> loads the episode name/subtitle informtion,
-<a href="#item_loadextinfo"><code>$h-&gt;loadExtInfo</code></a> loads the extended event informtion,
-<a href="#item_loadbookmarks"><code>$h-&gt;loadBookmarks</code></a> loads the bookmark information
-and <a href="#item_loadoffsets"><code>$h-&gt;loadOffsets</code></a> loads the 10-second offset data.</p>
+<a href="#loadmain"><code>$h-&gt;loadMain</code></a> loads the basics,
+<a href="#loadepisode"><code>$h-&gt;loadEpisode</code></a> loads the episode name/subtitle informtion,
+<a href="#loadextinfo"><code>$h-&gt;loadExtInfo</code></a> loads the extended event informtion,
+<a href="#loadbookmarks"><code>$h-&gt;loadBookmarks</code></a> loads the bookmark information
+and <a href="#loadoffsets"><code>$h-&gt;loadOffsets</code></a> loads the 10-second offset data.</p>
 </dd>
 <dd>
-<p><a href="#item_loadhdrwmmeta"><code>$h-&gt;loadHdrWmmeta;</code></a> and <a href="#item_loadhdrfile"><code>$h-&gt;loadHdrFile;</code></a> load as
+<p><a href="#loadhdrwmmeta"><code>$h-&gt;loadHdrWmmeta;</code></a> and <a href="#loadhdrfile"><code>$h-&gt;loadHdrFile;</code></a> load as
 much of the header as possible with information about media
 content either in the Beyonwiz folder format for large
-files (<a href="#item_loadhdrwmmeta"><code>$h-&gt;loadHdrWmmeta;</code></a>),
-or in single files (<a href="#item_loadhdrfile"><code>$h-&gt;loadHdrFile;</code></a>).</p>
+files (<a href="#loadhdrwmmeta"><code>$h-&gt;loadHdrWmmeta;</code></a>),
+or in single files (<a href="#loadhdrfile"><code>$h-&gt;loadHdrFile;</code></a>).</p>
 </dd>
 </li>
-<dt><strong><a name="item_decodemain"><code>$h-&gt;decodeMain($hdr_data)</code></a></strong>
+<dt><strong><a name="decodemain" class="item"><code>$h-&gt;decodeMain($hdr_data)</code></a></strong>
 
-<dt><strong><a name="item_decodeepisode"><code>$h-&gt;decodeEpisode($hdr_data)</code></a></strong>
+<dt><strong><a name="decodeepisode" class="item"><code>$h-&gt;decodeEpisode($hdr_data)</code></a></strong>
 
-<dt><strong><a name="item_decodeextinfo"><code>$h-&gt;decodeExtInfo($hdr_data)</code></a></strong>
+<dt><strong><a name="decodeextinfo" class="item"><code>$h-&gt;decodeExtInfo($hdr_data)</code></a></strong>
 
-<dt><strong><a name="item_decodebookmarks"><code>$h-&gt;decodeBookmarks($hdr_data)</code></a></strong>
+<dt><strong><a name="decodebookmarks" class="item"><code>$h-&gt;decodeBookmarks($hdr_data)</code></a></strong>
 
-<dt><strong><a name="item_decodeoffsets"><code>$h-&gt;decodeOffsets($hdr_data)</code></a></strong>
+<dt><strong><a name="decodeoffsets" class="item"><code>$h-&gt;decodeOffsets($hdr_data)</code></a></strong>
 
 <dd>
 <p>Decodes parts of the header object from <code>$hdr_data</code> on the Beyonwiz.
@@ -461,11 +465,11 @@ The data for each part is assumed to satart at the beginning
 of the respective <code>$hdr_data</code>.</p>
 </dd>
 <dd>
-<p><a href="#item_decodemain"><code>$h-&gt;decodeMain</code></a> decodes the basics,
-<a href="#item_decodeepisode"><code>$h-&gt;decodeEpisode</code></a> decodes the episode name/subtitle informtion,
-<a href="#item_decodeextinfo"><code>$h-&gt;decodeExtInfo</code></a> decodes the extended event informtion,
-<a href="#item_decodebookmarks"><code>$h-&gt;decodeBookmarks</code></a> decodes the bookmark information
-and <a href="#item_decodeoffsets"><code>$h-&gt;decodeOffsets</code></a> decodes the 10-second offset data.</p>
+<p><a href="#decodemain"><code>$h-&gt;decodeMain</code></a> decodes the basics,
+<a href="#decodeepisode"><code>$h-&gt;decodeEpisode</code></a> decodes the episode name/subtitle informtion,
+<a href="#decodeextinfo"><code>$h-&gt;decodeExtInfo</code></a> decodes the extended event informtion,
+<a href="#decodebookmarks"><code>$h-&gt;decodeBookmarks</code></a> decodes the bookmark information
+and <a href="#decodeoffsets"><code>$h-&gt;decodeOffsets</code></a> decodes the 10-second offset data.</p>
 </dd>
 </li>
 </dl>
@@ -474,27 +478,27 @@ and <a href="#item_decodeoffsets"><code>$h-&gt;decodeOffsets</code></a> decodes 
 <hr />
 <h1><a name="internal_methods">INTERNAL METHODS</a></h1>
 <dl>
-<dt><strong><a name="item__setunixtime"><code>$h-&gt;_setUnixTime($time);</code></a></strong>
+<dt><strong><a name="_setunixtime" class="item"><code>$h-&gt;_setUnixTime($time);</code></a></strong>
 
 <dd>
-<p>Set <a href="#item_mjd"><code>$h-&gt;mjd([$val]);</code></a> and <a href="#item_start"><code>$h-&gt;start([$val]);</code></a>
+<p>Set <a href="#mjd"><code>$h-&gt;mjd([$val]);</code></a> and <a href="#start"><code>$h-&gt;start([$val]);</code></a>
 from the given Unix time (seconds since 00:00:00 Jan 1 1097 UTC).</p>
 </dd>
 </li>
-<dt><strong><a name="item__setmainmediafile"><code>$h-&gt;_setMainMediaFile($size, $time);</code></a></strong>
+<dt><strong><a name="_setmainmediafile" class="item"><code>$h-&gt;_setMainMediaFile($size, $time);</code></a></strong>
 
 <dd>
 <p>Set as many fields as possible to reasonable values given the
 size and timestamp of a media file.</p>
 </dd>
 </li>
-<dt><strong><a name="item__readhdrchunk"><code>$h-&gt;_readHdrChunk($offset, $size);</code></a></strong>
+<dt><strong><a name="_readhdrchunk" class="item"><code>$h-&gt;_readHdrChunk($offset, $size);</code></a></strong>
 
 <dd>
 <p>Read a chunk of the header file.
-Reads from <a href="#item_headername"><code>$h-&gt;headerName([$val]);</code></a> if it
+Reads from <a href="#headername"><code>$h-&gt;headerName([$val]);</code></a> if it
 is defined, otherwise tries reading from
-<code>/TVHDR</code> then <code>/RADHDR</code> and sets
+<a href="#tvhdr"><code>/TVHDR</code></a> then <a href="#radhdr"><code>/RADHDR</code></a> and sets
 the header name from the first to succeed.
 Reads <code>$size</code> bytes at byte offst <code>$offset</code>
 from the start of the header file.</p>
