@@ -135,7 +135,6 @@ message of the HTTP operation that failed, and return that status.
 Uses packages:
 L<C<Beyonwiz::Recording::Accessor>|Beyonwiz::Recording::Accessor>,
 L<C<Beyonwiz::Recording::Index>|Beyonwiz::Recording::Index>,
-L<C<Beyonwiz::Recording::Trunc>|Beyonwiz::Recording::Trunc>,
 L<C<Beyonwiz::Recording::Recording>|Beyonwiz::Recording::Recording>,
 C<LWP::Simple>,
 C<URI>,
@@ -152,8 +151,7 @@ use bignum;
 use Beyonwiz::Recording::Accessor;
 
 use Beyonwiz::Recording::Index qw(INDEX);
-use Beyonwiz::Recording::Trunc qw(TRUNC);
-use Beyonwiz::Recording::Recording qw(STAT addDir);
+use Beyonwiz::Recording::Recording qw(addDir);
 use LWP::Simple qw(get getstore head $ua);
 use URI;
 use URI::Escape;
