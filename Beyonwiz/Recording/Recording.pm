@@ -318,15 +318,16 @@ sub getRecording($$$$$$$) {
 
     my $name = $self->getRecordingName($hdr, $path, $self->join);
 
-    my $size = $trunc->recordingSize;
-
     my $done = 0;
     my ($startTrunc, $inStartOff) = (0, 0);
     my $outStartOff = 0;
     $self->join(1) if($hdr->isMediaFile);
 
+    my $size;
+
     if($self->join) {
 	my $fullname = addDir($outdir, $name);
+	$size = $hdr->endOffset - $hdr->startOffset;
 	if(-f $fullname) {
 	    my $recSize = (stat $fullname)[7];
 	    if(!defined $recSize) {
@@ -359,8 +360,8 @@ sub getRecording($$$$$$$) {
 	}
 
     } else {
-	$trunc = $trunc->makeFileTrunc;
 	$size = $trunc->recordingSize;
+	$trunc = $trunc->makeFileTrunc;
 	my $dirname = addDir($outdir, $name);
 	if(-d $dirname) {
 	    if(    (   -f catfile($dirname, TVHDR)
@@ -454,12 +455,16 @@ sub getRecording($$$$$$$) {
 	    $offset = $inStartOff;
 	    $size  -= $inStartOff;
 	}
+	my $trimSize = $self->join && $tr->wizOffset + $size > $hdr->endOffset;
+	if($trimSize) {
+	    $size = $hdr->endOffset - $tr->wizOffset;
+	}
 	$status = $self->accessor->getRecordingFileChunk(
 				$self, $path, $name, $fn, $outdir, $append,
 				$offset, $size,
 				$outStartOff, $progressBar
 			    );
-	last if(!is_success($status));
+	last if(!is_success($status) || $trimSize);
 
 	if($self->join) {
 	    $append = 1;
