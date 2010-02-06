@@ -56,11 +56,14 @@ Returns the number of entries in C<< $t->entries >>.
 
 Returns the size of the last decoded trunc file.
 
-=item C<< $t->recordingSize; >>
+=item C<< $t->recordingSize([$nents]); >>
 
 Returns the sum of all the I<size> entries in the
 L<C<Beyonwiz::Recording::TruncEntry>|Beyonwiz::Recording::TruncEntry>
 objects in for the recording.
+
+If C<$nents> is set, returns the size of the first C<$nents> entries
+in the table.
 
 =item C<< $t->valid; >>
 
