@@ -4,7 +4,7 @@
 <head>
 <title>HTTPAccessor</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:_www@b02.apple.com" />
+<link rev="made" href="mailto:_postfix@neige.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -14,8 +14,10 @@
 </td></tr>
 </table>
 
-<p><a name="__index__"></a></p>
+
 <!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
 
 <ul>
 
@@ -25,9 +27,11 @@
 	<li><a href="#methods">METHODS</a></li>
 	<li><a href="#prerequisites">PREREQUISITES</a></li>
 </ul>
+
+<hr name="index" />
+</div>
 <!-- INDEX END -->
 
-<hr />
 <p>
 </p>
 <h1><a name="name">NAME</a></h1>
@@ -49,20 +53,20 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Accessor-&gt;new($base)</code></a></strong>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::Accessor-&gt;new($base)</code></a></strong>
 
 <dd>
 <p>Create a new accessor object with the base URL
 <code>$base</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_base"><code>$a-&gt;base([$val]);</code></a></strong>
+<dt><strong><a name="base" class="item"><code>$a-&gt;base([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the base path.</p>
 </dd>
 </li>
-<dt><strong><a name="item_filelentime"><code>$a-&gt;fileLenTime(@path);</code></a></strong>
+<dt><strong><a name="filelentime" class="item"><code>$a-&gt;fileLenTime(@path);</code></a></strong>
 
 <dd>
 <p>Return <code>($size, $modifiedTime)</code> for the given <code>@path</code>,
@@ -72,7 +76,7 @@ the file was last modified as
 Unix time (seconds since 00:00:00 Jan 1 1097 UTC).</p>
 </dd>
 </li>
-<dt><strong><a name="item_readfilechunk"><code>$a-&gt;readFileChunk($offset, $size, @path)</code></a></strong>
+<dt><strong><a name="readfilechunk" class="item"><code>$a-&gt;readFileChunk($offset, $size, @path)</code></a></strong>
 
 <dd>
 <p>Read and return a chunk of the file length <code>$size</code> at offset <code>$offset</code>
@@ -83,7 +87,7 @@ where the components of <code>@path</code> are joined to form a single path name
 <p>Returns <code>''</code> on failure.</p>
 </dd>
 </li>
-<dt><strong><a name="item_readfile"><code>$a-&gt;readFile(@path)</code></a></strong>
+<dt><strong><a name="readfile" class="item"><code>$a-&gt;readFile(@path)</code></a></strong>
 
 <dd>
 <p>Read and return the contents of the file specified by <code>@path</code>
@@ -93,17 +97,17 @@ where the components of <code>@path</code> are joined to form a single path name
 <p>Returns <code>undef</code> on failure.</p>
 </dd>
 </li>
-<dt><strong><a name="item_loadindex"><code>$a-&gt;loadIndex;</code></a></strong>
+<dt><strong><a name="loadindex" class="item"><code>$a-&gt;loadIndex;</code></a></strong>
 
 <dd>
 <p>Read and return the contents of the WizPnP index file
-located at <a href="#item_base"><code>$h-&gt;base([$val]);</code></a>.</p>
+located at <a href="#base"><code>$h-&gt;base([$val]);</code></a>.</p>
 </dd>
 <dd>
 <p>Returns <code>undef</code> on failure.</p>
 </dd>
 </li>
-<dt><strong><a name="item_getrecordingfilechunk"><code>$a-&gt;getRecordingFileChunk($rec, $path, $name, $file, $outdir,
+<dt><strong><a name="getrecordingfilechunk" class="item"><code>$a-&gt;getRecordingFileChunk($rec, $path, $name, $file, $outdir,
         $append, $off, $size, $outOff, $progressBar);</code></a></strong>
 
 <dd>
@@ -132,7 +136,7 @@ Otherwise it will print a warning with the HTTP status
 message of the HTTP operation that failed, and return that status.</p>
 </dd>
 </li>
-<dt><strong><a name="item_getrecordingfile"><code>$r-&gt;getRecordingFile($rec, $path, $name, $outdir, $file, $append);</code></a></strong>
+<dt><strong><a name="getrecordingfile" class="item"><code>$r-&gt;getRecordingFile($rec, $path, $name, $outdir, $file, $append);</code></a></strong>
 
 <dd>
 <p>Fetch a complete 0000, 0001, etc. recording file or header file from the
@@ -150,7 +154,7 @@ Otherwise it will print a warning with the HTTP status
 message of the HTTP operation that failed, and return that status.</p>
 </dd>
 </li>
-<dt><strong><a name="item_renamerecording"><code>$r-&gt;renameRecording($hdr, $path, $outdir)</code></a></strong>
+<dt><strong><a name="renamerecording" class="item"><code>$r-&gt;renameRecording($hdr, $path, $outdir)</code></a></strong>
 
 <dd>
 <p>Move a recording described by <code>$hdr</code> and the given
@@ -160,7 +164,7 @@ to <code>$outdir</code> by renaming the recording directory.
 Returns <code>RC_OK</code> if successful.</p>
 </dd>
 <dd>
-<p>On <code>Unix(-like)</code> systems, <a href="#item_renamerecording"><code>renameRecording</code></a> will  fail if the source
+<p>On Unix(-like) systems, <a href="#renamerecording"><code>renameRecording</code></a> will  fail if the source
 and destinations for the move are on different file systems.
 It will also fail if <code>$r-&gt;join</code> is true and it will fail if
 the source recording is on the Beyonwiz.
@@ -175,7 +179,7 @@ and return one of
 or <code>RC_INTERNAL_SERVER_ERROR</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_deleterecordingfile"><code>$r-&gt;deleteRecordingFile($path, $name, $file)</code></a></strong>
+<dt><strong><a name="deleterecordingfile" class="item"><code>$r-&gt;deleteRecordingFile($path, $name, $file)</code></a></strong>
 
 <dd>
 <p>Delete a recording file.
@@ -198,7 +202,6 @@ message of the HTTP operation that failed, and return that status.</p>
 <p>Uses packages:
 <a href="../../../html/./Beyonwiz/Recording/Accessor.html"><code>Beyonwiz::Recording::Accessor</code></a>,
 <a href="../../../html/./Beyonwiz/Recording/Index.html"><code>Beyonwiz::Recording::Index</code></a>,
-<a href="../../../html/./Beyonwiz/Recording/Trunc.html"><code>Beyonwiz::Recording::Trunc</code></a>,
 <a href="../../../html/./Beyonwiz/Recording/Recording.html"><code>Beyonwiz::Recording::Recording</code></a>,
 <code>LWP::Simple</code>,
 <code>URI</code>,

@@ -103,7 +103,6 @@ METHODS
 PREREQUISITES
 
     Uses packages: "Beyonwiz::Recording::Accessor",
-    "Beyonwiz::Recording::Index", "Beyonwiz::Recording::Trunc",
-    "Beyonwiz::Recording::Recording", "LWP::Simple", "URI", "URI::Escape",
-    "HTTP::Status", "POSIX".
+    "Beyonwiz::Recording::Index", "Beyonwiz::Recording::Recording",
+    "LWP::Simple", "URI", "URI::Escape", "HTTP::Status", "POSIX".
 

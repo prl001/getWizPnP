@@ -693,11 +693,11 @@ ARGUMENTS
         the copy completes. Level 2 includes the program synopsis, if there
         is one. Level 3 includes a display of any bookmarks in the file.
 
-        The units used in the verbose listings are in terms of mebibytes
-        (MiB) and mebibits (Mib). Mebi- is the ISO name for a multipler of
-        2^20 (1204*1024 = 1048576). In computing this multiplier is often
-        (strictly incorrectly) called mega- (prefix M). Mega- should be used
-        for a multiplier of 1000000. Mebi- is about 5% more than mega-.
+        The units used in the verbose listings are in terms of megabytes
+        (MB) and megabits (Mb). Mega- is strictly used as meaning 10^6
+        (1000000), not as a shorthand for mebi-, the ISO name for a
+        multipler of 2^20 (1204*1024 = 1048576). Mebi- is about 5% more than
+        mega-.
 
         See also --Verbose
 
@@ -842,12 +842,11 @@ FILES
 
 PREREQUSITES
 
-    Uses packages "Beyonwiz::WizPnP", "Beyonwiz::Recording::HTTPIndex",
-    "Beyonwiz::Recording::HTTPHeader", "Beyonwiz::Recording::HTTPTrunc",
-    "Beyonwiz::Recording::HTTPRecording", "Beyonwiz::Recording::FileIndex",
-    "Beyonwiz::Recording::FileHeader", "Beyonwiz::Recording::FileTrunc",
-    "Beyonwiz::Recording::FileRecording", "File::Spec::Functions ",
-    "File::Path", "HTTP::Status", "Getopt::Long".
+    Uses packages "Beyonwiz::WizPnP", "Beyonwiz::Recording::HTTPAccessor",
+    "Beyonwiz::Recording::FileAccessor", "Beyonwiz::Recording::Index",
+    "Beyonwiz::Recording::Header", "Beyonwiz::Recording::Trunc",
+    "Beyonwiz::Recording::Recording", "File::Spec::Functions", "File::Path",
+    "HTTP::Status", "Getopt::Long".
 
 BUGS
 

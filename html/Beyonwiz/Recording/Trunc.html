@@ -4,7 +4,7 @@
 <head>
 <title>Trunc</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:_www@b02.apple.com" />
+<link rev="made" href="mailto:_postfix@neige.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -14,8 +14,10 @@
 </td></tr>
 </table>
 
-<p><a name="__index__"></a></p>
+
 <!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
 
 <ul>
 
@@ -26,9 +28,11 @@
 	<li><a href="#prerequisites">PREREQUISITES</a></li>
 	<li><a href="#bugs">BUGS</a></li>
 </ul>
+
+<hr name="index" />
+</div>
 <!-- INDEX END -->
 
-<hr />
 <p>
 </p>
 <h1><a name="name">NAME</a></h1>
@@ -46,13 +50,13 @@ The trunc file is used to describe exactly which parts of the
 <hr />
 <h1><a name="constants">CONSTANTS</a></h1>
 <dl>
-<dt><strong><a name="item_trunc"><code>TRUNC</code></a></strong>
+<dt><strong><a name="trunc" class="item"><code>TRUNC</code></a></strong>
 
 <dd>
 <p>The trunc url path component for the Beyonwiz (<code>trunc</code>).</p>
 </dd>
 </li>
-<dt><strong><a name="item_wmmeta"><code>WMMETA</code></a></strong>
+<dt><strong><a name="wmmeta" class="item"><code>WMMETA</code></a></strong>
 
 <dd>
 <p>The wmmeta url path component for the Beyonwiz (<code>wmmeta</code>).</p>
@@ -64,7 +68,7 @@ The trunc file is used to describe exactly which parts of the
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="item_new"><code>Beyonwiz::Recording::Trunc-&gt;new($name)</code></a></strong>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::Trunc-&gt;new($name)</code></a></strong>
 
 <dd>
 <p>Create a new Beyonwiz recording file index object.
@@ -72,19 +76,19 @@ The trunc file is used to describe exactly which parts of the
 the name in the Beyonwiz recording index, see</p>
 </dd>
 </li>
-<dt><strong><a name="item_name"><code>$t-&gt;name([$val]);</code></a></strong>
+<dt><strong><a name="name" class="item"><code>$t-&gt;name([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the default recording name.</p>
 </dd>
 </li>
-<dt><strong><a name="item_filename"><code>$t-&gt;fileName([$val]);</code></a></strong>
+<dt><strong><a name="filename" class="item"><code>$t-&gt;fileName([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the name of the trunc file.</p>
 </dd>
 </li>
-<dt><strong><a name="item_entries"><code>$t-&gt;entries([$val]);</code></a></strong>
+<dt><strong><a name="entries" class="item"><code>$t-&gt;entries([$val]);</code></a></strong>
 
 <dd>
 <p>Returns (sets) the array reference containing the
@@ -92,40 +96,44 @@ the name in the Beyonwiz recording index, see</p>
 objects in for the recording.</p>
 </dd>
 </li>
-<dt><strong><a name="item_nentries"><code>$t-&gt;nentries;</code></a></strong>
+<dt><strong><a name="nentries" class="item"><code>$t-&gt;nentries;</code></a></strong>
 
 <dd>
-<p>Returns the number of entries in <a href="#item_entries"><code>$t-&gt;entries</code></a>.</p>
+<p>Returns the number of entries in <a href="#entries"><code>$t-&gt;entries</code></a>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_size"><code>$t-&gt;size;</code></a></strong>
+<dt><strong><a name="size" class="item"><code>$t-&gt;size;</code></a></strong>
 
 <dd>
 <p>Returns the size of the last decoded trunc file.</p>
 </dd>
 </li>
-<dt><strong><a name="item_recordingsize"><code>$t-&gt;recordingSize;</code></a></strong>
+<dt><strong><a name="recordingsize" class="item"><code>$t-&gt;recordingSize([$nents]);</code></a></strong>
 
 <dd>
 <p>Returns the sum of all the <em>size</em> entries in the
 <a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
 objects in for the recording.</p>
 </dd>
+<dd>
+<p>If <code>$nents</code> is set, returns the size of the first <code>$nents</code> entries
+in the table.</p>
+</dd>
 </li>
-<dt><strong><a name="item_valid"><code>$t-&gt;valid;</code></a></strong>
+<dt><strong><a name="valid" class="item"><code>$t-&gt;valid;</code></a></strong>
 
 <dd>
 <p>Returns true if the last <code>$i-&gt;load;</code> succeeded.</p>
 </dd>
 </li>
-<dt><strong><a name="item_decode"><code>$t-&gt;decode($hdr_data);</code></a></strong>
+<dt><strong><a name="decode" class="item"><code>$t-&gt;decode($hdr_data);</code></a></strong>
 
 <dd>
 <p>Load the contents of <code>$t</code> by decoding the <code>trunc</code> file data in
 <code>$hdr_data</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="item_truncstart"><code>$t-&gt;truncStart($offset)</code></a></strong>
+<dt><strong><a name="truncstart" class="item"><code>$t-&gt;truncStart($offset)</code></a></strong>
 
 <dd>
 <p>Return the location of the logical <code>offset</code> (counting from 0
@@ -135,7 +143,7 @@ pair indicating which
 contains the position and the corresponding offset into the file.</p>
 </dd>
 </li>
-<dt><strong><a name="item_makefiletrunc"><code>$t-&gt;makeFileTrunc;</code></a></strong>
+<dt><strong><a name="makefiletrunc" class="item"><code>$t-&gt;makeFileTrunc;</code></a></strong>
 
 <dd>
 <p>Return a new
@@ -148,7 +156,7 @@ representing the whole file. The <code>wizOffset</code> values are not particula
 meaningful.</p>
 </dd>
 </li>
-<dt><strong><a name="item_filetruncfromdir"><code>$t-&gt;fileTruncFromDir;</code></a></strong>
+<dt><strong><a name="filetruncfromdir" class="item"><code>$t-&gt;fileTruncFromDir;</code></a></strong>
 
 <dd>
 <p>Return a new

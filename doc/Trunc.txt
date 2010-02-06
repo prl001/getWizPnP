@@ -39,9 +39,12 @@ METHODS
     "$t->size;"
         Returns the size of the last decoded trunc file.
 
-    "$t->recordingSize;"
+    "$t->recordingSize([$nents]);"
         Returns the sum of all the *size* entries in the
         "Beyonwiz::Recording::TruncEntry" objects in for the recording.
+
+        If $nents is set, returns the size of the first $nents entries in
+        the table.
 
     "$t->valid;"
         Returns true if the last "$i->load;" succeeded.
