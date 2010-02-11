@@ -1,22 +1,30 @@
-Version 0.4.3
+Version 0.4.3a
 
-Main changes/differences/fixes in 0.4.3:
+Main changes/differences/fixes in 0.4.3a:
 
     * Worked around a bug in the Beyonwiz firmware that caused too much of
       a recording to be transferred in --ts mode if the recording had
       been edited/created with Keep A->B or Copy A->B to New File.
     * Changed the outputs of recording sizes, transfer rates and recording
       bitrates from MiB and MiB to MB and Mb.
+    * Recordings that have been "topped" now transfer correctly in
+      --ts mode.
+    * If you specify --resume on a "topped" recording that hasn't been
+      started, the recording transfers correctly.
 
-Bugs fixed in 0.4.3:
+Bugs fixed in 0.4.3a:
 
     * Worked around a bug in the Beyonwiz firmware that caused too much of
       a recording to be transferred in --ts mode if the recording had
       been edited/created with Keep A->B or Copy A->B to New File.
       This is strictly a workaraound for a Beyonwiz bug, rather than a
       getWizPnP bug fix.
+    * Recordings that have been "topped" now transfer correctly in
+      --ts mode.
+    * If you specify --resume on a "topped" recording that hasn't been
+      started, the recording transfers correctly.
 
-Known bugs in 0.4.3:
+Known bugs in 0.4.3a:
 
     * The changes to the file indexing from 1.05.283 mean that
       if you delete a recording on the Beyonwiz (--delete/--move),
@@ -28,8 +36,11 @@ Known bugs in 0.4.3:
     * In free-to-air EPGs, the information used by getWizPnP for the
       episode name is sometimes actually the program synopsis.
 
+Thanks to glow on the Beyonwiz forum for finding the bugs in the length
+of the --ts recording transfers for Keep A->B or Copy A->B to New File
+recordings, and the problem with transferring "topped" recordings.
 
-File changes in 0.4.3
+File changes in 0.4.3a
 =====================
 
 getWizPnP.pl
@@ -44,6 +55,10 @@ Beyonwiz/Recording/Recording.pm
 	Worked around a bug in the Beyonwiz firmware that caused too much of
 	a recording to be transferred in --ts mode if the recording had
 	been edited/created with Keep A->B or Copy A->B to New File.
+	Recordings that have been "topped" now transfer correctly in
+	--ts mode.
+	If you specify --resume on a "topped" recording that hasn't been
+	started, the recording transfers correctly.
 
 Beyonwiz/Recording/HTTPAccessor.pm
 	Removed some unnecessary imports.
