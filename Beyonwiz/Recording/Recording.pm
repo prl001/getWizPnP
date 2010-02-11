@@ -319,15 +319,16 @@ sub getRecording($$$$$$$) {
     my $name = $self->getRecordingName($hdr, $path, $self->join);
 
     my $done = 0;
-    my ($startTrunc, $inStartOff) = (0, 0);
+    my ($startTrunc, $inStartOff, $resume) = (0, 0, 0);
     my $outStartOff = 0;
     $self->join(1) if($hdr->isMediaFile);
 
-    my $size;
+    my $size = $trunc->recordingSize;
 
     if($self->join) {
 	my $fullname = addDir($outdir, $name);
-	$size = $hdr->endOffset - $hdr->startOffset;
+	$size = $hdr->endOffset - $hdr->startOffset
+	    if($hdr->endOffset - $hdr->startOffset < $size);
 	if(-f $fullname) {
 	    my $recSize = (stat $fullname)[7];
 	    if(!defined $recSize) {
@@ -336,6 +337,7 @@ sub getRecording($$$$$$$) {
 	    }
 	    if($recSize < $size) {
 		if($self->resume) {
+		    $resume = 1;
 		    ($startTrunc, $inStartOff) = $trunc->truncStart($recSize);
 		    $outStartOff = $trunc->recordingSize($startTrunc)
 					+ $inStartOff;
@@ -360,7 +362,6 @@ sub getRecording($$$$$$$) {
 	}
 
     } else {
-	$size = $trunc->recordingSize;
 	$trunc = $trunc->makeFileTrunc;
 	my $dirname = addDir($outdir, $name);
 	if(-d $dirname) {
@@ -378,6 +379,7 @@ sub getRecording($$$$$$$) {
 		    my $recSize = $fileTrunc->recordingSize;
 		    if($recSize < $size) {
 			if($self->resume) {
+			    $resume = 1;
 			    ($startTrunc, $inStartOff) =
 					$fileTrunc->truncStart($recSize);
 			    $size -= $trunc->recordingSize($startTrunc);
@@ -451,7 +453,7 @@ sub getRecording($$$$$$$) {
 
 	my $offset = $tr->offset;
 	my $size   = $tr->size;
-	if($i == $startTrunc) {
+	if($i == $startTrunc && $resume) {
 	    $offset = $inStartOff;
 	    $size  -= $inStartOff;
 	}
