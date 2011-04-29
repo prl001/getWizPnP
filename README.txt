@@ -42,7 +42,7 @@ If you don't have the Perl library path in your Perl includes,
 you'll need to add that directory to the PERLLIB environment variable.
 You'll also need to put $(PREFIX)/bin in your PATH variable.
 
-If, when you run any of the getWizPnP, you get an error like:
+If, when you run getWizPnP, you get an error like:
 
 	Can't locate XML/DOM.pm in @INC...
 or
@@ -59,10 +59,12 @@ the '.pm'. So to download the package that's missing in  that error
 message, just run:
 
 	cpan XML::DOM
+	
+to install the XML::DOM module, and similarly for any other required
+modules.
 
 The Perl modules that you are most likely to need to install are:
 	XML::DOM
-	File::Slurp
 	IO::Socket::Multicast
 	IO::Interface::Simple
 
@@ -94,7 +96,7 @@ You'll also need to add the directory to your PERLLIB environment
 variable, or create a new PATHLIB variable if there isn't one
 already.
 
-If, when you run any of the getWizPnP, you get an error like:
+If, when you run getWizPnP, you get an error like:
 
 	Can't locate XML/DOM.pm in @INC...
 or
@@ -110,11 +112,10 @@ XML/DOM.pm) change all of the '/'s to '::' and drop
 the '.pm'. So (at least in principe) to download the package that's
 missing in that error message, just run:
 
-	ppm XML::DOM
+	ppm install XML::DOM
 
 The Perl modules that you are most likely to need to install are:
 	XML::DOM
-	File::Slurp
 	IO::Socket::Multicast
 	IO::Interface::Simple
 
@@ -122,8 +123,6 @@ Running:
 	@checkModules
 checks whether the installation needs any modules that aren't available.
 
-You can just run this check by running
-	make check
 Unfortunately, the module IO::Socket::Multicast is *not* available from
 ppm the default ppm repository, so if you want to have this functionality
 in Windows, use an alternative repository.
@@ -175,3 +174,8 @@ the 'prl>' prompt):
 
 The last two commands disable the trouchelle ppm repository and re-enable
 the default ActivePerl ppm repository.
+
+Unfortunately, IO::Interface::Simple module does not appear to be
+available on any ppm repository. getWizPnP will still work, but the
+unique names for Beyonwiz servers used in the --longNames will be
+longer than they would be if the modle could be installed.

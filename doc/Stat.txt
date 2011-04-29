@@ -1,0 +1,85 @@
+NAME
+
+        use Beyonwiz::Recording::Stat;
+
+SYNOPSIS
+
+    Provides access to the Beyonwiz recording stat file. The purpose of the
+    stat file isn't really known.
+
+CONSTANTS
+
+    "STAT"
+        The stat url path component for the Beyonwiz ("stat").
+
+METHODS
+
+    "Beyonwiz::Recording::Stat->new($accessor, $name, $path)"
+        Create a new Beyonwiz recording file index object. $accessor is a
+        reference to a "Beyonwiz::Recording::Accessor" used to carry out the
+        media file access functions in "Beyonwiz::Recording::Header". $name
+        is the default name of the recording (usually the name in the
+        Beyonwiz recording index, see "Beyonwiz::Recording::IndexEntry".
+        $path is the path to the source recording folder in $name, and can
+        be a file system path or a URL depending on the type of $accessor.
+
+    "$s->name([$val]);"
+        Returns (sets) the default recording name.
+
+    "$s->fileName([$val]);"
+        Returns (sets) the name of the stat file.
+
+    "$s->beyonwizFileName([$val]);"
+        Returns (sets) the name of the stat file in the source.
+
+    "$s->recordingEndOffset([$val]);"
+        Returns (sets) the logical file offset of the end of the recording
+        as stred in the stat file.
+
+    "$s->size;"
+        Returns the size of the last decoded stat file.
+
+    "$s->load;"
+        Loads the stat data from the "stat" file, depending on which id
+        present in the recording.
+
+    "$s->valid;"
+        Returns true if the last "$i->load;" or
+        "$t->reconstruct($targetLen);" succeeded.
+
+    "$t->reconstruct($targetLen);"
+        Attempts to reconstruct the *stat*.
+
+        $targetLen is the size of the recorded data (or the best estimate if
+        not known exactly).
+
+        Sets "$t->valid;" and "$t->reconstructed;" to true if the
+        reconsruction succeeded (even partially), otherwise sets it to
+        "undef".
+
+    "$s->reconstructed([$val]);"
+        Returns (sets) a flag marking that the object represents a
+        reconstructed file, and the file should be encoded from the object
+        rather than being copied from the source.
+
+        Reset whenever "$s->valid;" is reset. Set when
+        "$t->reconstruct($targetLen);" succeeds.
+
+    "$s->decode($hdr_data);"
+        Load the contents of $s by decoding the "stat" file data in
+        $hdr_data.
+
+PREREQUISITES
+
+    Uses packages: "Beyonwiz::Recording::StatEntry", "Beyonwiz::Utils",
+    "File::Basename", "LWP::Simple", "URI", "URI::Escape",
+    "File::Spec::Functions".
+
+BUGS
+
+    Uses "bignum" for 64-bit integers, even when the underlying Perl
+    integers are 64 bits.
+
+    Uses a fixed value for the path name of the index, rather than deriving
+    it from *locationURL* in "Beyonwiz::WizPnP".
+

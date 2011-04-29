@@ -265,6 +265,24 @@ C<< $h->loadBookmarks >>,
 or  C<< $h->loadOffsets >>)
 was successful.
 
+=item C<< $s->reconstructed([$val]); >>
+
+Returns (sets) a flag marking that the object represents a reconstructed
+file, and the file should be encoded from the object rather than being
+copied from the source.
+
+There is no general reconstruction method for
+L<C<Beyonwiz::Recording::Header>|Beyonwiz::Recording::Header>,
+but reconstruction of other headers may need to modify the header object,
+and they should set this flag when the header is modified.
+
+
+Reset by any call of C<< $h->loadMain >>,
+C<< $h->loadEpisode >>,
+C<< $h->loadExtInfo >>,
+C<< $h->loadBookmarks >>,
+or  C<< $h->loadOffsets >>.
+
 =item C<< $h->size; >>
 
 Returns the size of the header file (256kB).
@@ -296,6 +314,11 @@ otherwise -1 is returned. Interpolates between values in the offset table.
 Returns 0 if C<< $offset <= $self->offsets->[0] >> and
 C<< $self->playtime >> if C<< $offset >= $self->endOffset >>.
 
+=item C<<  $h->updateOffsets($newStart, $newEnd) >>
+
+Update the offsets so that C<< $h->endOffset; >> is set to C<$newEnd>
+and the offset table is adjusted to start at C<$newStart>.
+Intended to be used when the trunc header has been reconstructed.
 
 =item C<< $h->loadMain; >>
 
@@ -338,11 +361,24 @@ Decodes parts of the header object from C<$hdr_data> on the Beyonwiz.
 The data for each part is assumed to satart at the beginning
 of the respective C<$hdr_data>.
 
-C<< $h->decodeMain >> decodes the basics,
-C<< $h->decodeEpisode >> decodes the episode name/subtitle informtion,
-C<< $h->decodeExtInfo >> decodes the extended event informtion,
-C<< $h->decodeBookmarks >> decodes the bookmark information
-and C<< $h->decodeOffsets >> decodes the 10-second offset data.
+=item C<< $h->encodeMain >>
+
+=item C<< $h->encodeEpisode >>
+
+=item C<< $h->encodeExtInfo >>
+
+=item C<< $h->encodeBookmarks >>
+
+=item C<< $h->encodeOffsets >>
+
+Encodes parts of the header object ready for writing back
+to a header file. The methods encode the corresponding data to the decode
+functions above.
+
+=item C<< $h->encodeMain >>
+
+Encodes the header object ready for writing back
+to a header file.
 
 =back
 
@@ -445,6 +481,7 @@ sub new($$$) {
 	validExtInfo	=> undef,
 	validBookmarks	=> undef,
 	validOffsets	=> undef,
+	reconstructed	=> undef,
 	ie		=> $ie,
 	headerName	=> undef,
 	magic		=> undef,
@@ -797,9 +834,31 @@ sub offsetTime($$) {
     return $dt * ($index + ($offset - $low) / ($high - $low));
 }
 
+sub updateOffsets($$$) {
+    my ($self, $newStart, $newEnd) = @_;
+    my $byteRate = ($self->endOffset - $self->startOffset) / $self->playtime;
+    # startOffset is updated in the loop, because it's $self->offsets->[0]
+    my $diff = $newStart - $self->startOffset;
+    if($diff != 0) {
+	foreach my $o (0..$self->last) {
+	    $self->offsets->[$o] += $diff;
+	}
+    }
+    for(my $off =  $self->last + 1;
+        int($off * 10 * $byteRate) <= $newEnd;
+	$off++) {
+	push @{$self->offsets}, int($off * 10 * $byteRate);
+    }
+    $self->last($#{$self->offsets});
+    $self->sec(int(($newEnd - $self->offsets->[$self->last]) / $byteRate));
+    $self->endOffset($newEnd);
+    $self->reconstructed(1);
+}
+
 sub decodeMain($$) {
     my ($self, $hdr_data) = @_;
 
+    $self->{reconstructed} = undef;
     if(defined $hdr_data
     && length($hdr_data) >= HDR_MAIN_SZ) {
 	my ($ad0, $ad1, $so0, $so1, $eo0, $eo1);
@@ -835,8 +894,39 @@ sub decodeMain($$) {
     }
 }
 
+sub encodeMain($) {
+    my ($self) = @_;
+
+    my $hdr_data = pack 'v6 C3 x C2 @1024 Z256 Z256 v x2 V v v @1548 (V2)2', (
+	$self->magic,
+	$self->version,
+	$self->pids->[0],
+	$self->pids->[1],
+	$self->pids->[2],
+	$self->pids->[3],
+	$self->lock,
+	$self->full,
+	$self->inRec,
+	$self->autoDeleteFlags | (($self->autoDelete >> 4) & 0xf0),
+	$self->autoDelete & 0xff,
+	$self->service,
+	$self->title,
+	$self->mjd,
+	$self->start,
+	$self->last,
+	$self->sec,
+	$self->endOffset & 0xffffffff,
+	($self->endOffset >> 32) & 0xffffffff,
+	$self->offsets->[0] & 0xffffffff,
+	($self->offsets->[0] >> 32) & 0xffffffff,
+    );
+    return $hdr_data;
+}
+
 sub decodeEpisode($$) {
     my ($self, $hdr_data) = @_;
+
+    $self->{reconstructed} = undef;
 
     if(defined $hdr_data
     && length($hdr_data) >= HDR_EPISODE_SZ) {
@@ -854,8 +944,19 @@ sub decodeEpisode($$) {
     }
 }
 
+sub encodeEpisode($) {
+    my ($self) = @_;
+
+    my $hdr_data = pack 'C Z' . (HDR_EPISODE_SZ-1) , (
+	length $self->episode, $self->episode
+    );
+    return $hdr_data;
+}
+
 sub decodeExtInfo($$) {
     my ($self, $hdr_data) = @_;
+
+    $self->{reconstructed} = undef;
 
     if(defined $hdr_data
     && length($hdr_data) >= HDR_EXTINFO_SZ) {
@@ -871,9 +972,19 @@ sub decodeExtInfo($$) {
     }
 }
 
+sub encodeExtInfo($) {
+    my ($self) = @_;
+
+    my $hdr_data = pack 'v Z' . (HDR_EXTINFO_SZ-2) , (
+	length $self->extInfo, $self->extInfo
+    );
+    return $hdr_data;
+}
+
 sub decodeBookmarks($$) {
     my ($self, $hdr_data) = @_;
 
+    $self->{reconstructed} = undef;
     if(defined $hdr_data
     && length($hdr_data) >= HDR_BOOKMARKS_SZ) {
 	my $nbkmk = unpack 'v', $hdr_data;
@@ -884,14 +995,26 @@ sub decodeBookmarks($$) {
 	}
 	$self->{validBookmarks} = 1;
     } else {
-	$self->{validBookmarks} = 0;
+	$self->{validBookmarks} = undef;
 	@{$self->bookmarks} = ();
     }
+}
+
+sub encodeBookmarks($$) {
+    my ($self) = @_;
+
+    my $hdr_data = pack 'v @20', ($self->bookmarks);
+    foreach my $b (@{$self->bookmarks}) {
+	$hdr_data .= pack 'V2', $b & 0xffffffff, ($b >> 32) & 0xffffffff;
+    }
+    $hdr_data .= "\0" x (HDR_BOOKMARKS_SZ - length $hdr_data);
+    return $hdr_data;
 }
 
 sub decodeOffsets($$) {
     my ($self, $hdr_data) = @_;
 
+    $self->{reconstructed} = undef;
     if(defined $hdr_data
     && length($hdr_data) >= HDR_OFFSETS_SIZE) {
 	my @offsets = unpack '(V2)' . ($self->last),
@@ -902,41 +1025,70 @@ sub decodeOffsets($$) {
 	    push @{$self->{offsets}}, (($o[1] << 32) | $o[0]);
 	}
     } else {
-	$self->{validOffsets} = 0;
+	$self->{validOffsets} = undef;
 	@{$self->{offsets}} = ($self->{offsets}[0]);
     }
 }
 
+sub encodeOffsets($) {
+    my ($self) = @_;
+
+    my $hdr_data = '';
+    for(my $o = 1; $o < $self->noffsets; $o++) {
+	my $off = $self->offsets->[$o];
+	$hdr_data .= pack 'V2', $off & 0xffffffff, ($off >> 32) & 0xffffffff;
+    }
+    $hdr_data .= "\0" x (HDR_OFFSETS_SIZE - length $hdr_data);
+    return $hdr_data;
+}
+
+sub encodeHeader($) {
+    my ($self) = @_;
+    return
+	  $self->encodeMain
+	. ("\0" x (HDR_OFFSETS_OFF-(HDR_MAIN_OFF+HDR_MAIN_SZ)))
+	. $self->encodeOffsets
+	. ("\0" x (HDR_BOOKMARKS_OFF-(HDR_OFFSETS_OFF+HDR_OFFSETS_SIZE)))
+	. $self->encodeBookmarks
+	. ("\0" x (HDR_EPISODE_OFF-(HDR_BOOKMARKS_OFF+HDR_BOOKMARKS_SZ)))
+	. $self->encodeEpisode
+	. ("\0" x (HDR_EXTINFO_OFF-(HDR_EPISODE_OFF+HDR_EPISODE_SZ)))
+	. $self->encodeExtInfo
+	. ("\0" x (HDR_SIZE-(HDR_EXTINFO_OFF+HDR_EXTINFO_SZ)));
+}
+
 sub _setMainMediaFile($$$) {
     my ($self, $size, $time)= @_;
-	$self->{magic}		 = undef,
-	$self->{version}	 = undef,
-	@{$self->{pids}}	 = [0, 0, 0, 0],
-	$self->{autoDelete}	 = undef,
-	$self->{autoDeleteFlags} = undef,
-	$self->{lock}		 = 0;
-	$self->{full}		 = 0;
-	$self->{inRec}		 = 0;
-	$self->{service}	 = 'Content';
-	$self->{title}		 = basename($self->name);
-	$self->{last}		 = -1;
-	$self->{sec}		 = -1;
-	$self->{validMain}	 = 1;
-	$self->endOffset($size);
-	$self->{offsets}->[0]	 = 0;
-	$self->_setUnixTime($time);
+    $self->{magic}		 = undef,
+    $self->{version}		 = undef,
+    @{$self->{pids}}		 = [0, 0, 0, 0],
+    $self->{autoDelete}		 = undef,
+    $self->{autoDeleteFlags}	 = undef,
+    $self->{lock}		 = 0;
+    $self->{full}		 = 0;
+    $self->{inRec}		 = 0;
+    $self->{service}		 = 'Content';
+    $self->{title}		 = basename($self->name);
+    $self->{last}		 = -1;
+    $self->{sec}		 = -1;
+    $self->{validMain}	 = 1;
+    $self->endOffset($size);
+    $self->{offsets}->[0]	 = 0;
+    $self->_setUnixTime($time);
 
-	$self->{validEpisode}	 = 1;
-	$self->episode('');
+    $self->{reconstructed}   = undef;
 
-	$self->{validExtInfo}	 = 1;
-	$self->extInfo('');
+    $self->{validEpisode}	 = 1;
+    $self->episode('');
 
-	$self->{validBookmarks}	 = 1;
-	@{$self->bookmarks}	 = ();
+    $self->{validExtInfo}	 = 1;
+    $self->extInfo('');
 
-	$self->{validOffsets}	 = 1;
-	$self->size(0);
+    $self->{validBookmarks}	 = 1;
+    @{$self->bookmarks}	 = ();
+
+    $self->{validOffsets}	 = 1;
+    $self->size(0);
 }
 
 sub loadHdrWmmeta() {

@@ -19,15 +19,22 @@ CONSTANTS
 METHODS
 
     "Beyonwiz::Recording::Trunc->new($name)"
-        Create a new Beyonwiz recording file index object. $name is the
-        default name of the recording (usually the name in the Beyonwiz
-        recording index, see
+        Create a new Beyonwiz recording file index object. $accessor is a
+        reference to a "Beyonwiz::Recording::Accessor" used to carry out the
+        media file access functions in "Beyonwiz::Recording::Header". $name
+        is the default name of the recording (usually the name in the
+        Beyonwiz recording index, see "Beyonwiz::Recording::IndexEntry".
+        $path is the path to the source recording folder in $name, and can
+        be a file system path or a URL depending on the type of $accessor.
 
     "$t->name([$val]);"
         Returns (sets) the default recording name.
 
     "$t->fileName([$val]);"
         Returns (sets) the name of the trunc file.
+
+    "$s->beyonwizFileName([$val]);"
+        Returns (sets) the name of the trunc file in the source.
 
     "$t->entries([$val]);"
         Returns (sets) the array reference containing the
@@ -46,14 +53,49 @@ METHODS
         If $nents is set, returns the size of the first $nents entries in
         the table.
 
+    "$t->load;"
+        Loads the trunc data from the "trunc" or "wmmeta" file, depending on
+        which is present in the recording or media file.
+
     "$t->valid;"
-        Returns true if the last "$i->load;" succeeded.
+        Returns true if the last "$i->load;" or "$t->reconstruct($minScan,
+        $maxScan, $targetLen);" succeeded.
+
+    "$t->reconstruct($minScan, $maxScan, $targetLen);"
+        Attempts to reconstruct the *trunc* data from the recording data
+        file names and sizes. $minScan and $maxScan are the minimum and
+        maximum data file names (as integers) for the scan to find the first
+        recording file name.
+
+        $targetLen is a guess at the maximum size of the recording data,
+        including an allowance for parts of the files that were edited out
+        in the original trunc file.
+
+        Sets "$t->valid;" and "$t->reconstructed;" to true if the
+        reconsruction succeeded (even partially), otherwise sets it to
+        "undef".
+
+    "$s->reconstructed([$val]);"
+        Returns (sets) a flag marking that the object represents a
+        reconstructed file, and the file should be encoded from the object
+        rather than being copied from the source.
+
+        Reset whenever "$s->valid;" is reset. Set when
+        "$t->reconstruct($targetLen);" succeeds.
 
     "$t->decode($hdr_data);"
         Load the contents of $t by decoding the "trunc" file data in
         $hdr_data.
 
-    "$t->truncStart($offset)"
+    "$t->encodeTrunc;"
+        Returns *trunc* file data for $t, ready for writing to a file.
+        Should only be called if $t represents a *trunc* file.
+
+    "$t->encodeWmmeta;"
+        Returns *wmmeta* file data for $t, ready for writing to a file.
+        Should only be called if $t represents a *wmmeta* file.
+
+    "$t->truncStart($recOffset)"
         Return the location of the logical "offset" (counting from 0 at the
         start of the recording) as a (*truncIndex*, *fileOffset*) pair
         indicating which "Beyonwiz::Recording::TruncEntry" contains the

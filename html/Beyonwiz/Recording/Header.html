@@ -378,6 +378,27 @@ or  <a href="#loadoffsets"><code>$h-&gt;loadOffsets</code></a>)
 was successful.</p>
 </dd>
 </li>
+<dt><strong><a name="reconstructed" class="item"><code>$s-&gt;reconstructed([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) a flag marking that the object represents a reconstructed
+file, and the file should be encoded from the object rather than being
+copied from the source.</p>
+</dd>
+<dd>
+<p>There is no general reconstruction method for
+<a href="../../../html/./Beyonwiz/Recording/Header.html"><code>Beyonwiz::Recording::Header</code></a>,
+but reconstruction of other headers may need to modify the header object,
+and they should set this flag when the header is modified.</p>
+</dd>
+<dd>
+<p>Reset by any call of <a href="#loadmain"><code>$h-&gt;loadMain</code></a>,
+<a href="#loadepisode"><code>$h-&gt;loadEpisode</code></a>,
+<a href="#loadextinfo"><code>$h-&gt;loadExtInfo</code></a>,
+<a href="#loadbookmarks"><code>$h-&gt;loadBookmarks</code></a>,
+or  <a href="#loadoffsets"><code>$h-&gt;loadOffsets</code></a>.</p>
+</dd>
+</li>
 <dt><strong><a name="size" class="item"><code>$h-&gt;size;</code></a></strong>
 
 <dd>
@@ -417,6 +438,14 @@ using <code>Time::Local::timelocal</code>.</p>
 otherwise -1 is returned. Interpolates between values in the offset table.
 Returns 0 if <a href="#offsets"><code>$offset &lt;= $self-&gt;offsets-&gt;[0]</code></a> and
 <a href="#playtime"><code>$self-&gt;playtime</code></a> if <a href="#endoffset"><code>$offset &gt;= $self-&gt;endOffset</code></a>.</p>
+</dd>
+</li>
+<dt><strong><a name="updateoffsets" class="item"><code>$h-&gt;updateOffsets($newStart, $newEnd)</code></a></strong>
+
+<dd>
+<p>Update the offsets so that <a href="#endoffset"><code>$h-&gt;endOffset;</code></a> is set to <code>$newEnd</code>
+and the offset table is adjusted to start at <code>$newStart</code>.
+Intended to be used when the trunc header has been reconstructed.</p>
 </dd>
 </li>
 <dt><strong><a name="loadmain" class="item"><code>$h-&gt;loadMain;</code></a></strong>
@@ -464,12 +493,28 @@ or in single files (<a href="#loadhdrfile"><code>$h-&gt;loadHdrFile;</code></a>)
 The data for each part is assumed to satart at the beginning
 of the respective <code>$hdr_data</code>.</p>
 </dd>
+</li>
+<dt><strong><a name="encodemain" class="item"><code>$h-&gt;encodeMain</code></a></strong>
+
+<dt><strong><a name="encodeepisode" class="item"><code>$h-&gt;encodeEpisode</code></a></strong>
+
+<dt><strong><a name="encodeextinfo" class="item"><code>$h-&gt;encodeExtInfo</code></a></strong>
+
+<dt><strong><a name="encodebookmarks" class="item"><code>$h-&gt;encodeBookmarks</code></a></strong>
+
+<dt><strong><a name="encodeoffsets" class="item"><code>$h-&gt;encodeOffsets</code></a></strong>
+
 <dd>
-<p><a href="#decodemain"><code>$h-&gt;decodeMain</code></a> decodes the basics,
-<a href="#decodeepisode"><code>$h-&gt;decodeEpisode</code></a> decodes the episode name/subtitle informtion,
-<a href="#decodeextinfo"><code>$h-&gt;decodeExtInfo</code></a> decodes the extended event informtion,
-<a href="#decodebookmarks"><code>$h-&gt;decodeBookmarks</code></a> decodes the bookmark information
-and <a href="#decodeoffsets"><code>$h-&gt;decodeOffsets</code></a> decodes the 10-second offset data.</p>
+<p>Encodes parts of the header object ready for writing back
+to a header file. The methods encode the corresponding data to the decode
+functions above.</p>
+</dd>
+</li>
+<dt><strong><code>$h-&gt;encodeMain</code></strong>
+
+<dd>
+<p>Encodes the header object ready for writing back
+to a header file.</p>
 </dd>
 </li>
 </dl>

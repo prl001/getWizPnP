@@ -193,6 +193,19 @@ METHODS
         "$h->loadExtInfo", "$h->loadBookmarks", or "$h->loadOffsets") was
         successful.
 
+    "$s->reconstructed([$val]);"
+        Returns (sets) a flag marking that the object represents a
+        reconstructed file, and the file should be encoded from the object
+        rather than being copied from the source.
+
+        There is no general reconstruction method for
+        "Beyonwiz::Recording::Header", but reconstruction of other headers
+        may need to modify the header object, and they should set this flag
+        when the header is modified.
+
+        Reset by any call of "$h->loadMain", "$h->loadEpisode",
+        "$h->loadExtInfo", "$h->loadBookmarks", or "$h->loadOffsets".
+
     "$h->size;"
         Returns the size of the header file (256kB).
 
@@ -219,6 +232,11 @@ METHODS
         called, otherwise -1 is returned. Interpolates between values in the
         offset table. Returns 0 if "$offset <= $self->offsets->[0]" and
         "$self->playtime" if "$offset >= $self->endOffset".
+
+    "$h->updateOffsets($newStart, $newEnd)"
+        Update the offsets so that "$h->endOffset;" is set to $newEnd and
+        the offset table is adjusted to start at $newStart. Intended to be
+        used when the trunc header has been reconstructed.
 
     "$h->loadMain;"
     "$h->loadHdrWmmeta;"
@@ -247,11 +265,17 @@ METHODS
         The data for each part is assumed to satart at the beginning of the
         respective $hdr_data.
 
-        "$h->decodeMain" decodes the basics, "$h->decodeEpisode" decodes the
-        episode name/subtitle informtion, "$h->decodeExtInfo" decodes the
-        extended event informtion, "$h->decodeBookmarks" decodes the
-        bookmark information and "$h->decodeOffsets" decodes the 10-second
-        offset data.
+    "$h->encodeMain"
+    "$h->encodeEpisode"
+    "$h->encodeExtInfo"
+    "$h->encodeBookmarks"
+    "$h->encodeOffsets"
+        Encodes parts of the header object ready for writing back to a
+        header file. The methods encode the corresponding data to the decode
+        functions above.
+
+    "$h->encodeMain"
+        Encodes the header object ready for writing back to a header file.
 
 INTERNAL METHODS
 

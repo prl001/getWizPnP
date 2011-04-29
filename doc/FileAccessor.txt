@@ -53,37 +53,46 @@ METHODS
 
         Returns "undef" on failure.
 
-    "$a->getRecordingFileChunk($rec, $path, $name, $file, $outdir, $append,
-    $off, $size, $outOff, $progressBar);"
+    "$a->getRecordingFileChunk($rec, $path, $file, $off, $size, $outOff,
+    $progressBar, $quiet);"
         Fetch a chunk of a recording corresponding to a single
-        "Beyonwiz::Recording::TruncEntry".
+        "Beyonwiz::Recording::TruncEntry" and write it to
+        "$self->outFileHandle".
 
         $rec is the asociated "Beyonwiz::Recording::Recording". $path is the
         path to the folder containing the recording's files on the Beyonwiz.
-        $name is the name of the recording folder or file (if "$rec->join"
-        is true). $file is the name of the Beyonwiz file containing the
-        chunk. $append is false if $file is to be created, true if it is to
-        be appended to. $off and $size is the chunk to be transferred. If
-        $outdir is defined and not the empty string, the record file is
-        placed in that directory, rather than the current directory. $outoff
-        is the offset to where to write the chunk into the output file.
-        $progressBar is as defined below in "$r->getRecordng(...)".
+        $file is the name of the Beyonwiz file containing the chunk. $off
+        and $size is the chunk to be transferred. $outoff is the offset to
+        where to write the chunk into the output file. If $progressBar is
+        defined, "$progressBar->done($totalTransferred)" is called at
+        regular intervals to update the progress bar and
+        "$progressBar->newLine" is used to move to a new line if the
+        progress bar is being drawn on the terminal. If $quiet is true, then
+        don't print an error message if the source file can't be found.
 
         Returns "RC_OK" if successful. Otherwise it will print a warning
         with the HTTP status message of the HTTP operation that failed, and
         return that status.
 
-    "$r->getRecordingFile($rec, $path, $name, $outdir, $file, $append);"
+    "$r->getRecordingFile($path, $name, $inFile, $outdir, $outFile,
+    $progressBar, $quiet);"
         Fetch a complete 0000, 0001, etc. recording file or header file from
         the Beyonwiz. Note that more than one
         "Beyonwiz::Recording::TruncEntry" may refer to any given file.
 
-        $rec $path, $name, $outdir, $file, $outdir and $append are as in
-        *getRecordingFileChunk*.
+        $path, $name, $outdir and $quiet are as in *getRecordingFileChunk*.
 
-        Returns "RC_OK" if successful. Otherwise it will print a warning
-        with the HTTP status message of the HTTP operation that failed, and
-        return that status.
+        $inFile and $outFile are the names of the input and output files
+        within the recording. They are normally only different if for header
+        files being retrieved from an incorrect name in the recording.
+
+        "$progressBar->newLine" is used to move to a new line if the
+        progress bar is being drawn on the terminal.
+
+        Returns "RC_OK" if successful, or an HTTP error status that
+        corresponds with the operating system error that caused the failure.
+        If $quiet is false, it will print a warning with the operating
+        system error for the operation that failed.
 
     "$r->renameRecording($hdr, $path, $outdir)"
         Move a recording described by $hdr and the given source $path (from

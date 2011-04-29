@@ -26,6 +26,18 @@ C<$base>.
 
 Returns (sets) the base path.
 
+=item C<< $a->outFileHandle([$val]); >>
+
+Returns (sets) the accessor's output file handle. Normally set by 
+C<< $a->openRecordingFileOut($self, $rec, $name, $file, $outdir, $append, $progressBar) >>.
+
+=item C<< $a->outFileName([$val]); >>
+
+Returns (sets) the accessor's output file name. Normally set by 
+C<< $a->openRecordingFileOut($self, $rec, $name, $file, $outdir, $append, $progressBar) >>.
+The name is set even if I<openRecordingFileOut> fails.
+Set to C<undef> by I<closeRecordingFileOut>
+
 =item C<< $a->fileLenTime(@path); >>
 
 Return C<($size, $modifiedTime)> for the given C<@path>,
@@ -62,8 +74,40 @@ Returns C<undef> on failure.
 
 Abstract.
 
+=item C<< $a->openRecordingFileOut($self, $rec, $name, $file, $outdir, $append, $progressBar) >>
+
+Open a recording file for output in the local file system.
+
+C<$rec> is the asociated
+L<C<Beyonwiz::Recording::Recording>|Beyonwiz::Recording::Recording>.
+C<$name> is the name of the recording folder
+(or file if C<< $rec->join >> is true).
+C<$file> is the name of the Beyonwiz file containing the data to be written.
+C<$append> is false if C<$file> is to be created, true if
+it is to be appended to.
+If C<$outdir> is defined and not the empty string, the record file is
+placed in that directory, rather than the current directory.
+If C<$progressBar> is defined, formats error messages differently to properly
+terminate the progress-bar line.
+If C<$quiet> is true, then don't print an error message if the source file
+can't be found.
+
+Returns C<RC_OK> if successful, otherwise some other C<RC_FORBIDDEN>
+if the file could not be created or opened for appending
+(depending on the value of C<$append>) and
+prints an operating system message describing the error.
+
+=item C<< $a->closeRecordingFileOut >>
+
+Close C<< $a->outFileHandle >>.
+Set C<< $a->outFileHandle >>
+and C<< $a->outFileName >>
+to C<undef>.
+
+Always returns C<RC_OK>.
+
 =item C<< $a->getRecordingFileChunk($rec, $path, $name, $file, $outdir,
-        $append, $off, $size, $outOff, $progressBar); >>
+        $append, $off, $size, $outOff, $progressBar, $quiet); >>
 
 Fetch a chunk of a recording corresponding to a single
 L<C<Beyonwiz::Recording::TruncEntry>|Beyonwiz::Recording::TruncEntry>.
@@ -81,7 +125,12 @@ C<$off> and C<$size> is the chunk to be transferred.
 If C<$outdir> is defined and not the empty string, the record file is
 placed in that directory, rather than the current directory.
 C<$outoff> is the offset to where to write the chunk into the output file.
-C<$progressBar> is as defined below in C<< $r->getRecordng(...) >>.
+If C<$progressBar> is defined, C<< $progressBar->done($totalTransferred) >> is
+called at regular intervals to update the progress bar
+and C<< $progressBar->newLine >> is used to move to a new line if the progress
+bar is being drawn on the terminal.
+If C<$quiet> is true, then don't print an error message if the source file
+can't be found.
 
 Returns C<RC_OK> if successful.
 Otherwise it will print a warning with the HTTP status
@@ -89,23 +138,26 @@ message of the HTTP operation that failed, and return that status.
 
 Abstract.
 
-=item C<< $r->getRecordingFile($rec, $path, $name, $outdir, $file, $append); >>
+=item C<< $a->getRecordingFile($path, $name, $inFile, $outdir, $outFile, $progressBar, $quiet); >>
 
 Fetch a complete 0000, 0001, etc. recording file or header file from the
 Beyonwiz. Note that more than one
 L<C<Beyonwiz::Recording::TruncEntry>|Beyonwiz::Recording::TruncEntry>
 may refer to any given file.
 
-C<$rec> C<$path>, C<$name>, C<$outdir>, C<$file>, C<$outdir>
-and C<$append> are as in I<getRecordingFileChunk>.
+C<$path>, C<$name>, C<$outdir> and C<$quiet>
+are as in I<getRecordingFileChunk>.
+
+C<< $progressBar->newLine >> is used to move to a new line if the progress
+bar is being drawn on the terminal.
 
 Returns C<RC_OK> if successful.
-Otherwise it will print a warning with the HTTP status
-message of the HTTP operation that failed, and return that status.
+Otherwise it will return the HTTP error status (or a HTTP status
+corresponding to the underlying error for non-HTTP accessors).
 
 Abstract.
 
-=item C<< $r->renameRecording($hdr, $path, $outdir) >>
+=item C<< $a->renameRecording($hdr, $path, $outdir) >>
 
 Move a recording described by C<$hdr> and the given
 source C<$path> (from the recording's
@@ -151,12 +203,16 @@ Abstract.
 
 Uses packages:
 C<HTTP::Status>,
-C<Beyonwiz::Utils>.
+C<File::Spec::Functions>,
+C<Beyonwiz::Utils>
+C<Beyonwiz::Recording::Recording>.
 
 =cut
 
 use HTTP::Status;
+use File::Spec::Functions;
 use Beyonwiz::Utils;
+use Beyonwiz::Recording::Recording qw(addDir);
 
 my $accessorsDone;
 
@@ -165,6 +221,8 @@ sub new() {
     $class = ref($class) if(ref($class));
 
     my $self = {
+	outFileHandle => undef,
+	outFileName => undef,
     };
 
     unless($accessorsDone) {
@@ -208,17 +266,52 @@ sub loadIndex($) {
     return undef;
 }
 
-sub getRecordingFileChunk($$$$$$$) {
-    my ($self, $path, $name, $file, $outdir,
-        $append, $off, $size, $outOff, $progressBar) = @_;
+sub openRecordingFileOut($$$$$$$) {
+    my ($self, $rec, $name, $file, $outdir, $append, $progressBar) = @_;
+
+    $name = $file ne ''
+		? catfile($name, $file)
+		: $name if(!$rec->join);
+    $name = addDir($outdir, $name);
+
+    $self->outFileName($name);
+
+    my $fh;
+
+    if(!open $fh, ($append ? '+<' : '>'), $name) {
+	warn( $progressBar->newLine,
+	     "Can't create $name: $!\n");
+	return RC_FORBIDDEN;
+    }
+
+    binmode $fh;
+    $self->outFileHandle($fh);
+
+    return RC_OK;
+}
+
+sub closeRecordingFileOut($) {
+    my ($self) = @_;
+
+    close $self->outFileHandle if($self->outFileHandle);
+    $self->outFileHandle(undef);
+    $self->outFileName(undef);
+
+    return RC_OK;
+}
+
+sub getRecordingFileChunk($$$$$$$$$$$) {
+    my ($self, $rec, $path, $name, $file, $outdir,
+        $off, $size, $outOff, $progressBar, $quiet) = @_;
 
     Beyonwiz::Utils::isAbstract;
 
     return undef;
 }
 
-sub getRecordingFile($$$$$$) {
-    my ($self, $path, $name, $file, $outdir, $append) = @_;
+sub getRecordingFile($$$$$$$$) {
+    my ($self, $path, $name, $inFile, $outdir, $outFile,
+        $progressBar, $quiet) = @_;
 
     Beyonwiz::Utils::isAbstract;
 

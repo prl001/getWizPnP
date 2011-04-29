@@ -47,18 +47,18 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::Recording-&gt;new($join, $date, $episode, $resume, $force)</code></a></strong>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::Recording-&gt;new($class, $accessor, $join, $nameFormat, $dateFormat, $resume, $force)</code></a></strong>
 
 <dd>
 <p>Create a new Beyonwiz recording downloader object.
+<code>$accessor</code> is a
+<a href="../../../html/./Beyonwiz/Recording/Accessor.html"><code>Beyonwiz::Recording::Accessor</code></a>
+object used to handle data operations on the source recording.
 If <code>$join</code> is true, the download will be into
 a single <code>.ts</code> file, otherwise the recording will
 be copied as it is on the Beyonwiz.
-If <code>$date</code> is true, the recording date is added to
-the recording name.
-If <code>$episode</code> is true, the recording episode name is added to
-the recording name if the episode name contains any non-blank characters.
-Useful for downloading series recordings.
+<code>$nameFormat</code> and <code>$dateFormat</code> are the destination recording
+name format and date format strings (for dates in the name format string).
 If <code>$resume</code> is true, allow resumption of recording download
 that appear to be incomplete.
 If <code>$force</code> is true, allow a download to overwrite an existing download.</p>
@@ -109,58 +109,27 @@ or single recording or media file is to be created from
 Beyonwiz folder media formats.</p>
 </dd>
 </li>
-<dt><strong><a name="getrecordingfilechunk" class="item"><code>$r-&gt;getRecordingFileChunk($path, $name, $file, $outdir,
-        $append, $off, $size, $outOff, $progressBar);</code></a></strong>
+<dt><strong><a name="putfile" class="item"><code>$r-&gt;putFile($name, $file, $outdir, $append, $data)</code></a></strong>
 
 <dd>
-<p>Download a chunk of a recording corresponding to a single
-<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>.</p>
-</dd>
-<dd>
-<p><code>$path</code> is the path name from the recording's
-<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.
-<code>$name</code> is the name of the recording folder or file
-(if <a href="#join"><code>$r-&gt;join</code></a> is true).
-<code>$file</code> is the name of the Beyonwiz file containing the chunk.
-<code>$append</code> is false if <code>$file</code> is to be created, true if
-it is to be appended to.
-<code>$off</code> and <code>$size</code> is the chunk to be transferred.
-If <code>$outdir</code> is defined and not the empty string, the record file is
-placed in that directory, rather than the current directory.
-<code>$outoff</code> is the offset to where to write the chunk into the output file.
-<code>$progressBar</code> is as defined below in <code>$r-&gt;getRecordng(...)</code>.</p>
-</dd>
-<dd>
-<p>Unimplemented in <code>Beyonwiz::Recording::Recording</code>, over-ride in
-derived classes.</p>
+<p>Write the data <code>$data</code> to <code>$file</code> in directory
+<code>$outdir</code>.
+Append rather than overwrite if <code>$append</code> is true.</p>
 </dd>
 </li>
-<dt><strong><a name="getrecordingfile" class="item"><code>$r-&gt;getRecordingFile($path, $name, $outdir, $file, $append);</code></a></strong>
-
-<dd>
-<p>Download a complete 0000, 0001, etc. recording file or header file from the
-Beyonwiz. Note that more than one
-<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
-may refer to any given file.</p>
-</dd>
-<dd>
-<p><code>$path</code>, <code>$name</code>, <code>$outdir</code>, <code>$file</code> and <code>$append</code> are as
-in <em>getRecordingFileChunk</em>.</p>
-</dd>
-<dd>
-<p>Unimplemented in <code>Beyonwiz::Recording::Recording</code>, over-ride in
-derived classes.</p>
-</dd>
-</li>
-<dt><strong><a name="getrecording" class="item"><code>$r-&gt;getRecording($hdr, $trunc, $path, $outdir, $showProgress);</code></a></strong>
+<dt><strong><a name="getrecording" class="item"><code>$r-&gt;getRecording($hdr, $trunc, $stat, $indexName, $path,
+					$outdir, $progressBar) = @_;</code></a></strong>
 
 <dd>
 <p>Download a Beyonwiz recording, either as a direct copy from the Beyonwiz, or
 combine tham into a single file (if <a href="#join"><code>$r-&gt;join</code></a> is true
 for Beyonwiz folder media formats).
-<code>$hdr</code> is the recording's header file object,
-<code>$trunc</code> is the recording's trunc file object,
-and <code>$path</code> is the path name from the recording's
+<code>$hdr</code> is the recording's main header file object,
+<code>$trunc</code> is the recording's <em>trunc</em> file object
+and
+<code>$stat</code> is the recording object's Istat&gt; file object.
+<em>$indexName</em> is the recording's name, 
+and <code>$path</code> its path name from the recording's
 <a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.
 If <code>$outdir</code> is defined and not the empty string, the recording is
 placed in that directory, rather than the current directory.
@@ -168,11 +137,17 @@ The name of the downloaded recording is derived from the recording title
 in the <code>$hdr</code>, with the episode name appended if <code>$r-&gt;episode</code>
 is true, and there are any non-whitespace characters in the episode name
 and with the recording date appended if <a href="#date"><code>$r-&gt;date</code></a> is true.
-If <code>$showProgress</code> is not <code>undef</code> it must be an object in a class
-implementing the methods <code>$showProgress-&gt;total([$val])</code> and
-<code>$showProgress-&gt;done([$val])</code>. <code>total</code> registers the total
+If <code>$progressBar</code> is not <code>undef</code> it must be an object in a class
+implementing the methods <code>$progressBar-&gt;total([$val])</code> and
+<code>$progressBar-&gt;done([$val])</code>. <code>total</code> registers the total
 number of bytes to transfer, and <code>done</code> updates the number of
 bytes transferred in the progress bar.</p>
+</dd>
+<dd>
+<p>If <code>$obj-&gt;reconstructed</code> is true,
+for any of <code>$hdr</code>, <code>$trunc</code> or <code>$stat</code>,
+then the header files for the respective objects are written from the
+objects instead of being copied from the source recording.</p>
 </dd>
 </li>
 <dt><strong><a name="renamerecording" class="item"><code>$r-&gt;renameRecording($hdr, $path, $outdir)</code></a></strong>

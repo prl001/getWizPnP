@@ -2,10 +2,38 @@ PREFIX=/usr/local
 BIN=$(PREFIX)/bin
 LIB=$(PREFIX)/lib/perl
 
+NAME=getWizPnP
+
+# Basic Windows vs Unix shell configuration: $/ is the separator in file paths.
+
+ifdef ComSpec
+    OS=Windows
+    # Ugly way to get a single \ into a variable
+    /=$(shell echo \)
+else
+    OS=$(shell uname -o 2> /dev/null || uname -s)
+    /=/
+endif
+
+MKDIR=mkdir -p
+CP=cp
+
+ifeq ($(OS),Cygwin)
+    EXEEXT=.exe
+else ifeq ($(OS),Windows)
+    EXEEXT=.exe
+    MKDIR=mkdir
+    CP=copy/y
+endif
+
+
+EXEDIR=Compiled$/$(OS)/getWizPnP
+
 BWMODULEDIR=Beyonwiz
 RECMODULEDIR=$(BWMODULEDIR)/Recording
 
-SCRIPTS=getWizPnP.pl
+SCRIPTS=$(NAME).pl
+EXE=$(NAME)$(EXEEXT)
 
 BWMODULES=$(BWMODULEDIR)/Utils.pm $(BWMODULEDIR)/WizPnP.pm \
 	$(BWMODULEDIR)/WizPnPDevice.pm
@@ -13,8 +41,8 @@ BWMODULES=$(BWMODULEDIR)/Utils.pm $(BWMODULEDIR)/WizPnP.pm \
 RECMODULES=$(RECMODULEDIR)/Accessor.pm $(RECMODULEDIR)/FileAccessor.pm \
 	$(RECMODULEDIR)/HTTPAccessor.pm $(RECMODULEDIR)/Header.pm \
 	$(RECMODULEDIR)/Index.pm $(RECMODULEDIR)/IndexEntry.pm \
-	$(RECMODULEDIR)/Recording.pm $(RECMODULEDIR)/Trunc.pm \
-	$(RECMODULEDIR)/TruncEntry.pm
+	$(RECMODULEDIR)/Recording.pm $(RECMODULEDIR)/Stat.pm \
+	$(RECMODULEDIR)/Trunc.pm $(RECMODULEDIR)/TruncEntry.pm
 
 CLEANUPMODULES=$(RECMODULEDIR)/HTTPIndex.pm $(RECMODULEDIR)/FileIndex.pm \
 	$(RECMODULEDIR)/HTTPRecording.pm $(RECMODULEDIR)/FileRecording.pm \
@@ -27,7 +55,7 @@ MODULES=$(BWMODULES) $(RECMODULES)
 
 all:
 
-install: all check install_lib install_bin
+install: all check install_lib
 
 install_lib:
 	mkdir -p '$(LIB)/$(BWMODULEDIR)' '$(LIB)/$(RECMODULEDIR)'
@@ -35,9 +63,15 @@ install_lib:
 	cp $(BWMODULES) '$(LIB)/$(BWMODULEDIR)'
 	cp $(RECMODULES) '$(LIB)/$(RECMODULEDIR)'
 
-install_bin:
-	mkdir -p '$(LIB)'
-	cp $(SCRIPTS) '$(BIN)'
+install_perl: $(BIN)
+	$(CP) $(SCRIPTS) "$(BIN)"
+
+install_bin: all compile $(BIN)
+	$(CP) "$(EXEDIR)$/$(EXE)" "$(BIN)"
+
+compile: check $(EXEDIR) $(EXEDIR)$/$(EXE) doc
+	$(CP) "html/$(NAME).html" "$(EXEDIR)"
+	$(CP) "doc/$(NAME).txt" "$(EXEDIR)"
 
 uninstall: uninstall_bin uninstall_lib
 
@@ -55,3 +89,13 @@ doc:
 
 check:
 	./checkModules.pl $(SCRIPTS) $(MODULES)
+
+$(EXEDIR)$/$(EXE): $(SCRIPTS)
+	pp -o "$(EXEDIR)$/$(EXE)" $(SCRIPTS)
+
+$(EXEDIR):
+	$(MKDIR) "$(EXEDIR)"
+
+$(BIN):
+	$(MKDIR) "$(BIN)"
+

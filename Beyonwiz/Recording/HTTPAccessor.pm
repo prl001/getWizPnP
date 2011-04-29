@@ -56,11 +56,12 @@ located at C<< $h->base([$val]); >>.
 
 Returns C<undef> on failure.
 
-=item C<< $a->getRecordingFileChunk($rec, $path, $name, $file, $outdir,
-        $append, $off, $size, $outOff, $progressBar); >>
+=item C<< $a->getRecordingFileChunk($rec, $path, $file,
+        $off, $size, $outOff, $progressBar, $quiet); >>
 
 Fetch a chunk of a recording corresponding to a single
-L<C<Beyonwiz::Recording::TruncEntry>|Beyonwiz::Recording::TruncEntry>.
+L<C<Beyonwiz::Recording::TruncEntry>|Beyonwiz::Recording::TruncEntry>
+and write it to C<< $self->outFileHandle >>.
 
 C<$rec> is the asociated
 L<C<Beyonwiz::Recording::Recording>|Beyonwiz::Recording::Recording>.
@@ -69,31 +70,41 @@ files on the Beyonwiz.
 C<$name> is the name of the recording folder or file
 (if C<< $rec->join >> is true).
 C<$file> is the name of the Beyonwiz file containing the chunk.
-C<$append> is false if C<$file> is to be created, true if
-it is to be appended to.
 C<$off> and C<$size> is the chunk to be transferred.
 If C<$outdir> is defined and not the empty string, the record file is
 placed in that directory, rather than the current directory.
 C<$outoff> is the offset to where to write the chunk into the output file.
-C<$progressBar> is as defined below in C<< $r->getRecordng(...) >>.
+If C<$progressBar> is defined, C<< $progressBar->done($totalTransferred) >> is
+called at regular intervals to update the progress bar
+and C<< $progressBar->newLine >> is used to move to a new line if the progress
+bar is being drawn on the terminal.
+If C<$quiet> is true, then don't print an error message if the source file
+can't be found.
 
 Returns C<RC_OK> if successful.
 Otherwise it will print a warning with the HTTP status
 message of the HTTP operation that failed, and return that status.
 
-=item C<< $r->getRecordingFile($rec, $path, $name, $outdir, $file, $append); >>
+=item C<< $r->getRecordingFile($path, $name, $inFile, $outdir, $outFile, $progressBar, $quiet); >>
 
 Fetch a complete 0000, 0001, etc. recording file or header file from the
 Beyonwiz. Note that more than one
 L<C<Beyonwiz::Recording::TruncEntry>|Beyonwiz::Recording::TruncEntry>
 may refer to any given file.
 
-C<$rec> C<$path>, C<$name>, C<$outdir>, C<$file>, C<$outdir>
-and C<$append> are as in I<getRecordingFileChunk>.
+C<$path>, C<$name>, C<$outdir> and C<$quiet>
+are as in I<getRecordingFileChunk>.
+
+C<$inFile> and C<$outFile> are the names of the input and output files
+within the recording.
+They are normally only different if for header files being retrieved
+from an incorrect name in the recording.
+
+C<< $progressBar->newLine >> is used to move to a new line if the progress
+bar is being drawn on the terminal.
 
 Returns C<RC_OK> if successful.
-Otherwise it will print a warning with the HTTP status
-message of the HTTP operation that failed, and return that status.
+Otherwise it will return the HTTP error status.
 
 =item C<< $r->renameRecording($hdr, $path, $outdir) >>
 
@@ -236,7 +247,7 @@ sub loadIndex($) {
     my $index_data = $self->readFile(INDEX);
     if(defined $index_data) {
 	my $index = [];
-	my $prefix = 'recording';
+	my $prefix = 'recordings';
 	foreach my $rec (split /\r?\n/, $index_data) {
 	    my @parts = split /\|/, $rec;
 	    if(@parts == 2) {
@@ -255,25 +266,18 @@ sub loadIndex($) {
     return undef;
 }
 
-sub getRecordingFileChunk($$$$$$$) {
-    my ($self, $rec, $path, $name, $file, $outdir,
-        $append, $off, $size, $outOff, $progressBar) = @_;
+sub getRecordingFileChunk($$$$$$$$$$) {
+    my ($self, $rec, $path, $file,
+        $off, $size, $outOff, $progressBar, $quiet) = @_;
 
     my $data_url = $self->base->clone;
 
-    $data_url->path(_uriPathEscape($name ne '' ? $path . '/' . $file : $path));
-    $name .= '/' . $file if($name ne '' && !$rec->join);
-    $name = addDir($outdir, $name);
+    $data_url->path(_uriPathEscape($file ne '' ? $path . '/' . $file : $path));
 
-    if(!open TO, ($append ? '+<' : '>'), $name) {
-	warn "Can't create $name: $!\n";
-	return RC_FORBIDDEN;
-    }
-    binmode TO;
-
-    if(!sysseek TO, $outOff, SEEK_SET) {
-	warn "Seek error on $name: $!\n";
-	close TO;
+    if(!sysseek $self->outFileHandle, $outOff, SEEK_SET) {
+	warn( $progressBar->newLine,
+	     'Seek error on ', $self->outFileName, ": $!\n" );
+	$self->closeRecordingFileOut;
 	return RC_BAD_REQUEST;
     }
 
@@ -283,8 +287,12 @@ sub getRecordingFileChunk($$$$$$$) {
     my $progressCount = 0;
     my $response = $ua->request($request,
 			sub($$$) {
-			    syswrite TO, $_[0] # $content, don't copy...
-				or die "Can't write to $name: $!\n";
+			    # Use $_[0] for $content, to avoid copying
+			    # the data...
+			    syswrite $self->outFileHandle, $_[0]
+				or die ( ($progressBar ? "\n" : ''),
+					'Write error on ',
+					$self->outFileName, ": $!\n" );
 			    if($progressBar) {
 			        $progressCount += length $_[0];
 				if($progressCount > 256 * 1024) {
@@ -300,40 +308,38 @@ sub getRecordingFileChunk($$$$$$$) {
 
     my $status = $response->code;
 
-    close TO;
- 
     $progressBar->done($progressBar->done + $progressCount) if($progressBar);
 
-    warn $name, ($rec->join && defined($file) && $file ne ''
-    		    ? '/'.$file
-		    : ''
-		), ': ',
-	    status_message($status), "\n"
-	if(!is_success($status));
+    warn( $progressBar->newLine,
+	    'Error fetching ', $self->outFileName,
+	    ($file ne '' ? $path . '/' . $file : $path), ': ',
+	    $response->status_line, "\n" )
+	if(!$quiet && !is_success($status));
     return $status;
 }
 
-sub getRecordingFile($$$$$$) {
-    my ($self, $rec, $path, $name, $file, $outdir, $append) = @_;
+sub getRecordingFile($$$$$$$$) {
+    my ($self, $path, $name, $inFile, $outdir, $outFile,
+        $progressBar, $quiet) = @_;
 
     my $data_url = $self->base->clone;
 
-    $data_url->path(_uriPathEscape($self->joinPaths($path, $file)));
-    $name .= '/' . $file if(!$rec->join);
+    $data_url->path(_uriPathEscape($self->joinPaths($path, $inFile)));
+    $name .= '/' . $outFile;
     $name = addDir($outdir, $name);
-    $name = '>' . $name if($append);
-    my $status = getstore($data_url, $name);
-    warn $name, ($rec->join && defined($file) && $file ne ''
-    		    ? '/'.$file
-		    : ''
-		), ': ',
-	    status_message($status), "\n"
-	if(!is_success($status));
+
+    my $request = HTTP::Request->new(GET => $data_url);
+    my $response = $ua->request($request, $name);
+    my $status = $response->code;
+
+    warn( $progressBar->newLine, $name, ': ', $response->status_line, "\n")
+	if(!$quiet && !is_success($status));
+
     return $status;
 }
 
 sub deleteRecordingFile($$$$;$) {
-    my ($self, $rec, $path, $name, $file) = @_;
+    my ($self, $path, $name, $file) = @_;
 
     my $data_url = $self->base->clone;
 
@@ -347,11 +353,7 @@ sub deleteRecordingFile($$$$;$) {
     my $response = $ua->request($request);
     my $status = $response->code;
 
-    warn $name, ($rec->join && defined($file) && $file ne ''
-    		    ? '/'.$file
-		    : ''
-		), ': ',
-	    status_message($status), "\n"
+    warn $name, ': ', $response->status_line, "\n"
 	if(!is_success($status));
 
     return $status;

@@ -107,12 +107,13 @@ located at <a href="#base"><code>$h-&gt;base([$val]);</code></a>.</p>
 <p>Returns <code>undef</code> on failure.</p>
 </dd>
 </li>
-<dt><strong><a name="getrecordingfilechunk" class="item"><code>$a-&gt;getRecordingFileChunk($rec, $path, $name, $file, $outdir,
-        $append, $off, $size, $outOff, $progressBar);</code></a></strong>
+<dt><strong><a name="getrecordingfilechunk" class="item"><code>$a-&gt;getRecordingFileChunk($rec, $path, $file,
+        $off, $size, $outOff, $progressBar, $quiet);</code></a></strong>
 
 <dd>
 <p>Fetch a chunk of a recording corresponding to a single
-<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>.</p>
+<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
+and write it to <code>$self-&gt;outFileHandle</code>.</p>
 </dd>
 <dd>
 <p><code>$rec</code> is the asociated
@@ -122,13 +123,16 @@ files on the Beyonwiz.
 <code>$name</code> is the name of the recording folder or file
 (if <code>$rec-&gt;join</code> is true).
 <code>$file</code> is the name of the Beyonwiz file containing the chunk.
-<code>$append</code> is false if <code>$file</code> is to be created, true if
-it is to be appended to.
 <code>$off</code> and <code>$size</code> is the chunk to be transferred.
 If <code>$outdir</code> is defined and not the empty string, the record file is
 placed in that directory, rather than the current directory.
 <code>$outoff</code> is the offset to where to write the chunk into the output file.
-<code>$progressBar</code> is as defined below in <code>$r-&gt;getRecordng(...)</code>.</p>
+If <code>$progressBar</code> is defined, <code>$progressBar-&gt;done($totalTransferred)</code> is
+called at regular intervals to update the progress bar
+and <code>$progressBar-&gt;newLine</code> is used to move to a new line if the progress
+bar is being drawn on the terminal.
+If <code>$quiet</code> is true, then don't print an error message if the source file
+can't be found.</p>
 </dd>
 <dd>
 <p>Returns <code>RC_OK</code> if successful.
@@ -136,7 +140,7 @@ Otherwise it will print a warning with the HTTP status
 message of the HTTP operation that failed, and return that status.</p>
 </dd>
 </li>
-<dt><strong><a name="getrecordingfile" class="item"><code>$r-&gt;getRecordingFile($rec, $path, $name, $outdir, $file, $append);</code></a></strong>
+<dt><strong><a name="getrecordingfile" class="item"><code>$r-&gt;getRecordingFile($path, $name, $inFile, $outdir, $outFile, $progressBar, $quiet);</code></a></strong>
 
 <dd>
 <p>Fetch a complete 0000, 0001, etc. recording file or header file from the
@@ -145,13 +149,22 @@ Beyonwiz. Note that more than one
 may refer to any given file.</p>
 </dd>
 <dd>
-<p><code>$rec</code> <code>$path</code>, <code>$name</code>, <code>$outdir</code>, <code>$file</code>, <code>$outdir</code>
-and <code>$append</code> are as in <em>getRecordingFileChunk</em>.</p>
+<p><code>$path</code>, <code>$name</code>, <code>$outdir</code> and <code>$quiet</code>
+are as in <em>getRecordingFileChunk</em>.</p>
+</dd>
+<dd>
+<p><code>$inFile</code> and <code>$outFile</code> are the names of the input and output files
+within the recording.
+They are normally only different if for header files being retrieved
+from an incorrect name in the recording.</p>
+</dd>
+<dd>
+<p><code>$progressBar-&gt;newLine</code> is used to move to a new line if the progress
+bar is being drawn on the terminal.</p>
 </dd>
 <dd>
 <p>Returns <code>RC_OK</code> if successful.
-Otherwise it will print a warning with the HTTP status
-message of the HTTP operation that failed, and return that status.</p>
+Otherwise it will return the HTTP error status.</p>
 </dd>
 </li>
 <dt><strong><a name="renamerecording" class="item"><code>$r-&gt;renameRecording($hdr, $path, $outdir)</code></a></strong>

@@ -66,44 +66,53 @@ located at C<< $h->base([$val]); >>.
 
 Returns C<undef> on failure.
 
-=item C<< $a->getRecordingFileChunk($rec, $path, $name, $file, $outdir,
-        $append, $off, $size, $outOff, $progressBar); >>
+=item C<< $a->getRecordingFileChunk($rec, $path, $file,
+        $off, $size, $outOff, $progressBar, $quiet); >>
 
 Fetch a chunk of a recording corresponding to a single
-L<C<Beyonwiz::Recording::TruncEntry>|Beyonwiz::Recording::TruncEntry>.
+L<C<Beyonwiz::Recording::TruncEntry>|Beyonwiz::Recording::TruncEntry>
+and write it to C<< $self->outFileHandle >>.
 
 C<$rec> is the asociated
 L<C<Beyonwiz::Recording::Recording>|Beyonwiz::Recording::Recording>.
 C<$path> is the path to the folder containing the recording's
 files on the Beyonwiz.
-C<$name> is the name of the recording folder or file
-(if C<< $rec->join >> is true).
 C<$file> is the name of the Beyonwiz file containing the chunk.
-C<$append> is false if C<$file> is to be created, true if
-it is to be appended to.
 C<$off> and C<$size> is the chunk to be transferred.
-If C<$outdir> is defined and not the empty string, the record file is
-placed in that directory, rather than the current directory.
 C<$outoff> is the offset to where to write the chunk into the output file.
-C<$progressBar> is as defined below in C<< $r->getRecordng(...) >>.
+If C<$progressBar> is defined, C<< $progressBar->done($totalTransferred) >> is
+called at regular intervals to update the progress bar
+and C<< $progressBar->newLine >> is used to move to a new line if the progress
+bar is being drawn on the terminal.
+If C<$quiet> is true, then don't print an error message if the source file
+can't be found.
 
 Returns C<RC_OK> if successful.
 Otherwise it will print a warning with the HTTP status
 message of the HTTP operation that failed, and return that status.
 
-=item C<< $r->getRecordingFile($rec, $path, $name, $outdir, $file, $append); >>
+=item C<< $r->getRecordingFile($path, $name, $inFile, $outdir, $outFile, $progressBar, $quiet); >>
 
 Fetch a complete 0000, 0001, etc. recording file or header file from the
 Beyonwiz. Note that more than one
 L<C<Beyonwiz::Recording::TruncEntry>|Beyonwiz::Recording::TruncEntry>
 may refer to any given file.
 
-C<$rec> C<$path>, C<$name>, C<$outdir>, C<$file>, C<$outdir>
-and C<$append> are as in I<getRecordingFileChunk>.
+C<$path>, C<$name>, C<$outdir> and C<$quiet>
+are as in I<getRecordingFileChunk>.
 
-Returns C<RC_OK> if successful.
-Otherwise it will print a warning with the HTTP status
-message of the HTTP operation that failed, and return that status.
+C<$inFile> and C<$outFile> are the names of the input and output files
+within the recording.
+They are normally only different if for header files being retrieved
+from an incorrect name in the recording.
+
+C<< $progressBar->newLine >> is used to move to a new line if the progress
+bar is being drawn on the terminal.
+
+Returns C<RC_OK> if successful, or an HTTP error status that
+corresponds with the operating system error that caused the failure.
+If C<$quiet> is false, it will print a warning with the operating
+system error for the operation that failed.
 
 =item C<< $r->renameRecording($hdr, $path, $outdir) >>
 
@@ -328,20 +337,30 @@ sub loadIndex($) {
 	   )
 	&& -d $_
 	&& (-f $self->joinPaths($_, TVHDR) || -f $self->joinPaths($_, RADHDR))
-	&&  -f $self->joinPaths($_, TRUNC)) {
+	) {
 	    my $name = $relpath;
 	    $name =~ s/\.(tv|rad)wiz$//;
 	    $name = join '/', splitdir($name);
-	    my $mtime = (stat $_)[9];
-	    my ($min,$hour,$mday,$mon,$year) = (localtime($mtime))[1..5];
-	    $name .= sprintf ' %s.%d.%d_%d.%d',
-				$monNames[$mon], $mday, $year+1900, $hour, $min;
-	    push @$indexData,
-		    [ $name,
-		      $self->joinPaths(
-				$base, $relpath
-			    )
-		    ];
+	    my $path = $self->joinPaths($base, $relpath);
+	    if(!($name =~ /(?:\s+|_)[[:alpha:]]{3}\.\d+\.\d+_\d+\.\d+$/)) {
+		my ($min,$hour,$mday,$mon,$year);
+		my $ie = Beyonwiz::Recording::IndexEntry->new(
+					$self, $name, $path
+				    );
+		my $hdr = Beyonwiz::Recording::Header->new($self, $ie);
+		$hdr->loadMain;
+		if($hdr->validMain) {
+		    ($min,$hour,$mday,$mon,$year) =
+				(gmtime($hdr->starttime))[1..5];
+		} else {
+		    my $mtime = (stat $_)[9];
+		    ($min,$hour,$mday,$mon,$year) = (localtime($mtime))[1..5];
+		}
+		$name .= sprintf '_%s.%d.%d_%d.%d',
+				    $monNames[$mon], $mday, $year+1900,
+				    $hour, $min;
+	    }
+	    push @$indexData, [ $name, $path ];
 	    $File::Find::prune = 1;
 	} elsif(defined($ext) && $ext eq 'wiz' && $self->{extensions}{$ext}
 	     && -d $_
@@ -371,41 +390,32 @@ sub loadIndex($) {
     return $indexData;
 }
 
-sub getRecordingFileChunk($$$$$$$$) {
-    my ($self, $rec, $path, $name, $file, $outdir,
-        $append, $off, $size, $outOff, $progressBar) = @_;
+sub getRecordingFileChunk($$$$$$$$$) {
+    my ($self, $rec, $path, $file,
+        $off, $size, $outOff, $progressBar, $quiet) = @_;
     $path = $file ne ''
 		? $self->joinPaths($path, $file)
 		: $path;
-    $name = $file ne ''
-		? $self->joinPaths($name, $file)
-		: $name if(!$rec->join);
-    $name = addDir($outdir, $name);
+
+    if(!sysseek $self->outFileHandle, $outOff, SEEK_SET) {
+	warn( $progressBar->newLine,
+	     'Seek error on ', $self->outFileName, ": $!\n" );
+	$self->closeRecordingFileOut;
+	return RC_BAD_REQUEST;
+    }
 
     if(!open FROM, '<', $path) {
-	warn "Can't open $path: $!\n";
+	warn( $progressBar->newLine,
+	     "Can't open $path: $!\n") if(!$quiet);
 	return RC_NOT_FOUND;
     }
     binmode FROM;
 
-    if(!open TO, ($append ? '+<' : '>'), $name) {
-	warn "Can't create $name: $!\n";
-	close FROM;
-	return RC_FORBIDDEN;
-    }
-    binmode TO;
-
     if(!sysseek FROM, $off, SEEK_SET) {
-	warn "Seek error on $path: $!\n";
+	warn( $progressBar->newLine,
+	     "Seek error on $path: $!\n");
 	close FROM;
-	close TO;
-	return RC_BAD_REQUEST;
-    }
-
-    if(!sysseek TO, $outOff, SEEK_SET) {
-	warn "Seek error on $name: $!\n";
-	close FROM;
-	close TO;
+	$self->closeRecordingFileOut;
 	return RC_BAD_REQUEST;
     }
 
@@ -415,8 +425,9 @@ sub getRecordingFileChunk($$$$$$$$) {
     my $progressCount = 0;
     my $rdLen = 64 * 1024;
     while($nread = sysread FROM, $buf, ($size > $rdLen ? $rdLen : $size)) {
-	if(!defined syswrite TO, $buf, $nread) {
-	    warn "Write error on $name: $!\n";
+	if(!defined syswrite $self->outFileHandle, $buf, $nread) {
+	    warn( $progressBar->newLine,
+		'Write error on ', $self->outFileName, ": $!\n" );
 	    $status = RC_BAD_REQUEST;
 	    last;
 	}
@@ -436,31 +447,33 @@ sub getRecordingFileChunk($$$$$$$$) {
     $progressBar->done($progressBar->done + $progressCount) if($progressBar);
 
     if(!defined $nread) {
-	warn "Read error on $path: $!\n";
+	warn( $progressBar->newLine,
+	     "Read error on $path: $!\n" );
 	$status = RC_BAD_REQUEST;
     }
-    close TO;
     close FROM;
     return RC_OK;
 }
 
-sub getRecordingFile($$$$$$) {
-    my ($self, $rec, $path, $name, $file, $outdir, $append) = @_;
-
-    $path = $file ne ''
-	? $self->joinPaths($path, $file)
+sub getRecordingFile($$$$$$$$) {
+    my ($self, $path, $name, $inFile, $outdir, $outFile,
+        $progressBar, $quiet) = @_;
+    $path = $inFile ne ''
+	? $self->joinPaths($path, $inFile)
 	: $path;
-    $name = $file ne ''
-		? $self->joinPaths($name, $file)
-		: $name if(!$rec->join);
+    $name = $outFile ne ''
+		? $self->joinPaths($name, $outFile)
+		: $name;
     $name = addDir($outdir, $name);
 
     if(!open FROM, '<', $path) {
-	warn "Can't open $path: $!\n";
+	warn( $progressBar->newLine,
+	     "Can't open $path: $!\n") if(!$quiet);
 	return RC_NOT_FOUND;
     }
-    if(!open TO, ($append ? '>>' : '>'), $name) {
-	warn "Can't create $name: $!\n";
+    if(!open TO, '>', $name) {
+	warn( $progressBar->newLine,
+	     "Can't create $name: $!\n");
 	close FROM;
 	return RC_FORBIDDEN;
     }
@@ -470,13 +483,15 @@ sub getRecordingFile($$$$$$) {
     my $rdLen = 64 * 1024;
     while($nread = sysread FROM, $buf, $rdLen) {
 	if(!defined syswrite TO, $buf, $nread) {
-	    warn "Write error on $name: $!\n";
+	    warn( $progressBar->newLine,
+		 "Write error on $name: $!\n");
 	    $status = RC_BAD_REQUEST;
 	    last;
 	}
     }
     if(!defined $nread) {
-	warn "Read error on $path: $!\n";
+	warn( $progressBar->newLine,
+	     "Read error on $path: $!\n");
 	$status = RC_BAD_REQUEST;
     }
     close TO;
@@ -526,10 +541,9 @@ sub renameRecording($$$$$) {
 }
 
 sub deleteRecordingFile($$$$) {
-    my ($self, $rec, $path, $name, $file) = @_;
+    my ($self, $path, $name, $file) = @_;
 
-    $path = $self->joinPaths($path, $file)
-        if(defined $file);
+    $path = $self->joinPaths($path, $file) if(defined $file);
 
     my $errno = 0;
     my $errstr = '';

@@ -72,8 +72,15 @@ The trunc file is used to describe exactly which parts of the
 
 <dd>
 <p>Create a new Beyonwiz recording file index object.
+<code>$accessor</code> is a reference to a
+<a href="../../../html/./Beyonwiz/Recording/Accessor.html"><code>Beyonwiz::Recording::Accessor</code></a>
+used to carry out the media file access functions in
+<a href="../../../html/./Beyonwiz/Recording/Header.html"><code>Beyonwiz::Recording::Header</code></a>.
 <code>$name</code> is the default name of the recording (usually
-the name in the Beyonwiz recording index, see</p>
+the name in the Beyonwiz recording index, see
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.
+<code>$path</code> is the path to the source recording folder in <code>$name</code>, and can be a
+file system path or a URL depending on the type of <code>$accessor</code>.</p>
 </dd>
 </li>
 <dt><strong><a name="name" class="item"><code>$t-&gt;name([$val]);</code></a></strong>
@@ -86,6 +93,12 @@ the name in the Beyonwiz recording index, see</p>
 
 <dd>
 <p>Returns (sets) the name of the trunc file.</p>
+</dd>
+</li>
+<dt><strong><a name="beyonwizfilename" class="item"><code>$s-&gt;beyonwizFileName([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) the name of the trunc file in the source.</p>
 </dd>
 </li>
 <dt><strong><a name="entries" class="item"><code>$t-&gt;entries([$val]);</code></a></strong>
@@ -120,10 +133,49 @@ objects in for the recording.</p>
 in the table.</p>
 </dd>
 </li>
+<dt><strong><a name="load" class="item"><code>$t-&gt;load;</code></a></strong>
+
+<dd>
+<p>Loads the trunc data from the <code>trunc</code> or <code>wmmeta</code> file, depending on which
+is present in the recording or media file.</p>
+</dd>
+</li>
 <dt><strong><a name="valid" class="item"><code>$t-&gt;valid;</code></a></strong>
 
 <dd>
-<p>Returns true if the last <code>$i-&gt;load;</code> succeeded.</p>
+<p>Returns true if the last <a href="#load"><code>$i-&gt;load;</code></a>
+or <a href="#reconstruct"><code>$t-&gt;reconstruct($minScan, $maxScan, $targetLen);</code></a> succeeded.</p>
+</dd>
+</li>
+<dt><strong><a name="reconstruct" class="item"><code>$t-&gt;reconstruct($minScan, $maxScan, $targetLen);</code></a></strong>
+
+<dd>
+<p>Attempts to reconstruct the <em>trunc</em> data from the recording data file
+names and sizes. <code>$minScan</code> and <code>$maxScan</code> are the minimum and maximum
+data file names (as integers) for the scan to find the first recording
+file name.</p>
+</dd>
+<dd>
+<p><code>$targetLen</code> is a guess at the maximum size of the recording data,
+including an allowance for parts of the files that were edited out in the
+original trunc file.</p>
+</dd>
+<dd>
+<p>Sets <a href="#valid"><code>$t-&gt;valid;</code></a> and
+<a href="#reconstructed"><code>$t-&gt;reconstructed;</code></a> to true if the reconsruction succeeded
+(even partially), otherwise sets it to <code>undef</code>.</p>
+</dd>
+</li>
+<dt><strong><a name="reconstructed" class="item"><code>$s-&gt;reconstructed([$val]);</code></a></strong>
+
+<dd>
+<p>Returns (sets) a flag marking that the object represents a reconstructed
+file, and the file should be encoded from the object rather than being
+copied from the source.</p>
+</dd>
+<dd>
+<p>Reset whenever <a href="#valid"><code>$s-&gt;valid;</code></a> is reset.
+Set when <a href="#reconstruct"><code>$t-&gt;reconstruct($targetLen);</code></a> succeeds.</p>
 </dd>
 </li>
 <dt><strong><a name="decode" class="item"><code>$t-&gt;decode($hdr_data);</code></a></strong>
@@ -133,7 +185,25 @@ in the table.</p>
 <code>$hdr_data</code>.</p>
 </dd>
 </li>
-<dt><strong><a name="truncstart" class="item"><code>$t-&gt;truncStart($offset)</code></a></strong>
+<dt><strong><a name="encodetrunc" class="item"><code>$t-&gt;encodeTrunc;</code></a></strong>
+
+<dd>
+<p>Returns <em>trunc</em> file data for
+<code>$t</code>, ready for writing to a file.
+Should only be called if <code>$t</code> represents
+a <em>trunc</em> file.</p>
+</dd>
+</li>
+<dt><strong><a name="encodewmmeta" class="item"><code>$t-&gt;encodeWmmeta;</code></a></strong>
+
+<dd>
+<p>Returns <em>wmmeta</em> file data for
+<code>$t</code>, ready for writing to a file.
+Should only be called if <code>$t</code> represents
+a <em>wmmeta</em> file.</p>
+</dd>
+</li>
+<dt><strong><a name="truncstart" class="item"><code>$t-&gt;truncStart($recOffset)</code></a></strong>
 
 <dd>
 <p>Return the location of the logical <code>offset</code> (counting from 0

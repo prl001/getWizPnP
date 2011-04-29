@@ -214,9 +214,10 @@ sub title($;$) {
     my $ret = $self->{title};
     if(@_ == 2) {
 	$self->{title} = $val;
+	$self->{title} =~ s/_ /: /g;
 	$self->sortTitle($self->makeSortTitle
-				? &{$self->makeSortTitle}($val)
-				: $val);
+				? &{$self->makeSortTitle}($self->title)
+				: $self->title);
     }
     return $ret;
 }

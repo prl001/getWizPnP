@@ -31,8 +31,15 @@ The wmmeta url path component for the Beyonwiz (C<wmmeta>).
 =item C<< Beyonwiz::Recording::Trunc->new($name) >>
 
 Create a new Beyonwiz recording file index object.
+C<$accessor> is a reference to a
+L<C<Beyonwiz::Recording::Accessor>|Beyonwiz::Recording::Accessor>
+used to carry out the media file access functions in
+L<C<Beyonwiz::Recording::Header>|Beyonwiz::Recording::Header>.
 C<$name> is the default name of the recording (usually
 the name in the Beyonwiz recording index, see
+L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
+C<$path> is the path to the source recording folder in C<$name>, and can be a
+file system path or a URL depending on the type of C<$accessor>.
 
 =item C<< $t->name([$val]); >>
 
@@ -41,6 +48,10 @@ Returns (sets) the default recording name.
 =item C<< $t->fileName([$val]); >>
 
 Returns (sets) the name of the trunc file.
+
+=item C<< $s->beyonwizFileName([$val]); >>
+
+Returns (sets) the name of the trunc file in the source.
 
 =item C<< $t->entries([$val]); >>
 
@@ -65,16 +76,60 @@ objects in for the recording.
 If C<$nents> is set, returns the size of the first C<$nents> entries
 in the table.
 
+=item C<< $t->load; >>
+
+Loads the trunc data from the C<trunc> or C<wmmeta> file, depending on which
+is present in the recording or media file.
+
 =item C<< $t->valid; >>
 
-Returns true if the last C<< $i->load; >> succeeded.
+Returns true if the last C<< $i->load; >>
+or C<< $t->reconstruct($minScan, $maxScan, $targetLen); >> succeeded.
+
+=item C<< $t->reconstruct($minScan, $maxScan, $targetLen); >>
+
+Attempts to reconstruct the I<trunc> data from the recording data file
+names and sizes. C<$minScan> and C<$maxScan> are the minimum and maximum
+data file names (as integers) for the scan to find the first recording
+file name.
+
+C<$targetLen> is a guess at the maximum size of the recording data,
+including an allowance for parts of the files that were edited out in the
+original trunc file.
+
+Sets C<< $t->valid; >> and
+C<< $t->reconstructed; >> to true if the reconsruction succeeded
+(even partially), otherwise sets it to C<undef>.
+
+=item C<< $s->reconstructed([$val]); >>
+
+Returns (sets) a flag marking that the object represents a reconstructed
+file, and the file should be encoded from the object rather than being
+copied from the source.
+
+Reset whenever C<< $s->valid; >> is reset.
+Set when C<< $t->reconstruct($targetLen); >> succeeds.
 
 =item C<< $t->decode($hdr_data); >>
 
 Load the contents of C<$t> by decoding the C<trunc> file data in
 C<$hdr_data>.
 
-=item C<< $t->truncStart($offset) >>
+=item C<< $t->encodeTrunc; >>
+
+Returns I<trunc> file data for
+C<$t>, ready for writing to a file.
+Should only be called if C<$t> represents
+a I<trunc> file.
+
+=item C<< $t->encodeWmmeta; >>
+
+Returns I<wmmeta> file data for
+C<$t>, ready for writing to a file.
+Should only be called if C<$t> represents
+a I<wmmeta> file.
+
+=item C<< $t->truncStart($recOffset) >>
 
 Return the location of the logical C<offset> (counting from 0
 at the start of the recording) as a (I<truncIndex>, I<fileOffset>)
@@ -145,18 +200,42 @@ use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(TRUNC WMMETA FULLFILE);
 
+use constant TRUNC_FMT          => 'V2 v v V2 V';
+use constant WMMETA_HDR_FMT     => 'Z4 V2';
+use constant WMMETA_FMT         => 'V4';
+use constant WMMETA_TBL_OFF     => 4096;
+use constant WMMETA_TBL_ENT_SZ  => 16;
+use constant WMMETA_TBL_SZ      => 512;
+
+my @truncNames = (
+    TRUNC,
+    WMMETA,
+    'Trunc',
+    'TRUNC',
+);
+
+my %truncLookup = (
+    TRUNC,    TRUNC, # Use ',' instead of '=>' to get const interpolation
+    'Trunc',  TRUNC,
+    'TRUNC',  TRUNC,
+    WMMETA,    WMMETA, # Use ',' instead of '=>' to get const interpolation
+);
+
 my $accessorsDone;
 
 sub new() {
     my ($class, $accessor, $name, $path) = @_;
     $class = ref($class) if(ref($class));
     my $self = {
-	accessor  => $accessor,
-	name      => $name,
-	fileName  => undef,
-	path	  => $path,
-	size      => 0,
-	entries   => [],
+	accessor          => $accessor,
+	name              => $name,
+	fileName          => undef,
+	beyonwizFileName  => undef,
+	path	          => $path,
+	valid             => undef,
+	reconstructed     => undef,
+	size              => 0,
+	entries           => [],
     };
     bless $self, $class;
 
@@ -199,14 +278,14 @@ sub valid() {
 }
 
 sub truncStart($$) {
-    my ($self, $offset) = @_;
+    my ($self, $recOffset) = @_;
     my $startFileOff = 0;
     for(my $i = 0; $i < $self->nentries; $i++) {
 	my $endFileOff = $startFileOff + ${$self->entries}[$i]->size;
-	return ($i, $offset - $startFileOff) if($endFileOff > $offset);
+	return ($i, $recOffset - $startFileOff) if($endFileOff > $recOffset);
 	$startFileOff = $endFileOff;
     }
-    return ($self->nentries, $offset - $startFileOff);
+    return ($self->nentries, $recOffset - $startFileOff);
 }
 
 sub makeFileTrunc($) {
@@ -216,6 +295,8 @@ sub makeFileTrunc($) {
     my $lastfile = -1;
     $fileTrunc->size($self->size);
     $fileTrunc->fileName($self->fileName);
+    $fileTrunc->beyonwizFileName($self->beyonwizFileName);
+    $fileTrunc->reconstructed($self->reconstructed);
 
     foreach my $tr (@{$self->entries}) {
 	my $sz = $tr->offset+$tr->size;
@@ -246,6 +327,7 @@ sub fileTruncFromDir($) {
     my $lastfile = -1;
     $fileTrunc->size($self->size);
     $fileTrunc->fileName($self->fileName);
+    $fileTrunc->beyonwizFileName($self->beyonwizFileName);
 
     foreach my $tr (@{$self->entries}) {
 	if($lastfile != $tr->fileNum) {
@@ -267,23 +349,26 @@ sub fileTruncFromDir($) {
     return $fileTrunc;
 }
 
-sub load() {
+sub load($) {
     my ($self) = @_;
-    foreach my $t (TRUNC, WMMETA) {
-	if($t eq TRUNC && $self->path =~ /\.(tv|rad)wiz$/
-	|| $t eq WMMETA && $self->path =~ /\.wiz$/) {
+    $self->{reconstructed} = undef;
+    foreach my $t (@truncNames) {
+	my $tfn = $truncLookup{$t};
+	if($tfn eq TRUNC && $self->path =~ /\.(tv|rad)wiz$/
+	|| $tfn eq WMMETA && $self->path =~ /\.wiz$/) {
 	    my $trunc_data = $self->accessor->readFile(
 					$self->path, $t
 				);
 
 	    if(defined $trunc_data) {
-		if($t eq TRUNC) {
+		if($tfn eq TRUNC) {
 		    $self->decodeTrunc($trunc_data);
 		} else {
 		    $self->decodeWmmeta($trunc_data);
 		}
 		if($self->valid) {
-		    $self->fileName($t);
+		    $self->fileName($tfn);
+		    $self->beyonwizFileName($t);
 		    return;
 		}
 	    }
@@ -300,6 +385,7 @@ sub load() {
 			    )
 		);
 	$self->fileName('');
+	$self->beyonwizFileName('');
 	$self->{valid} = 1;
 	return;
     }
@@ -309,6 +395,61 @@ sub load() {
     $self->{size} = 0;
 
     $self->fileName(undef);
+    $self->beyonwizFileName(undef);
+}
+
+sub reconstruct($$$$) {
+    my ($self, $minScan, $maxScan, $targetLen) = @_;
+    $self->{valid} = undef;
+    $self->{reconstructed} = undef;
+    @{$self->entries} = ();
+    $self->{size} = 0;
+    my ($f, $len, $t);
+    my ($recLen, $recOff) = (0, 256*1024);
+    my $scannedSize = 0;
+    for($f = $minScan; $f <= $maxScan; $f++) {
+	my $fn = sprintf '%04d', $f;
+	print "Scan for start: $fn\r";
+	($len, $t) = $self->accessor->fileLenTime(
+				    $self->accessor->joinPaths(
+				    		$self->path, $fn
+					)
+			    );
+	last if(defined $len);
+    }
+    if(defined $len) {
+	my $fn = sprintf '%04d', $f;
+	print "\nFound start at $fn\n";
+	do {
+	    if(defined $len) {
+		$self->{valid} = 1;
+		$self->{reconstructed} = 1;
+
+		$self->addEntry(Beyonwiz::Recording::TruncEntry->new(
+				$recOff,
+				$f,
+				0,
+				0,
+				$len
+			    )
+			);
+		$self->{size} += 24;
+		$recOff += $len;
+		$recLen += $len;
+	    }
+	    $f++;
+	    $fn = sprintf '%04d', $f;
+	    print "Check $fn\r";
+	    ($len, $t) = $self->accessor->fileLenTime(
+					$self->accessor->joinPaths(
+							$self->path, $fn
+						)
+				);
+	    $scannedSize += defined($len) ? $len : 32 * 1024 * 1024;
+	} until($f > $maxScan || $scannedSize >= $targetLen);
+	print "\n";
+	$self->fileName(TRUNC); $self->beyonwizFileName(TRUNC);
+    }
 }
 
 sub decodeTrunc($$) {
@@ -321,7 +462,8 @@ sub decodeTrunc($$) {
     && length($hdr_data) % 24 == 0) {
 	$self->{size} = length $hdr_data;
 	my @trunc = unpack '(V2 v v V2 V)*', $hdr_data;
-	while(my @t = splice(@trunc, 0, 7)) {
+	for(my $o = 0; $o < $self->{size}; $o += 24) {
+	    my @t = unpack TRUNC_FMT, substr $hdr_data, $o, 24;
 	    $self->addEntry(Beyonwiz::Recording::TruncEntry->new(
 			    ($t[1] << 32) | $t[0],
 			    $t[2],
@@ -335,6 +477,25 @@ sub decodeTrunc($$) {
     } else {
 	$self->{valid} = undef;
     }
+    $self->{reconstructed} = undef;
+}
+
+sub encodeTrunc($) {
+    my ($self) = @_;
+    my $hdrData;
+    foreach my $te (@{$self->entries}) {
+	$hdrData .= pack TRUNC_FMT, (
+			    $te->wizOffset & 0xffffffff,
+			    ($te->wizOffset >> 32) & 0xffffffff,
+			    $te->fileNum,
+			    $te->flags,
+			    $te->offset & 0xffffffff,
+			    ($te->offset >> 32) & 0xffffffff,
+			    $te->size
+			);
+    }
+    $self->size(length $hdrData);
+    return $hdrData;
 }
 
 sub decodeWmmeta($$) {
@@ -343,15 +504,18 @@ sub decodeWmmeta($$) {
     @{$self->entries} = ();
     $self->{size} = 0;
     $self->{valid} = undef;
+    $self->{reconstructed} = undef;
 
     if(defined $hdr_data
     && length($hdr_data) >= 4096
     && (length($hdr_data) - 4096) % 16 == 0) {
 	$self->{size} = length $hdr_data;
-	my ($magic, $unknown, $len, @wmmeta) = unpack 'Z4 V2 @4096 (V4)*',
-						$hdr_data;
+	my ($magic, $unknown, $len) = unpack WMMETA_HDR_FMT, $hdr_data;
 	if($magic eq WMMAGIC) {
-	    for(my $n = 0; my @t = splice(@wmmeta, 0, 4) and $n < $len; $n++) {
+	    for(my $n = 0; $n < $len; $n++) {
+		my @t = unpack WMMETA_FMT,
+			substr $hdr_data, WMMETA_TBL_OFF
+						+ $n * WMMETA_TBL_ENT_SZ;
 		$self->addEntry(Beyonwiz::Recording::TruncEntry->new(
 				($t[1] << 32) | $t[0],
 				$t[2],
@@ -366,5 +530,22 @@ sub decodeWmmeta($$) {
     }
 }
 
-1;
+sub encodeWmmeta($) {
+    my ($self) = @_;
+    my $hdrData	= pack WMMETA_HDR_FMT, WMMAGIC, 1, $self->nentries;
 
+    foreach my $te (@{$self->entries}) {
+	$hdrData .= pack WMMETA_FMT, (
+			    $te->wizOffset & 0xffffffff,
+			    ($te->wizOffset >> 32) & 0xffffffff,
+			    $te->fileNum,
+			    $te->size
+			);
+    }
+    $hdrData .= "\0" x ((WMMETA_TBL_ENT_SZ - $self->nentries)
+				* WMMETA_TBL_ENT_SZ);
+    $self->size(length $hdrData);
+    return $hdrData;
+}
+
+1;

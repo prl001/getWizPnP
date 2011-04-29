@@ -44,12 +44,12 @@
 <hr />
 <h1><a name="synopsis">SYNOPSIS</a></h1>
 <pre>
-    getWizPnP [--help|-h]
+    getWizPnP [--help|-h] [--version]
               [--device dev|-D dev] [--maxdevs=devs|-m devs]
               [--longNames]
               [--host=host|-H host] [--port=port|-p port]
               [--list|-l] [--List|-L]
-              [--delete|-X] [--move|-M] [--dryrun|-n]
+              [--copy|-C] [--delete|-X] [--move|-M] [--dryrun|-n]
               [--media=exts] [--stopFolders=folderlist]
               [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]
               [--folder=folderlist|-f folderlist]
@@ -58,26 +58,35 @@
               [--sort=sortcode|-s sortcode]
               [--dictionarySort=ignoretype|-i ignoretype]
               [--dictStoplist=words|-S word]
-              [--date|-d] [--dateLast] [--episode|-E] [--ts|-t] [--join|-j]
+              [--episode|-E] [--date|-d] [--dateLast] [--ts|-t] [--join|-j]
               [--resume|-R] [--force|-F]
-              [--outdir=dir|-O dir] [--indir=dir|-I dir]
+              [--outDir=dir|-O dir] [--inDir=dir|-I dir]
               [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
               [--debug=debugcode] [--index|-x]
               [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]
-              [ patterns... ]</pre>
+              [ recording match patterns... ]</pre>
 <p>
 </p>
 <hr />
 <h1><a name="description">DESCRIPTION</a></h1>
 <p>List, fetch, move or delete the recordings on a Beyonwiz DP series
 PVR over the network using the <em>WizPnP</em> interface.
-If <strong>--<a href="#indir">indir</a></strong> is specified, perform the same operations on
+If <strong>--<a href="#indir">inDir</a></strong> is specified, perform the same operations on
 the computer where <em>getWizPnP</em> is running.
-<strong>--<a href="#indir">indir</a></strong> is most useful in combination with <strong>--<a href="#ts">ts</a></strong>.</p>
-<p>If no pattern arguments are given, then all recordings are listed.
+<strong>--<a href="#indir">inDir</a></strong> is most useful in combination with <strong>--<a href="#ts">ts</a></strong>.</p>
+<p>If no pattern arguments are given, then all recordings in the included folders
+are listed.
 Otherwise recordings matching any of the patterns are fetched
 (or listed, moved or deleted, with <strong>--<a href="#list">list</a></strong>, <strong>--<a href="#move">move</a></strong> or <strong>--<a href="#delete">delete</a></strong>
 respectively).</p>
+<p>So:</p>
+<pre>
+    getWizPnP.pl</pre>
+<p>will list all recordings in the Beyonwiz's Recordings folder, while</p>
+<pre>
+    getWizPnP.pl Simpsons</pre>
+<p>will copy all recordings of <em>The Simpsons</em> (and any other recordings with
+&quot;simpsons&quot; in the title or episode name).</p>
 <p>In the absence of <strong>--<a href="#regexp">regexp</a></strong> or <strong>--<a href="#expression">expression</a></strong> a pattern matches
 if it is a substring of the string <em>servicename</em><strong>#</strong><em>longtitle</em>#<em>date</em>,
 case insensitive.
@@ -91,23 +100,23 @@ otherwise it is <em>title</em><strong>/</strong><em>episodename</em>.</p>
     WIN TV Canberra#Underbelly/Team Purana#Wed May  7 20:28:00 2008</pre>
 <p>To download all recordings, an empty string will match everything:</p>
 <pre>
-    wizGetPnP ''</pre>
+    wizGetPnP.pl ''</pre>
 <p>Recordings are copied or moved to a name corresponding to their event name
 (title) with any characters that are illegal in the file system changed to '_'.
 The <strong>--<a href="#date">date</a></strong> option adds the day and date of the recording to the name,
 and the <strong>--<a href="#episode">episode</a></strong> option adds the episode name to the recording
 name (if there is one set)
 -- helpful for series recordings.
-Downloaded recordings are placed in the current directory unless <strong>--<a href="#outdir">outdir</a></strong>
+Downloaded recordings are placed in the current directory unless <strong>--<a href="#outdir">outDir</a></strong>
 has been specified.</p>
 <p>When listing recordings, recordings that are currently recording are flagged
 with <code>*RECORDING NOW</code> next to the recording name,
 recordings that have File Lock set are flagged with <code>*LOCKED</code>,
 and recordings with AC3 (Dolby Digital) are flagged <code>*AC3</code>.
 The tags are not part of the name for matching.
-<em>GetWizPnP</em> won't fetch recordings that are currently in progress.</p>
+<strong>getWizPnP</strong> won't fetch recordings that are currently in progress.</p>
 <p>The default is for <strong>getWizPnP</strong> to perform its operations on the
-recordings directly in in the <code>recordings</code> folder (and not in its subfolders).
+recordings directly in in the <code>Recordings</code> folder (and not in its subfolders).
 See the <strong>--<a href="#folder">folder</a></strong> option for how to view the contents of other folders,
 and the <strong>--<a href="#recursive">recursive</a></strong> option for how to perform operations on a folder
 and all its subfolders.</p>
@@ -137,8 +146,8 @@ set the <code>$longNames</code> variable in the
 <strong><a href="#files">configuration file</a></strong>.</p>
 <p>More compact names for Beyonwiz devices are generated by
 <strong>--<a href="#longnames">longNames</a></strong> if the Perl library module <code>IO::Interface::Simple</code>
-must be installed on the machine running <strong>getWizPnP</strong>.
-See the <code>README.txt</code> file in the distribution folder for more details of
+is installed on the machine running <strong>getWizPnP</strong>.
+See the <code>README.txt</code> file in the distribution folder for more details on
 how to install missing modules.</p>
 <p>
 </p>
@@ -154,7 +163,21 @@ how to install missing modules.</p>
   -h</pre>
 </dd>
 <dd>
-<p>Print a short help message and exit (overrides all other options).</p>
+<p>Print a short help message on <em>stderr</em> and exit
+(overrides all other options except <strong>--<a href="#version">version</a></strong>).
+When used with <strong>--<a href="#version">version</a></strong>, prints the version
+number, then the help message, and exits.</p>
+</dd>
+<dt><strong><a name="version" class="item">version</a></strong>
+
+<dd>
+<pre>
+  --version</pre>
+</dd>
+<dd>
+<p>Print <em>getWizPnP</em>'s version on <em>stderr</em> and exit (overrides all other options
+except <strong>--<a href="#help">help</a></strong>). When used with <strong>--<a href="#help">help</a></strong>, prints the version
+number, then the help message, and exits.</p>
 </dd>
 <dt><strong><a name="device" class="item">device</a></strong>
 
@@ -201,7 +224,7 @@ for devices until it times out.
 <pre>
     --longNames
     -N
-    --nolongnames
+    --nolongNames
     -noN</pre>
 </dd>
 <dd>
@@ -245,6 +268,11 @@ WizPnP search to find the Beyonwiz, or instead of the default set in the
 returned by <em>host</em> that contains the WizPnP name of the device must match
 (case insensitive) the device name given by <strong>--<a href="#device">device</a></strong>.</p>
 </dd>
+<dd>
+<p>Using <strong>--<a href="#host">host</a></strong> potentially allows a Beyonwiz's recordings and media
+files to be accessed anywhere on the Internet. Using WizPnP device discovery
+will only work on the local (sub)net.</p>
+</dd>
 <dt><strong><a name="port" class="item">port</a></strong>
 
 <dd>
@@ -254,9 +282,20 @@ returned by <em>host</em> that contains the WizPnP name of the device must match
 </dd>
 <dd>
 <p>Connect to the <em>port</em> instead of the
-file default (<code>49152</code>), or the default set in the configuration
+Beyonwiz default (<code>49152</code>), or the default set in the configuration
 file (see <strong><a href="#files">FILES</a></strong> below).
-<em>port</em> is ignored unless <strong>--<a href="#host">host</a></strong> is set.</p>
+<em>Port</em> is ignored unless <strong>--<a href="#host">host</a></strong> is set.</p>
+</dd>
+<dt><strong><a name="copy" class="item">copy</a></strong>
+
+<dd>
+<pre>
+  --copy
+  -C</pre>
+</dd>
+<dd>
+<p>Copy the recordings.
+This is the default operation if the command has selection <em>patterns</em>.</p>
 </dd>
 <dt><strong><a name="list" class="item">list</a></strong>
 
@@ -266,7 +305,8 @@ file (see <strong><a href="#files">FILES</a></strong> below).
   -l</pre>
 </dd>
 <dd>
-<p>List the matching recordings, rather than copying them.</p>
+<p>List the matching recordings.
+This is the default operation if the command has no selection <em>patterns</em>.</p>
 </dd>
 <dt><strong><a name="delete" class="item">delete</a></strong>
 
@@ -279,7 +319,7 @@ file (see <strong><a href="#files">FILES</a></strong> below).
 <p>Delete the matching recordings, rather than copying them.
 If File Lock is set on the recording, the operation will be skipped and
 a warning message printed.
-The operation can be forced by using <strong>--<a href="#force">force</a></strong>
+The operation can be forced by using <strong>--<a href="#force">force</a></strong>.
 Delete uses an undocumented feature of WizPnP. See <strong><a href="#bugs">BUGS</a></strong>.</p>
 </dd>
 <dt><strong><a name="move" class="item">move</a></strong>
@@ -294,7 +334,7 @@ Delete uses an undocumented feature of WizPnP. See <strong><a href="#bugs">BUGS<
 Equivalent to a copy followed by a delete for each matching recording.
 If File Lock is set on the recording, the operation will be skipped and
 a warning message printed.
-The operation can be forced by using <strong>--<a href="#force">force</a></strong>
+The operation can be forced by using <strong>--<a href="#force">force</a></strong>.
 Move uses an undocumented feature of WizPnP. See <strong><a href="#bugs">BUGS</a></strong>.</p>
 </dd>
 <dt><strong><a name="media" class="item">media</a></strong>
@@ -311,12 +351,16 @@ The default set can also be specified in the <strong><a href="#files">configurat
 <p>Media file name extension matching is case-insensitive.</p>
 </dd>
 <dd>
-<p>Beyonwiz TV and radio recordings are also recognised if they have no
-filename extension on their folder.
-Recognition of these recordings cannot be controlled by <a href="#media"><code>--media</code></a>.
+<p>Beyonwiz TV and radio recordings on the computer running <strong>getWizPnP</strong>
+are also recognised if they have no filename extension on their
+folder.
 This is to allow recognition of recordings copied using old versions
 of getWizPnP which did not add a .tvwiz/.radwiz extension to the folder name.
-This feature(?) may be removed in future versions.</p>
+This feature may be removed in future versions.</p>
+</dd>
+<dd>
+<p>Recognition of these beyonwiz-format recordings cannot be controlled by
+<a href="#media"><code>--media</code></a>.</p>
 </dd>
 <dd>
 <p>The user-specified default can be over-ridden by the program defaults
@@ -355,7 +399,7 @@ firmware, and may have errors or omissions.</p>
 <dd>
 <p><em>folderList</em> is a comma-separated list of folder names that
 are to be excluded when building the recordings &amp; media list
-on the local computer when <strong>--<a href="#indir">indir</a></strong> is used.</p>
+on the local computer when <strong>--<a href="#indir">inDir</a></strong> is used.</p>
 </dd>
 <dd>
 <p>On Windows and Cygwin this defaults to the folders
@@ -371,18 +415,22 @@ and on Unix and Linux systems to <code>lost+found,.Trash</code>.</p>
     -T fmt</pre>
 </dd>
 <dd>
-<p>Specify how the names of files and folders will be generated
-when it is copied or moved. 
+<p>Specify how the names of recordings and media files will be generated
+when they are copied or moved. 
 <em>fmt</em> is a text string with codes in it that are expanded in the
 file or folder name.</p>
 </dd>
 <dd>
 <p>The general of the codes is <strong>%=</strong>[<em>sep</em>]<em>code</em>.
-<em>sep</em> is an optional separator character.
-If the field specified by <em>code</em> iexists and is not empty,
-then the field is preceded by a eaparator made up of <em>sep</em>
+<em>Sep</em> is an optional separator character.
+If the field specified by <em>code</em> exists and is not empty,
+then the field is preceded by a separator made up of <em>sep</em>
 with a single space before it, and a single space following it.
-The allowed values for <em>code</em> are:</p>
+If <em>sep</em> is not specified, then the field is simply appended
+directly to the name being constructed.</p>
+</dd>
+<dd>
+<p>The allowed values for <em>code</em> are:</p>
 </dd>
 <dd>
 <p><strong>S</strong></p>
@@ -411,8 +459,8 @@ Will not be set for media that are not Beyonwiz recordings.</p>
 </dd>
 <dd>
 <p>The date of the recording.
-The most recently modified time for media files and
-recordings stored on computer file systems.
+The most recently modified time for media files stored on computer
+file systems.
 The format of the date defaults to an ISO-likeformat <code>YYYY-MM-DD HH-MM</code>
 (e.g. 2009-02-22 20:30).
 The format of the date can be set using <strong>--<a href="#dateformat">dateFormat</a></strong>.</p>
@@ -464,7 +512,7 @@ ABC2 - Scrapheap Challenge - 2009-03-04 18-33 - The Scrappy Races Part 2</p>
 <p><strong>episodeonly</strong></p>
 </dd>
 <dd>
-<p><code>%=E'</code> -
+<p><code>%=E</code> -
 The Scrappy Races Part 2</p>
 </dd>
 <dd>
@@ -475,8 +523,8 @@ is specified.</p>
 <dd>
 <p>The rules for eliminating characters not permitted by the file system
 still hold.
-This may mean that, for example, ':' will not appear in a generated
-name, even if you specify it explicitly.</p>
+This means that, for example, ':' will not appear in a name generated
+on Windows, even if you specify it explicitly.</p>
 </dd>
 <dd>
 <p>The default <strong>--<a href="#nameformat">nameFormat</a></strong> can be set in the
@@ -503,7 +551,8 @@ but you can use whatever codes your system allows.</p>
 <dd>
 <p><strong>--<a href="#dateformat">dateFormat</a></strong> defaults to <code>%Y-%m-%d %H-%M</code>,
 (e.g. 2009-02-22 20:30)
-which uses only codes from the portable set.</p>
+which uses only codes from the portable set.
+This is the &quot;canned&quot; format <code>default</code>, below.</p>
 </dd>
 <dd>
 <p>A number of &quot;canned&quot; formats are available, and are specified
@@ -513,7 +562,7 @@ when <em>fmt</em> is exactly equal to one of the format names:</p>
 <p><strong>default</strong></p>
 </dd>
 <dd>
-<p><code>%Y-%m-%d %H-%M</code> - 2009-02-20 20:30</p>
+<p><code>%Y-%m-%d %H-%M</code> - 2009-02-20 20-30</p>
 </dd>
 <dd>
 <p><strong>compat</strong></p>
@@ -533,7 +582,7 @@ stamp that distinguishes the time of day.</p>
 <p><strong>isoLike</strong></p>
 </dd>
 <dd>
-<p><code>%Y-%m-%d %H:%M</code> - 2009-02-20 20:30 - more readble, ISO-like
+<p><code>%Y-%m-%d %H-%M</code> - 2009-02-20 20-30 - more readble, ISO-like
 date, whose string sorts by time.</p>
 </dd>
 <dd>
@@ -560,6 +609,13 @@ but possibly not completely portable day-of-month code, <code>%e</code>.</p>
 can be modified or extended (user definitions override program definitions
 where both are specified).</p>
 </dd>
+<dd>
+<p>As in <strong>--<a href="#nameformat">nameFormat</a></strong>,
+the rules for eliminating characters not permitted by the file system
+still hold.
+This means that, for example, ':' will not appear in a name generated
+on Windows, even if it is specified explicitly.</p>
+</dd>
 <dt><strong><a name="folder" class="item">folder</a></strong>
 
 <dd>
@@ -572,23 +628,27 @@ where both are specified).</p>
 More that one <strong>--<a href="#folder">folder</a></strong> option may be given, the operations apply to
 all the named folders.
 If no folders are named, operations are on the top level
-recording folder (equivalent to specifying <strong>--folder=recordings</strong>
+recording folder (equivalent to specifying <strong>--folder=Recordings</strong>
 or <strong>-f recordings</strong>).</p>
 </dd>
 <dd>
-<p>--folder defaults to --folder=recordings. Older versions allowed
-subfolders to be specified by their name relative to recordings
-(e.g. recordings/Movies was specified by --folder=Movies).
-Now the full name must be given, i.e. --folder=recordings/Movies.
-But you can now also specify --folder=content/Movies (for example).
-To see everything on the Beyonwiz, use --folder=/ --all.</p>
+<p>Case is ignored in naming folders, even on Unix/Linux systems.</p>
+</dd>
+<dd>
+<p><strong>--<a href="#folder">folder</a></strong> defaults to <code>--folder=recordings</code>. Older versions allowed
+subfolders to be specified by their name relative to <strong>Recordings</strong>
+(e.g. <strong>recordings/Movies</strong> was specified by <code>--folder=Movies</code>).
+Now the full name must be given, i.e. <code>--folder=recordings/Movies</code>.
+But you can now also specify <code>--folder=content/Movies</code> (for example).
+To see all recordings and media on the Beyonwiz,
+use <code>--folder=/ --all</code>.</p>
 </dd>
 <dd>
 <p>Recordings can be specified with either relative or absolute path names,
 but they have the same meaning. The path separator characters can
 be either the Unix-like <strong>/</strong> or the DOS-like <strong>\</strong>.
-Case is ignored in folder name comparisone.
-So <strong>recordings/Movies/Comedy</strong>,
+Case is ignored in folder name comparisons.
+So <strong>Recordings/Movies/Comedy</strong>,
 <strong>/recordings/movies/CoMeDy</strong>
 and <strong>recordings\movies\comedy</strong>
 all refer to the same folder (on Unix, the <strong>\</strong> will need to be quoted).
@@ -614,10 +674,10 @@ and using anything but the default folder will mean that
 no recordings are visible.</p>
 </dd>
 <dd>
-<p>If <strong>--<a href="#indir">indir</a></strong> is used, then all recordings in that folder will appear
+<p>If <strong>--<a href="#indir">inDir</a></strong> is used, then all recordings in that folder will appear
 to be in the top level folder seen by <em>getWizPnP</em>.
-If any foldername except <strong>--folder=</strong> (or <strong>--folder=/</strong>)
-is used, no recprdings will be found.</p>
+If any foldername except <a href="#folder"><code>--folder=</code></a> (or <a href="#folder"><code>--folder=/</code></a>)
+is used, no recordings will be found.</p>
 </dd>
 <dt><strong><a name="recursive" class="item">recursive</a></strong>
 
@@ -633,7 +693,7 @@ is used, no recprdings will be found.</p>
 <dd>
 <p>Recursively examine all subfolders under the folders specified
 by <strong>--<a href="#folder">folder</a></strong> for recordings, as well as just the recordings
-directly in the folders.</p>
+directly in the spscified folders.</p>
 </dd>
 <dd>
 <p>Has no effect if the Beyonwiz is running firmware 01.05.261 or earlier.</p>
@@ -707,18 +767,23 @@ useful if this option is set by default in the user's
 <strong>za</strong> (title alphabetic descending),
 <strong>fa</strong> (folder name alphabetic ascending),
 <strong>fd</strong> (folder name alphabetic descending),
-<strong>ta</strong> (date and time ascending),
-<strong>td</strong> (date descending),
-<strong>da</strong> (date and time ascending) and
+<strong>ta</strong> (date and time of day ascending),
+<strong>td</strong> (date and time of day descending),
+<strong>da</strong> (date ascending) and
 <strong>dd</strong> (date descending).
-The default <em>sortcode</em> is <strong>fatd</strong>
-(folder name ascending, time descending).
-Time descending is to match the Beyonwiz default sort order
+The default <em>sortcode</em> is <strong>faazta</strong>
+(folder name ascending, title alphabetic ascending, time ascending).
+Date and time of day descending is to match the Beyonwiz default sort order
 (and only sort order in older firmware).
 Later codes in the string are only checked if entries are equal on
-all earlier codes. The default <em>sortcode</em> sorts on folder name,
+all earlier codes.
+The default <em>sortcode</em> sorts on folder name,
 then title (not including episode title),
 then from earliest to latest for the same title &amp; folder name.</p>
+</dd>
+<dd>
+<p>The detail sort order for sorting on title is controlled by
+<strong>--<a href="#dictionarysort">dictionarySort</a></strong>, and the default order is <code>exact</code>.</p>
 </dd>
 <dd>
 <p>Case is ignored for the folder name sort order.</p>
@@ -727,21 +792,17 @@ then from earliest to latest for the same title &amp; folder name.</p>
 <p>If the <strong>uu</strong> code is used anywhere in the string, the output is unsorted.</p>
 </dd>
 <dd>
-<p>Sorting on titles only works correctly with Beyonwiz firmware 01.05.261
+<p>Sorting on titles only works with Beyonwiz firmware 01.05.261
 and later.
 Even where it works, sorting by name of recordings on
 the Beyonwiz may differ from the
 strictly ACSII ordering of some punctuation,
 because there's no fast way to get the exact title
-punctuation in some circumstances.</p>
+punctuation.</p>
 </dd>
 <dd>
 <p>On some earlier firmware, sorting on time won't work if the
-recording ha been renamed.</p>
-</dd>
-<dd>
-<p>Sorting is by the last modified time of the folder,
-not on the actual recording time when <strong>--<a href="#outdir">outdir</a></strong> is used.</p>
+recording has been renamed.</p>
 </dd>
 <dt><strong><a name="dictionarysort" class="item">dictionarySort</a></strong>
 
@@ -770,7 +831,8 @@ Either the longer or the shorter form(s) in parentheses may be used.</p>
 <p><strong>movie</strong> (<strong>m</strong>)</p>
 </dd>
 <dd>
-<p>ignores any <strong>MOVIE:</strong> substring at the start of a title;</p>
+<p>ignores any <strong>MOVIE:</strong> substring at the start of a title
+(case insensitive, even if the rest of the match is case sensitive);</p>
 </dd>
 <dd>
 <p><strong>punctuation</strong> (<strong>p</strong>)</p>
@@ -789,7 +851,9 @@ Either the longer or the shorter form(s) in parentheses may be used.</p>
 </dd>
 <dd>
 <p>ignores any words in the <em>dictStoplist</em> when they
-occur at the start of a title;</p>
+occur at the start of a title (will only work correctly
+on recordings with a <strong>MOVIE:</strong> prefix if
+<strong>movie</strong> is also set);</p>
 </dd>
 <dd>
 <p><strong>case</strong> (<strong>c</strong>)</p>
@@ -813,7 +877,7 @@ occur at the start of a title;</p>
 <p>The default is <strong>exact</strong>.</p>
 </dd>
 <dd>
-<p>The kewords are evaluated in order, and added to the default set
+<p>The keywords are evaluated in order, and added to the default set
 of options, except for <strong>exact</strong>.
 Using <strong>exact</strong> clears all options and any  following options
 become the only ones used.</p>
@@ -833,7 +897,7 @@ become the only ones used.</p>
 <p>makes the options just <strong>case</strong> and <strong>punctuation</strong>.</p>
 </dd>
 <dd>
-<p>Multiple <strong>--<a href="#dictionarysort">dictionarySort</a></strong> may be used.</p>
+<p>Multiple <strong>--<a href="#dictionarysort">dictionarySort</a></strong> options may be used.</p>
 </dd>
 <dd>
 <pre>
@@ -877,22 +941,6 @@ Multiple instances of <strong>--<a href="#dictstoplist">dictStoplist</a></strong
 <p>Case is ignored checking for these words only
 if <strong>case</strong> is set in <strong>--<a href="#dictionarysort">dictionarySort</a></strong>.</p>
 </dd>
-<dt><strong><a name="date" class="item">date</a></strong>
-
-<dd>
-<pre>
-  --date
-  -d
-  --nodate
-  --nod</pre>
-</dd>
-<dd>
-<p>Add the recording day and date to the name of the
-recording when it's downloaded.
-Useful for downloading series.
-Adds the date to the end of the <strong>--<a href="#dateformat">dateFormat</a></strong>
-before the episode name if it's set by <strong>--<a href="#episode">episode</a></strong>.</p>
-</dd>
 <dt><strong><a name="episode" class="item">episode</a></strong>
 
 <dd>
@@ -907,6 +955,25 @@ before the episode name if it's set by <strong>--<a href="#episode">episode</a><
 recording when it's downloaded.
 Useful for downloading series.</p>
 </dd>
+<dt><strong><a name="date" class="item">date</a></strong>
+
+<dd>
+<pre>
+  --date
+  -d
+  --nodate
+  --nod</pre>
+</dd>
+<dd>
+<p>Add the recording day and date (in the format set by <strong>--<a href="#dateformat">dateFormat</a></strong>)
+to the name of the recording when it's downloaded.
+Useful for downloading series.
+Adds the date to the end of the <strong>--<a href="#nameformat">nameFormat</a></strong> string
+before the episode name if it's set by <strong>--<a href="#episode">episode</a></strong>.
+Using <code>--date --episode</code> will generate names that sort in order of the
+episode recording date if the default <strong>--<a href="#dateformat">dateFormat</a></strong> is used,
+or if <strong>--<a href="#dateformat">dateFormat</a></strong> is any of <strong>default</strong>, <strong>iso</strong> or <strong>isoLike</strong>.</p>
+</dd>
 <dt><strong><a name="datelast" class="item">dateLast</a></strong>
 
 <dd>
@@ -915,9 +982,11 @@ Useful for downloading series.</p>
   --nodateLast</pre>
 </dd>
 <dd>
-<p>Adds the date to the end of the <strong>--<a href="#nameformat">nameFormat</a></strong>
-after the episode name if it's set by <strong>--<a href="#episode">episode</a></strong>, instead
-of before the episode name.</p>
+<p>Add the recording day and date (in the format set by <strong>--<a href="#dateformat">dateFormat</a></strong>)
+to the name of the recording when it's downloaded.
+Useful for downloading series.
+Adds the date to the end of the <strong>--<a href="#nameformat">nameFormat</a></strong> string
+after the episode name if it's set by <strong>--<a href="#episode">episode</a></strong>.</p>
 </dd>
 <dt><strong><a name="ts" class="item">ts</a></strong>
 
@@ -955,7 +1024,120 @@ rather than copying in the Beyonwiz internal recording format.</p>
 from the Beyonwiz for examination on a PC.</p>
 </dd>
 <dd>
-<p><strong>--no<a href="#ts">ts</a></strong> and <strong>--not</strong> undo the setting of this option.</p>
+<p><strong>--no<a href="#join">join</a></strong> and <strong>--noj</strong> undo the setting of this option.</p>
+</dd>
+<dt><strong><a name="reconstruct" class="item">reconstruct</a></strong>
+
+<dd>
+<pre>
+  --reconstruct[=[percen],[fixed],[maxscan],[minscan]]</pre>
+</dd>
+<dd>
+<p>Try to reconstruct the <code>stat</code> and <code>trunc</code> header files in the recording
+if they are missing.
+Sometimes &quot;missing&quot; header files have actually been renamed to incorrect
+names by bugs in the Beyonwiz.
+Even without <strong>--<a href="#reconstruct">reconstruct</a></strong>, <em>getWizPnP</em> will try some of the well-known
+incorrect names.</p>
+</dd>
+<dd>
+<p>Reconstruction should normally be able to recover unedited normal recordings
+completely.</p>
+</dd>
+<dd>
+<p>Edits in the recording performed on the Beyonwiz can only be
+partially reconstructed.</p>
+</dd>
+<dd>
+<p>Short cut-outs in the recording may re-appear in full.
+Other edits are likely to no longer accurately reflect the original editing. 
+Recordings trimmed at the end may have problems with navigation
+in the last 30 sec or so of the recording.
+Recordings from the timeshift buffer and recordings that have been trimmed
+at the start may have some problems with navigation.
+Recordings with internal editing may not play correctly across
+the edit locations in the original.
+Where a recording has gaps in the sequence of the data files that make up
+the Beyonwiz native recording format, a list of these gaps is printed.
+These are the locations where playback or navigation problems are most
+likely to occur.</p>
+</dd>
+<dd>
+<p>However, <strong>--<a href="#reconstruct">reconstruct</a></strong> should be able to recover all the recording data
+that is on the Beyonwiz, even if the recording does not play correctly on
+the Beyonwiz.</p>
+</dd>
+<dd>
+<p>The <code>trunc</code> header file normally contains a list of all the parts of all
+recording data files that make up the recording.
+These are 32MiB files with names that are 4-digit numbers.
+Unedited normal recordings start with file number <code>0000</code>,
+then <code>0001</code>, <code>0002</code>, etc.
+Edited recordings and recordings from the timeshift buffer may not
+start with <code>0000</code> and may have breaks in the sequence.</p>
+</dd>
+<dd>
+<p>The <em>WizPnP</em> protocol that <em>getWizPnP</em> uses does not allow <em>getWizPnP</em>
+to load a list of the recording data files from the Beyonwiz,
+so it must scan for them.
+The four optional parameters to <strong>--<a href="#reconstruct">reconstruct</a></strong>,
+<em>percen</em>, <em>fixed</em>, <em>maxscan</em> and <em>minscan</em>,
+allow control of that scan.</p>
+</dd>
+<dd>
+<p><em>Maxscan</em> is the maximum value of the data recording file number that
+<strong>--<a href="#reconstruct">reconstruct</a></strong> will use when it searches for the start of the recording.
+It must be an integer between 0 and 9999.
+<em>Minscan</em> is used as the first value to test for the scan.
+It is a fatal error for <em>minscan</em> to exceed <em>maxscan</em>.
+Both are silently set to 9999 if they are greater than 9999.</p>
+</dd>
+<dd>
+<p>Once the start of the recording has been found,
+<em>getWizPnP</em> estimates the upper limit of its scan to find the rest of the
+files by dividing the recording size (in the <code>header.tvwiz</code> header)
+by 32MiB, and then adjusting this to allow for editing.
+The number of files scanned is calculated as:
+<em>ceil</em>((<em>size</em> * (1 + <em>percen</em>/100) + <em>fixed</em>) / 32MiB).</p>
+</dd>
+<dd>
+<p><em>fixed</em> may take suffixes <code>k</code>, <code>M</code> or <code>G</code> for 10^3, 10^6 and 10^9
+respectively,
+or <code>ki</code>, <code>Mi</code> or <code>Gi</code> for 2^10, 2^20 or 2^30, respectively.
+The suffix may be followed by an optional <code>B</code>, which has no effect, so
+<code>4ki</code> and <code>4kiB</code> both denote 4096 bytes.</p>
+</dd>
+<dd>
+<p>If there is no suffix, <em>fixed</em> is interpreted as a number of
+recording data files.
+That is, it is effectively has a multiplier of 32MiB,
+<code>5</code> as a value for <em>fixed</em> denotes 167772160 bytes.</p>
+</dd>
+<dd>
+<pre>
+    --reconstruct</pre>
+</dd>
+<dd>
+<p>alone is equivalent to</p>
+</dd>
+<dd>
+<pre>
+    --reconstruct=0.2,5,200,0</pre>
+</dd>
+<dd>
+<p>Fields may be empty, and trailing empty fields may be omitted.
+Empty fields leave the corresponding default unchanged, so:</p>
+</dd>
+<dd>
+<pre>
+    --reconstruct=,10</pre>
+</dd>
+<dd>
+<p>is equivalent to</p>
+</dd>
+<dd>
+<pre>
+    --reconstruct=0.2,10,200,0</pre>
 </dd>
 <dt><strong><a name="resume" class="item">resume</a></strong>
 
@@ -979,7 +1161,10 @@ from the Beyonwiz for examination on a PC.</p>
   --noF</pre>
 </dd>
 <dd>
-<p>Allow downloads to overwrite existing recordings that appear to be complete.</p>
+<p>Allow downloads to overwrite existing recordings that appear to be complete.
+If <strong>--<a href="#reconstruct">reconstruct</a></strong> is also set, then also force reconstruction of the
+<code>stat</code> and <code>trunc</code> header files even if they can be found.
+The interaction with <strong>--<a href="#reconstruct">reconstruct</a></strong> is mainly intended for debugging use.</p>
 </dd>
 <dt><strong><a name="verbose" class="item">verbose</a></strong>
 
@@ -989,8 +1174,9 @@ from the Beyonwiz for examination on a PC.</p>
   -v</pre>
 </dd>
 <dd>
-<p>Provide more information. Each <strong>-v</strong> increases the verbosity level by 1
-from 0.</p>
+<p>Provide more information. Each <strong>--<a href="#verbose">verbose</a></strong> increases the verbosity
+level by 1 from 0 (the default), or from the setting of
+<code>$verbose</code> in the <strong><a href="#files">configuration file</a></strong>, if it is set there.</p>
 </dd>
 <dd>
 <p>Verbosity level 1 lists some more details about
@@ -999,7 +1185,9 @@ The progress indicator shows the transfer rate for the last 20 mebibytes
 copied while the transfer is running, and the average transfer rate
 for the copy when the copy completes.
 Level 2 includes the program synopsis, if there is one.
-Level 3 includes a display of any bookmarks in the file.</p>
+Level 3 includes a display of any bookmarks in the file.
+Level 4 includes the recording's index name, even if <strong>--<a href=".././html/./html/index.html">the index manpage</a></strong>
+is not set.</p>
 </dd>
 <dd>
 <p>The units used in the verbose listings are in terms of megabytes (MB)
@@ -1024,12 +1212,12 @@ Mebi- is about 5% more than mega-.</p>
 <code>$verbose</code> in the <strong><a href="#files">configuration file</a></strong>.</p>
 </dd>
 <dd>
-<p><strong>--Verbose</strong> and <strong>--<a href="#verbose">verbose</a></strong> options are processed in order.
+<p><strong>--<a href="#verbose">Verbose</a></strong> and <strong>--<a href="#verbose">verbose</a></strong> options are processed in order.
 Assuming that <code>$verbose</code> isn't set to non-zero in the config file,
 <code>-vv -V=1</code> sets the verbosity level to 1, but <code>-V=1 -vv</code> sets it to 3.</p>
 </dd>
 <dd>
-<p>Mixing <strong>--Verbose</strong> and <strong>--<a href="#verbose">verbose</a></strong> probably doesn't help with
+<p>Mixing <strong>--<a href="#verbose">Verbose</a></strong> and <strong>--<a href="#verbose">verbose</a></strong> probably doesn't help with
 clarity in commands.</p>
 </dd>
 <dd>
@@ -1048,16 +1236,25 @@ The debug options are a comma-separated list of:</p>
 </dd>
 <dd>
 <p><strong>pids</strong> prints the Transport Stream Packet IDs in the recording header,
-along with the header &quot;magic number&quot; and version number.
-<strong>trunc</strong> prints information from the <code>trunc</code> header file, and displays
-a list of the file fragments that make up the recording.
-<strong>offsets</strong> prints a listing of the time/recording offset information
-for the file. This is a long listing (one line for every 10 seconds of
-the recording).
-<strong>all</strong> enables all debug options.</p>
+along with the header &quot;magic number&quot; and version number.</p>
 </dd>
 <dd>
-<p>Any valid substring in debugcodes matches the option.
+<p><strong>trunc</strong> prints information from the <code>trunc</code> header file, and displays
+a list of the file fragments that make up the recording.</p>
+</dd>
+<dd>
+<p><strong>offsets</strong> prints a listing of the time/recording offset information
+for the file. This can be a long listing (one line for every 10 seconds of
+the recording).</p>
+</dd>
+<dd>
+<p><strong>stat</strong> prints the recording size in the <code>stat</code> file.</p>
+</dd>
+<dd>
+<p><strong>all</strong> enables all debug options.</p>
+</dd>
+<dd>
+<p>Any unique substring in debugcodes matches the option.
 <code>--debug=p,t</code> is equivalent to <code>--debug=pids,trunc</code>.
 If a <em>debugcode</em> matches more than one option, a warning is printed
 (this should not be possible with the current option set), but the operation
@@ -1089,26 +1286,30 @@ to refer to a it.
 The index name is also printed for verbosity level 4 or more.
 See <strong>--<a href="#verbose">verbose</a></strong>.</p>
 </dd>
-<dt><strong><a name="outdir" class="item">outdir</a></strong>
+<dt><strong><a name="outdir" class="item">outDir</a></strong>
 
 <dd>
 <pre>
+  --outDir=dir
   --outdir=dir
   -O dir</pre>
 </dd>
 <dd>
-<p>Save the recordings in <em>dir</em> rather than in the current directory.</p>
+<p>Save the recordings in <em>dir</em> rather than in the current directory.
+<strong>--outdir</strong> is deprecated.</p>
 </dd>
-<dt><strong><a name="indir" class="item">indir</a></strong>
+<dt><strong><a name="indir" class="item">inDir</a></strong>
 
 <dd>
 <pre>
+  --inDir=dir
   --indir=dir
   -I dir</pre>
 </dd>
 <dd>
 <p>Look for recordings in <em>dir</em> on the local computer rather than on the
-Beyonwiz.</p>
+Beyonwiz.
+<strong>--indir</strong> is deprecated.</p>
 </dd>
 <dt><strong><a name="list" class="item">List</a></strong>
 
@@ -1143,6 +1344,11 @@ when using <strong>--<a href="#bwname">BWName</a></strong>, so normally you'll w
 folder and recursion options with <strong>--<a href="#bwname">BWName</a></strong> as you used
 with <strong>--<a href="#list">List</a></strong> to generate the index name(s).</p>
 </dd>
+<dd>
+<p>Beyonwiz index names can contain spaces, and these will normally need
+to be quoted when including them in a command run by the operating
+system's command-line shell.</p>
+</dd>
 <dt><strong><a name="discover" class="item">discover</a></strong>
 
 <dd>
@@ -1154,7 +1360,7 @@ with <strong>--<a href="#list">List</a></strong> to generate the index name(s).<
 IP address and name, and exit.
 As in normal operation, the maximum number of devices to search for
 is set by <strong>--<a href="#maxdevs">maxdevs</a></strong>.
-If <strong>--<a href="#indir">indir</a></strong> is set, no Beyonwiz device search is performed,
+If <strong>--<a href="#indir">inDir</a></strong> is set, no Beyonwiz device search is performed,
 and <em>getWizPnP</em> exits immediately.</p>
 </dd>
 <dt><strong><a name="wizpnppoll" class="item">wizpnpPoll</a></strong>
@@ -1198,7 +1404,7 @@ and in <em>getWizPnP</em>'s current directory otherwise.</p>
 <p><code>%APPDATA%</code> is normally set to
 <code>C:\Documents and Settings\</code><em>userName</em><code>\Application Data</code>.</p>
 <p>If the configuration file exists,
-it is run as a piece of Perl code by <em>getWixPnP</em>
+it is run as a piece of Perl code by <em>getWizPnP</em>
 just after the program defaults for options are set, and just before
 command-line options are set, so it over-rides program defaults,
 but not command-line options.</p>
@@ -1217,6 +1423,7 @@ the file <code>getwizpnp.conf</code>.</p>
 <a href=".././html/./Beyonwiz/Recording/Index.html"><code>Beyonwiz::Recording::Index</code></a>,
 <a href=".././html/./Beyonwiz/Recording/Header.html"><code>Beyonwiz::Recording::Header</code></a>,
 <a href=".././html/./Beyonwiz/Recording/Trunc.html"><code>Beyonwiz::Recording::Trunc</code></a>,
+<a href=".././html/./Beyonwiz/Recording/Stat.html"><code>Beyonwiz::Recording::Trunc</code></a>,
 <a href=".././html/./Beyonwiz/Recording/Recording.html"><code>Beyonwiz::Recording::Recording</code></a>,
 <code>File::Spec::Functions</code>,
 <code>File::Path</code>,
@@ -1232,7 +1439,7 @@ while it is currently being watched can cause any malfunction on the
 Beyonwiz.
 Normally, the playback of the recording is stopped with an error message
 shortly after the recording is deleted.
-This may be impolite to he person watching, but so far does not appear
+This may be impolite to the person watching, but so far does not appear
 to affect the Beyonwiz beyond that.</p>
 <p>The WizPnP search requires the use of the Perl package
 <code>IO::Socket::Multicast</code>.
@@ -1244,16 +1451,20 @@ archive for Windows.</p>
 with ActivePerl 10, and on Cygwin.
 The search is either immediately successful or fails completely,
 even on retry.</p>
-<p>If <code>IO::Socket::Multicast</code> is not available, <em>getWizPnP</em> will
-exit with an error. In this case, the Beyonwiz device must be specified
+<p>If WizPnP device search is used and <code>IO::Socket::Multicast</code> is not
+available, <em>getWizPnP</em> will exit with an error.
+In this case, the Beyonwiz device must be specified
 using <strong>--<a href="#host">host</a></strong> (and <strong>--<a href="#port">port</a></strong> if necessary).</p>
+<p>There is presently no <code>IO::Interface::Simple</code> module available
+in the <strong>ppm</strong> repository for ActivePerl 10.x for Windows.
+This means that <strong>--<a href="#longnames">longNames</a></strong> will use longer names
+than it would if the module was available.
+<em>getWizPnP</em> will otherwise function normally.</p>
 <p>See README.txt in the distribution for details on how to install
 any Perl modules that <em>getWizPnP</em> needs to allow it to run on
 your system.</p>
 <p>Uses <code>bignum</code> for 64-bit integers, even when the underlying
 Perl integers are 64 bits.</p>
-<p>When resuming a download, may fetch up to 32MiB more data than is
-necessary.</p>
 <p><strong>--<a href="#move">move</a></strong> and <strong>--<a href="#delete">delete</a></strong> use undocumented features of WizPnP.
 This has a number of consequences:</p>
 <ul>
@@ -1282,9 +1493,10 @@ will appear normal in the file player on a Beyonwiz WizPnP client,
 but the recording cannot be played.</p>
 </li>
 </ul>
-<p>The inconsistencies in the file player and the WizPnP index can be fixed
-by entering the file player and pressing the Soundtrack
-(speaker/questionmark) button.</p>
+<p>The inconsistencies in the file player and the WizPnP index caused
+by <strong>--<a href="#move">move</a></strong> and <strong>--<a href="#delete">delete</a></strong> can be fixed by entering the
+file player and pressing the SOUNDTRACK (speaker/question mark)
+button.</p>
 <p>Sorting on titles does not work with Beyonwiz firmware 01.05.261
 and earlier.
 On some earlier firmware, sorting on time won't work if the
@@ -1293,9 +1505,7 @@ recording has been renamed.</p>
 with Beyonwiz firmware 01.05.261 and earlier.</p>
 <p><strong>--<a href="#recursive">recursive</a></strong> has no effect if the Beyonwiz is running firmware
 01.05.261 or earlier.</p>
-<p>Folder options don't work properly in conjunction with <strong>--<a href="#indir">indir</a></strong>.</p>
-<p>Sorting is by the last modified time of the folder,
-not on the actual recording time when <strong>--<a href="#outdir">outdir</a></strong> is used.</p>
+<p>Folder options don't work properly in conjunction with <strong>--<a href="#indir">inDir</a></strong>.</p>
 <p>Instant recordings will not sort in their correct alphabetic sequence
 (sorting on time or date will work).</p>
 <table border="0" width="100%" cellspacing="0" cellpadding="3">
