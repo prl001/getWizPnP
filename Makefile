@@ -55,7 +55,7 @@ MODULES=$(BWMODULES) $(RECMODULES)
 
 all:
 
-install: all check install_lib
+install: all check install_lib install_perl
 
 install_lib:
 	mkdir -p '$(LIB)/$(BWMODULEDIR)' '$(LIB)/$(RECMODULEDIR)'
@@ -75,8 +75,11 @@ compile: check $(EXEDIR) $(EXEDIR)$/$(EXE) doc
 
 uninstall: uninstall_bin uninstall_lib
 
-uninstall_bin:
+uninstall_perl:
 	cd '$(BIN)' && rm -f $(SCRIPTS)
+	
+uninstall_bin:
+	cd '$(BIN)' && rm -f $(EXE)
 	
 uninstall_lib:
 	cd '$(LIB)' && rm -f $(MODULES)
