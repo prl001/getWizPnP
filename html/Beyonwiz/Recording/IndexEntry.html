@@ -4,7 +4,7 @@
 <head>
 <title>IndexEntry</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:_postfix@neige.apple.com" />
+<link rev="made" href="mailto:prl@cambyses.nonet" />
 </head>
 
 <body style="background-color: white">
@@ -46,7 +46,7 @@
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::IndexEntry-&gt;new($name, $path, [$makeSortTitle])</code></a></strong>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::IndexEntry-&gt;new($name, $path, [$makeSortTitle])</code></a></strong></dt>
 
 <dd>
 <p>Create a new Beyonwiz recording index entry object.
@@ -61,35 +61,29 @@ its return value is used to construct
 <a href="#sorttitle"><code>$ie-&gt;sortTitle([$val]);</code></a>.
 It should transform its input string to the form used
 for comparisons when sorting.</p>
-</dd>
-<dd>
 <p>Normally constructed from the Beyonwiz recording index by
 <a href="../../../html/./Beyonwiz/Recording/Index.html"><code>Beyonwiz::Recording::Index</code></a>.</p>
 </dd>
-</li>
-<dt><strong><a name="name" class="item"><code>$ie-&gt;name([$val]);</code></a></strong>
+<dt><strong><a name="name" class="item"><code>$ie-&gt;name([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the default name of the recording.
 This is the left-hand part of a <code>index.txt</code> entry
 for a recording.</p>
 </dd>
-</li>
-<dt><strong><a name="extractdetails" class="item"><code>$ie-&gt;extractDetails;</code></a></strong>
+<dt><strong><a name="extractdetails" class="item"><code>$ie-&gt;extractDetails;</code></a></strong></dt>
 
 <dd>
 <p>Extracts the remaining information fields for the index
 entry from <a href="#name"><code>$ie-&gt;name([$val]);</code></a>.
 Called automatically from the constructor.</p>
 </dd>
-</li>
-<dt><strong><a name="path" class="item"><code>$ie-&gt;path([$val]);</code></a></strong>
+<dt><strong><a name="path" class="item"><code>$ie-&gt;path([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) path part of the recording URL.</p>
 </dd>
-</li>
-<dt><strong><a name="title" class="item"><code>$ie-&gt;title([$val]);</code></a></strong>
+<dt><strong><a name="title" class="item"><code>$ie-&gt;title([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the program title.
@@ -99,8 +93,7 @@ sets the recording name.
 This title is similar to, but not identical with,
 the title saved in the recording header file.</p>
 </dd>
-</li>
-<dt><strong><a name="sorttitle" class="item"><code>$ie-&gt;sortTitle([$val]);</code></a></strong>
+<dt><strong><a name="sorttitle" class="item"><code>$ie-&gt;sortTitle([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) a sorting value for <a href="#title"><code>$ie-&gt;title([$val]);</code></a>.
@@ -110,8 +103,7 @@ when
 <a href="#name"><code>$ie-&gt;name([$val]);</code></a>
 sets the recording name.</p>
 </dd>
-</li>
-<dt><strong><a name="folder" class="item"><code>$ie-&gt;folder([$val]);</code></a></strong>
+<dt><strong><a name="folder" class="item"><code>$ie-&gt;folder([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the name of the recording folder on the Beyonwiz.
@@ -119,8 +111,7 @@ Constructed automatically from <code>$val</code> when
 <a href="#name"><code>$ie-&gt;name([$val]);</code></a>
 sets the recording name.</p>
 </dd>
-</li>
-<dt><strong><a name="sortfolder" class="item"><code>$ie-&gt;sortFolder([$val]);</code></a></strong>
+<dt><strong><a name="sortfolder" class="item"><code>$ie-&gt;sortFolder([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) a sorting value for <a href="#folder"><code>$ie-&gt;folder([$val]);</code></a>.
@@ -133,8 +124,7 @@ or
 <a href="#path"><code>$ie-&gt;path([$val]);</code></a>
 sets the recording path.</p>
 </dd>
-</li>
-<dt><strong><a name="time" class="item"><code>$ie-&gt;time([$val]);</code></a></strong>
+<dt><strong><a name="time" class="item"><code>$ie-&gt;time([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the recording start time as a Unix
@@ -143,8 +133,7 @@ Constructed automatically from <code>$val</code> when
 <a href="#name"><code>$ie-&gt;name([$val]);</code></a>
 sets the recording name.</p>
 </dd>
-</li>
-<dt><strong><a name="makesorttitle" class="item"><code>$ie-&gt;makeSortTitle([$val]);</code></a></strong>
+<dt><strong><a name="makesorttitle" class="item"><code>$ie-&gt;makeSortTitle([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the function used to construct
@@ -153,7 +142,6 @@ when
 <a href="#name"><code>$ie-&gt;name([$val]);</code></a>
 sets the recording name.</p>
 </dd>
-</li>
 </dl>
 <p>
 </p>

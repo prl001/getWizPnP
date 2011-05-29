@@ -6,7 +6,7 @@ package Beyonwiz::Recording::Trunc;
 
 =head1 SYNOPSIS
 
-Provides access to the Beyonwiz recording trunc file.
+Provides access to the Beyonwiz recording I<trunc> file.
 The trunc file is used to describe exactly which parts of the
 0000, 0001, etc. files are included in the viewable recording.
 
@@ -16,11 +16,19 @@ The trunc file is used to describe exactly which parts of the
 
 =item C<TRUNC>
 
-The trunc url path component for the Beyonwiz (C<trunc>).
+The I<trunc> file name for the Beyonwiz (C<trunc>).
+
+=item C<TRUNC_SIZE_MULT>
+
+The I<trunc> file size should be a multiple of C<TRUNC_SIZE_MULT>.
 
 =item C<WMMETA>
 
-The wmmeta url path component for the Beyonwiz (C<wmmeta>).
+The I<wmmeta> file name for the Beyonwiz (C<wmmeta>).
+
+=item C<WMMETA_SIZE>
+
+The size of  I<wmmeta> file.
 
 =back
 
@@ -28,7 +36,7 @@ The wmmeta url path component for the Beyonwiz (C<wmmeta>).
 
 =over
 
-=item C<< Beyonwiz::Recording::Trunc->new($name) >>
+=item C<< Beyonwiz::Recording::Trunc->new($accessor, $name, $path) >>
 
 Create a new Beyonwiz recording file index object.
 C<$accessor> is a reference to a
@@ -41,9 +49,17 @@ L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
 C<$path> is the path to the source recording folder in C<$name>, and can be a
 file system path or a URL depending on the type of C<$accessor>.
 
+=item C<< $t->accessor([$val]); >>
+
+Returns (sets) the media file accessor object reference.
+
 =item C<< $t->name([$val]); >>
 
 Returns (sets) the default recording name.
+
+=item C<< $t->path([$val]); >>
+
+Returns (sets) the source recording folder name.
 
 =item C<< $t->fileName([$val]); >>
 
@@ -85,6 +101,15 @@ is present in the recording or media file.
 
 Returns true if the last C<< $i->load; >>
 or C<< $t->reconstruct($minScan, $maxScan, $targetLen); >> succeeded.
+
+=item C<< $t->fileLenTime([$file]) >>
+
+Return the tuple I<($len, $modifyTime)> for the trunc file.
+The modify time is a Unix timestamp (seconds since 00:00:00) Jan 1 1970 UTC).
+If C<$file> is specified, use that as the name of the trunc file,
+otherwise use C<$t->beyonwizFileName> for the name of the file.
+Returns C<undef> if the data can't be found
+(access denied or file not found).
 
 =item C<< $t->reconstruct($minScan, $maxScan, $targetLen); >>
 
@@ -182,7 +207,7 @@ use warnings;
 use strict;
 use bignum;
 
-use Beyonwiz::Recording::TruncEntry;
+use Beyonwiz::Recording::TruncEntry qw(FULLFILE);
 use File::Basename;
 use LWP::Simple;
 use URI;
@@ -192,13 +217,11 @@ use File::Spec::Functions qw(!path);
 use constant TRUNC  => 'trunc';
 use constant WMMETA => 'wmmeta';
 
-use constant FULLFILE => (1 << 16); # Impossible flag in a real trunc file
-
 use constant WMMAGIC => 'WzMF';
 
 use Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(TRUNC WMMETA FULLFILE);
+our @EXPORT_OK = qw(TRUNC WMMETA WMMETA_SIZE TRUNC_SIZE_MULT);
 
 use constant TRUNC_FMT          => 'V2 v v V2 V';
 use constant WMMETA_HDR_FMT     => 'Z4 V2';
@@ -206,6 +229,10 @@ use constant WMMETA_FMT         => 'V4';
 use constant WMMETA_TBL_OFF     => 4096;
 use constant WMMETA_TBL_ENT_SZ  => 16;
 use constant WMMETA_TBL_SZ      => 512;
+
+use constant TRUNC_SIZE_MULT	=> 24;
+use constant WMMETA_SIZE	=> WMMETA_TBL_OFF
+					+ WMMETA_TBL_SZ * WMMETA_TBL_ENT_SZ;
 
 my @truncNames = (
     TRUNC,
@@ -272,6 +299,14 @@ sub recordingSize($;$) {
     return $size;
 }
 
+sub fileLenTime($$) {
+    my ($self, $file) = @_;
+    if(@_ >= 2) {
+	return $self->accessor->fileLenTime($self->path, $file);
+    }
+    return $self->accessor->fileLenTime($self->path, $self->beyonwizFileName);
+}
+
 sub valid() {
     my ($self) = @_;
     return defined $self->{valid};
@@ -302,6 +337,8 @@ sub makeFileTrunc($) {
 	my $sz = $tr->offset+$tr->size;
 	if($lastfile != $tr->fileNum) {
 	    $fileTrunc->addEntry(Beyonwiz::Recording::TruncEntry->new(
+				    $tr->accessor,
+				    $tr->path,
 				    $tr->wizOffset,
 				    $tr->fileNum,
 				    $tr->flags,
@@ -331,11 +368,13 @@ sub fileTruncFromDir($) {
 
     foreach my $tr (@{$self->entries}) {
 	if($lastfile != $tr->fileNum) {
-	    my $fn = sprintf '%04d', $tr->fileNum;
+	    my $fn = $tr->fileName;
 	    $fn = catfile($self->path, $fn);
 	    my $document_length = (stat $fn)[7];
 	    if(defined $document_length) {
 		$fileTrunc->addEntry(Beyonwiz::Recording::TruncEntry->new(
+				        $tr->accessor,
+				        $tr->path,
 					$tr->wizOffset,
 					$tr->fileNum,
 					$tr->flags,
@@ -352,6 +391,10 @@ sub fileTruncFromDir($) {
 sub load($) {
     my ($self) = @_;
     $self->{reconstructed} = undef;
+
+    $self->fileName($truncNames[0]);
+    $self->beyonwizFileName($truncNames[0]);
+
     foreach my $t (@truncNames) {
 	my $tfn = $truncLookup{$t};
 	if($tfn eq TRUNC && $self->path =~ /\.(tv|rad)wiz$/
@@ -366,17 +409,17 @@ sub load($) {
 		} else {
 		    $self->decodeWmmeta($trunc_data);
 		}
-		if($self->valid) {
-		    $self->fileName($tfn);
-		    $self->beyonwizFileName($t);
-		    return;
-		}
+		$self->fileName($tfn);
+		$self->beyonwizFileName($t);
+		return if($self->valid);
 	    }
 	}
     }
     my ($size, $time) = $self->accessor->fileLenTime($self->path);
     if(defined($size)) {
 	$self->addEntry(Beyonwiz::Recording::TruncEntry->new(
+				$self->accessor,
+				$self->path,
 				0,
 				0,
 				FULLFILE,
@@ -393,9 +436,6 @@ sub load($) {
     $self->{valid} = undef;
     @{$self->entries} = ();
     $self->{size} = 0;
-
-    $self->fileName(undef);
-    $self->beyonwizFileName(undef);
 }
 
 sub reconstruct($$$$) {
@@ -426,6 +466,8 @@ sub reconstruct($$$$) {
 		$self->{reconstructed} = 1;
 
 		$self->addEntry(Beyonwiz::Recording::TruncEntry->new(
+				$self->accessor,
+				$self->path,
 				$recOff,
 				$f,
 				0,
@@ -459,12 +501,14 @@ sub decodeTrunc($$) {
     $self->{size} = 0;
 
     if(defined $hdr_data
-    && length($hdr_data) % 24 == 0) {
+    && length($hdr_data) % TRUNC_SIZE_MULT == 0) {
 	$self->{size} = length $hdr_data;
 	my @trunc = unpack '(V2 v v V2 V)*', $hdr_data;
-	for(my $o = 0; $o < $self->{size}; $o += 24) {
-	    my @t = unpack TRUNC_FMT, substr $hdr_data, $o, 24;
+	for(my $o = 0; $o < $self->{size}; $o += TRUNC_SIZE_MULT) {
+	    my @t = unpack TRUNC_FMT, substr $hdr_data, $o, TRUNC_SIZE_MULT;
 	    $self->addEntry(Beyonwiz::Recording::TruncEntry->new(
+			    $self->accessor,
+			    $self->path,
 			    ($t[1] << 32) | $t[0],
 			    $t[2],
 			    $t[3],
@@ -507,8 +551,8 @@ sub decodeWmmeta($$) {
     $self->{reconstructed} = undef;
 
     if(defined $hdr_data
-    && length($hdr_data) >= 4096
-    && (length($hdr_data) - 4096) % 16 == 0) {
+    && length($hdr_data) >= WMMETA_TBL_OFF
+    && (length($hdr_data) - WMMETA_TBL_OFF) % WMMETA_TBL_ENT_SZ == 0) {
 	$self->{size} = length $hdr_data;
 	my ($magic, $unknown, $len) = unpack WMMETA_HDR_FMT, $hdr_data;
 	if($magic eq WMMAGIC) {
@@ -517,6 +561,8 @@ sub decodeWmmeta($$) {
 			substr $hdr_data, WMMETA_TBL_OFF
 						+ $n * WMMETA_TBL_ENT_SZ;
 		$self->addEntry(Beyonwiz::Recording::TruncEntry->new(
+				$self->accessor,
+				$self->path,
 				($t[1] << 32) | $t[0],
 				$t[2],
 				0,
@@ -542,7 +588,7 @@ sub encodeWmmeta($) {
 			    $te->size
 			);
     }
-    $hdrData .= "\0" x ((WMMETA_TBL_ENT_SZ - $self->nentries)
+    $hdrData .= "\0" x ((WMMETA_TBL_SZ - $self->nentries)
 				* WMMETA_TBL_ENT_SZ);
     $self->size(length $hdrData);
     return $hdrData;

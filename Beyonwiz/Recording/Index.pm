@@ -14,7 +14,7 @@ Provides access to the Beyonwiz recording file index.
 
 =item C<INDEX>
 
-The index url path for the beyonwiz (C<index.txt>).
+The name of the recording index file on the Beyonwiz (C<index.txt>).
 
 =back
 

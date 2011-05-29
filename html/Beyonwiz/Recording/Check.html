@@ -1,0 +1,165 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Check</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:prl@cambyses.nonet" />
+</head>
+
+<body style="background-color: white">
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;Check</span></strong></big>
+</td></tr>
+</table>
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#constants">CONSTANTS</a></li>
+	<li><a href="#methods">METHODS</a></li>
+	<li><a href="#prerequisites">PREREQUISITES</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+</ul>
+
+<hr name="index" />
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<pre>
+    use Beyonwiz::Recording::Check;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Perform consistency checks on collections of Beyonwiz recordings
+and media files.</p>
+<p>
+</p>
+<hr />
+<h1><a name="constants">CONSTANTS</a></h1>
+<dl>
+<dt><strong><a name="stat" class="item"><code>STAT</code></a></strong></dt>
+
+<dd>
+<p>The stat url path component for the Beyonwiz (<code>stat</code>).</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="methods">METHODS</a></h1>
+<dl>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::Check-&gt;new($accessor, $name, $path)</code></a></strong></dt>
+
+<dd>
+<p>Create a new Beyonwiz recording file index object.
+<code>$accessor</code> is a reference to a
+<a href="../../../html/./Beyonwiz/Recording/Accessor.html"><code>Beyonwiz::Recording::Accessor</code></a>
+used to carry out the media file access functions in
+<a href="../../../html/./Beyonwiz/Recording/Header.html"><code>Beyonwiz::Recording::Header</code></a>.
+<code>$name</code> is the default name of the recording (usually
+the name in the Beyonwiz recording index, see
+<a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.
+<code>$path</code> is the path to the source recording folder in <code>$name</code>, and can be a
+file system path or a URL depending on the type of <code>$accessor</code>.</p>
+</dd>
+<dt><strong><a name="accessor" class="item"><code>$c-&gt;accessor([$val]);</code></a></strong></dt>
+
+<dd>
+<p>Returns (sets) the media file accessor object reference.</p>
+</dd>
+<dt><strong><a name="name" class="item"><code>$c-&gt;name([$val]);</code></a></strong></dt>
+
+<dd>
+<p>Returns (sets) the default recording/media file name.</p>
+</dd>
+<dt><strong><a name="path" class="item"><code>$c-&gt;path([$val]);</code></a></strong></dt>
+
+<dd>
+<p>Returns (sets) the source recording/media folder name.</p>
+</dd>
+<dt><strong><code>$c-&gt;path([$val]);</code></strong></dt>
+
+<dd>
+<p>Returns (sets) the source recording/media folder name.</p>
+</dd>
+<dt><strong><a name="showheader" class="item"><code>$c-&gt;showHeader([$val]);</code></a></strong></dt>
+
+<dd>
+<p>Returns (sets) flag to display recording name headers
+in <a href="#warning"><code>$c-&gt;warning(@mess)</code></a>.
+Set to true at object creation time.</p>
+</dd>
+<dt><strong><a name="warning" class="item"><code>$c-&gt;warning(@mess);</code></a></strong></dt>
+
+<dd>
+<p>Prints the warning messages in <code>@mess</code>, after printing the recording
+name if <a href="#showheader"><code>$c-&gt;showHeader</code></a> is true.
+Then sets <a href="#showheader"><code>$c-&gt;showHeader</code></a> to false.</p>
+</dd>
+<dt><strong><a name="checkheader" class="item"><code>$c-&gt;checkHeader($hdr);</code></a></strong></dt>
+
+<dd>
+<p>Checks that the main header file exists (if one is expected)
+and that it is the correct size.</p>
+<p>Cannot distinguish between a completely missing recording folder
+and a folder that is missing its header file.</p>
+</dd>
+<dt><strong><a name="checktrunc" class="item"><code>$c-&gt;checkTrunc($trunc);</code></a></strong></dt>
+
+<dd>
+<p>Checks that the <em>trunc</em> header file exists (if one is expected)
+and that it is a valid size, and whether it is present
+but under a known incorrect name.</p>
+</dd>
+<dt><strong><a name="checkstat" class="item"><code>$c-&gt;checkStat($stat);</code></a></strong></dt>
+
+<dd>
+<p>Checks that the <em>stat</em> header file exists (if one is expected)
+and that it is the correct size, and whether it is present
+but under a known incorrect name.</p>
+</dd>
+<dt><strong><a name="checktruncentries" class="item"><code>$c-&gt;checkTruncEntries($trunc);</code></a></strong></dt>
+
+<dd>
+<p>Check that the data file indicated by each <em>trunc</em> file entry is
+large enough to contain tha span of data indicated in the enrty.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="prerequisites">PREREQUISITES</a></h1>
+<p>Uses packages:
+<a href="../../../html/./Beyonwiz/Recording/Header.html"><code>Beyonwiz::Recording::Header</code></a>,
+<a href="../../../html/./Beyonwiz/Recording/Trunc.html"><code>Beyonwiz::Recording::Trunc</code></a>,
+<a href="../../../html/./Beyonwiz/Recording/Stat.html"><code>Beyonwiz::Recording::Stat</code></a>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<p><a href="#checkheader"><code>$c-&gt;checkHeader($hdr)</code></a> cannot distinguish between a completely
+missing recording folder
+and a folder that is missing its header file.</p>
+<p>Uses <code>bignum</code> for 64-bit integers, even when the underlying
+Perl integers are 64 bits.</p>
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" style="background-color: #cccccc" valign="middle">
+<big><strong><span class="block">&nbsp;Check</span></strong></big>
+</td></tr>
+</table>
+
+</body>
+
+</html>

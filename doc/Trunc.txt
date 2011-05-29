@@ -4,21 +4,27 @@ NAME
 
 SYNOPSIS
 
-    Provides access to the Beyonwiz recording trunc file. The trunc file is
-    used to describe exactly which parts of the 0000, 0001, etc. files are
-    included in the viewable recording.
+    Provides access to the Beyonwiz recording *trunc* file. The trunc file
+    is used to describe exactly which parts of the 0000, 0001, etc. files
+    are included in the viewable recording.
 
 CONSTANTS
 
     "TRUNC"
-        The trunc url path component for the Beyonwiz ("trunc").
+        The *trunc* file name for the Beyonwiz ("trunc").
+
+    "TRUNC_SIZE_MULT"
+        The *trunc* file size should be a multiple of "TRUNC_SIZE_MULT".
 
     "WMMETA"
-        The wmmeta url path component for the Beyonwiz ("wmmeta").
+        The *wmmeta* file name for the Beyonwiz ("wmmeta").
+
+    "WMMETA_SIZE"
+        The size of *wmmeta* file.
 
 METHODS
 
-    "Beyonwiz::Recording::Trunc->new($name)"
+    "Beyonwiz::Recording::Trunc->new($accessor, $name, $path)"
         Create a new Beyonwiz recording file index object. $accessor is a
         reference to a "Beyonwiz::Recording::Accessor" used to carry out the
         media file access functions in "Beyonwiz::Recording::Header". $name
@@ -27,8 +33,14 @@ METHODS
         $path is the path to the source recording folder in $name, and can
         be a file system path or a URL depending on the type of $accessor.
 
+    "$t->accessor([$val]);"
+        Returns (sets) the media file accessor object reference.
+
     "$t->name([$val]);"
         Returns (sets) the default recording name.
+
+    "$t->path([$val]);"
+        Returns (sets) the source recording folder name.
 
     "$t->fileName([$val]);"
         Returns (sets) the name of the trunc file.
@@ -60,6 +72,14 @@ METHODS
     "$t->valid;"
         Returns true if the last "$i->load;" or "$t->reconstruct($minScan,
         $maxScan, $targetLen);" succeeded.
+
+    "$t->fileLenTime([$file])"
+        Return the tuple *($len, $modifyTime)* for the trunc file. The
+        modify time is a Unix timestamp (seconds since 00:00:00) Jan 1 1970
+        UTC). If $file is specified, use that as the name of the trunc file,
+        otherwise use "$t-"beyonwizFileName> for the name of the file.
+        Returns "undef" if the data can't be found (access denied or file
+        not found).
 
     "$t->reconstruct($minScan, $maxScan, $targetLen);"
         Attempts to reconstruct the *trunc* data from the recording data

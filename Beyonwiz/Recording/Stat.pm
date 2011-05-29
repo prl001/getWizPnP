@@ -6,8 +6,9 @@ package Beyonwiz::Recording::Stat;
 
 =head1 SYNOPSIS
 
-Provides access to the Beyonwiz recording stat file.
-The purpose of the stat file isn't really known.
+Provides access to the Beyonwiz recording I<stat> file.
+The purpose of the stat file isn't really known,
+but it contains the total logical length of the recording..
 
 =head1 CONSTANTS
 
@@ -15,7 +16,11 @@ The purpose of the stat file isn't really known.
 
 =item C<STAT>
 
-The stat url path component for the Beyonwiz (C<stat>).
+The I<stat> (status?) file name for the Beyonwiz (C<stat>).
+
+=item C<STAT_SIZE>
+
+The size of the Beyonwiz I<stat> file.
 
 =back
 
@@ -33,12 +38,20 @@ L<C<Beyonwiz::Recording::Header>|Beyonwiz::Recording::Header>.
 C<$name> is the default name of the recording (usually
 the name in the Beyonwiz recording index, see
 L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
-C<$path> is the path to the source recording folder in C<$name>, and can be a
+C<$path> is the path to the source recording folder for C<$name>, and can be a
 file system path or a URL depending on the type of C<$accessor>.
+
+=item C<< $s->accessor([$val]); >>
+
+Returns (sets) the media file accessor object reference.
 
 =item C<< $s->name([$val]); >>
 
 Returns (sets) the default recording name.
+
+=item C<< $s->path([$val]); >>
+
+Returns (sets) the source recording folder name.
 
 =item C<< $s->fileName([$val]); >>
 
@@ -51,7 +64,7 @@ Returns (sets) the name of the stat file in the source.
 =item C<< $s->recordingEndOffset([$val]); >>
 
 Returns (sets) the logical file offset of the end of the recording
-as stred in the stat file.
+as stored in the stat file.
 
 =item C<< $s->size; >>
 
@@ -65,17 +78,26 @@ id present in the recording.
 =item C<< $s->valid; >>
 
 Returns true if the last C<< $i->load; >>
-or C<< $t->reconstruct($targetLen); >> succeeded.
+or C<< $s->reconstruct($targetLen); >> succeeded.
 
-=item C<< $t->reconstruct($targetLen); >>
+=item C<< $s->fileLenTime([$file]) >>
+
+Return the tuple I<($len, $modifyTime)> for the stat file.
+The modify time is a Unix timestamp (seconds since 00:00:00) Jan 1 1970 UTC).
+If C<$file> is specified, use that as the name of the stat file,
+otherwise use C<$s->beyonwizFileName> for the name of the file.
+Returns C<undef> if the data can't be found
+(access denied or file not found).
+
+=item C<< $s->reconstruct($targetLen); >>
 
 Attempts to reconstruct the I<stat>.
 
 C<$targetLen> is the size of the recorded data (or the best estimate if not
 known exactly).
 
-Sets C<< $t->valid; >> and
-C<< $t->reconstructed; >> to true if the reconsruction succeeded
+Sets C<< $s->valid; >> and
+C<< $s->reconstructed; >> to true if the reconsruction succeeded
 (even partially), otherwise sets it to C<undef>.
 
 =item C<< $s->reconstructed([$val]); >>
@@ -85,7 +107,7 @@ file, and the file should be encoded from the object rather than being
 copied from the source.
 
 Reset whenever C<< $s->valid; >> is reset.
-Set when C<< $t->reconstruct($targetLen); >> succeeds.
+Set when C<< $s->reconstruct($targetLen); >> succeeds.
 
 =item C<< $s->decode($hdr_data); >>
 
@@ -177,8 +199,20 @@ sub valid() {
     return defined $self->{valid};
 }
 
+sub fileLenTime($;$) {
+    my ($self, $file) = @_;
+    if(@_ >= 2) {
+	return $self->accessor->fileLenTime($self->path, $file);
+    }
+    return $self->accessor->fileLenTime($self->path, $self->beyonwizFileName);
+}
+
 sub load($) {
     my ($self) = @_;
+
+    $self->fileName($statNames[0]);
+    $self->beyonwizFileName($statNames[0]);
+
     foreach my $t (@statNames) {
 	if($self->path =~ /\.(tv|rad)wiz$/) {
 	    my $stat_data = $self->accessor->readFile(

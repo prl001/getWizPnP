@@ -4,7 +4,7 @@
 <head>
 <title>Index</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:_postfix@neige.apple.com" />
+<link rev="made" href="mailto:prl@cambyses.nonet" />
 </head>
 
 <body style="background-color: white">
@@ -48,24 +48,21 @@
 <hr />
 <h1><a name="constants">CONSTANTS</a></h1>
 <dl>
-<dt><strong><a name="index" class="item"><code>INDEX</code></a></strong>
+<dt><strong><a name="index" class="item"><code>INDEX</code></a></strong></dt>
 
 <dd>
-<p>The index url path for the beyonwiz (<code>index.txt</code>).</p>
+<p>The name of the recording index file on the Beyonwiz (<code>index.txt</code>).</p>
 </dd>
-</li>
 </dl>
 <p>
 </p>
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::Index-&gt;new([$makeSortTitle]);</code></a></strong>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::Index-&gt;new([$makeSortTitle]);</code></a></strong></dt>
 
 <dd>
 <p>Create a new Beyonwiz recording index object.</p>
-</dd>
-<dd>
 <p><code>$makeSortTitle</code> is a function reference passed as the same paramter into
 <a href="#new"><code>Beyonwiz::Recording::IndexEntry-&gt;new($name, $path, [$makeSortTitle]);</code></a>
 for any instances of
@@ -80,28 +77,24 @@ It should transform its input string to the form used
 for comparisons when sorting
 (for example in <a href="#entries"><code>$i-&gt;entries([$val]);</code></a>)</p>
 </dd>
-</li>
-<dt><strong><a name="entries" class="item"><code>$i-&gt;entries([$val]);</code></a></strong>
+<dt><strong><a name="entries" class="item"><code>$i-&gt;entries([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the list of
 <a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>
 objects in the index as an array reference.</p>
 </dd>
-</li>
-<dt><strong><a name="nentries" class="item"><code>$i-&gt;nentries;</code></a></strong>
+<dt><strong><a name="nentries" class="item"><code>$i-&gt;nentries;</code></a></strong></dt>
 
 <dd>
 <p>Returns the number of index entries.</p>
 </dd>
-</li>
-<dt><strong><a name="valid" class="item"><code>$i-&gt;valid;</code></a></strong>
+<dt><strong><a name="valid" class="item"><code>$i-&gt;valid;</code></a></strong></dt>
 
 <dd>
 <p>Returns true if the last <code>$i-&gt;load;</code> succeeded.</p>
 </dd>
-</li>
-<dt><strong><a name="sort" class="item"><code>$i-&gt;sort($makeSortTitle);</code></a></strong>
+<dt><strong><a name="sort" class="item"><code>$i-&gt;sort($makeSortTitle);</code></a></strong></dt>
 
 <dd>
 <p>Sorts the values returned by <a href="#entries"><code>$i-&gt;entries([$val]);</code></a>
@@ -112,25 +105,20 @@ directly by Perl's <a href="#sort"><code>sort</code></a> function, with two
 <a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>
 references as its arguments.</p>
 </dd>
-</li>
-<dt><strong><a name="newentry" class="item"><code>$i-&gt;newEntry($name, $path, $makeSortTitle);</code></a></strong>
+<dt><strong><a name="newentry" class="item"><code>$i-&gt;newEntry($name, $path, $makeSortTitle);</code></a></strong></dt>
 
 <dd>
 <p>Create a new
 <a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>
 of the appropriate derived type for the index.</p>
-</dd>
-<dd>
 <p>This method is abstract and must be overridden in
 derived classes.</p>
 </dd>
-</li>
-<dt><strong><a name="decode" class="item"><code>$i-&gt;decode($index_data);</code></a></strong>
+<dt><strong><a name="decode" class="item"><code>$i-&gt;decode($index_data);</code></a></strong></dt>
 
 <dd>
 <p>Decode the binary index data.</p>
 </dd>
-</li>
 </dl>
 <p>
 </p>

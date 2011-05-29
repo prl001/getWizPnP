@@ -213,6 +213,14 @@ METHODS
         A convenience method that returns the duration of the recording in
         seconds.
 
+    "$h->fileLenTime([$file])"
+        Return the tuple *($len, $modifyTime)* for the trunc file. The
+        modify time is a Unix timestamp (seconds since 00:00:00) Jan 1 1970
+        UTC). If $file is specified, use that as the name of the trunc file,
+        otherwise use "$t-"headerName> for the name of the file. Returns
+        "undef" if the data can't be found (access denied or file not
+        found).
+
     "$h->starttime"
         Returns a Unix-like timestamp for the start time of the recording in
         local time (rather than in UTC, like a true Unix timestamp). More
@@ -296,8 +304,8 @@ INTERNAL METHODS
 
 PREREQUISITES
 
-    Uses packages: "Beyonwiz::Utils", "LWP::Simple", "URI", "URI::Escape",
-    "Time::Local", "File::Basename".
+    Uses packages: "Beyonwiz::Utils", "Beyonwiz::Recording::Trunc";
+    "LWP::Simple", "URI", "URI::Escape", "Time::Local", "File::Basename".
 
 BUGS
 

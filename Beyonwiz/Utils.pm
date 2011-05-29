@@ -56,7 +56,7 @@ sub makeAccessors($@) {
 
 sub isAbstract {
     my ($package, $filename, $line, $subroutine) = caller 1;
-    die $package, "::", $subroutine, "is abstract and must be derived from\n";
+    die $package, "::", $subroutine, " is abstract and must be derived from\n";
 }
 
 sub tryUse(*@) {

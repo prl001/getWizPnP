@@ -123,9 +123,11 @@ Running:
 	@checkModules
 checks whether the installation needs any modules that aren't available.
 
-Unfortunately, the module IO::Socket::Multicast is *not* available from
-ppm the default ppm repository, so if you want to have this functionality
-in Windows, use an alternative repository.
+Unfortunately, the module IO::Socket::Multicast is not available from
+ppm the default ppm repository for some versions of ActivePerl.
+If PPM doesn't find it, you can try using an alternative repository
+if you want the functionality it provides (automatically discovering
+Beyonwiz servers).
 
 You can install IO::Socket::Multicast as follows (just type what follows
 the 'prl>' prompt):

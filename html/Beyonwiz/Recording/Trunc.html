@@ -4,7 +4,7 @@
 <head>
 <title>Trunc</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:_postfix@neige.apple.com" />
+<link rev="made" href="mailto:prl@cambyses.nonet" />
 </head>
 
 <body style="background-color: white">
@@ -42,7 +42,7 @@
 </p>
 <hr />
 <h1><a name="synopsis">SYNOPSIS</a></h1>
-<p>Provides access to the Beyonwiz recording trunc file.
+<p>Provides access to the Beyonwiz recording <em>trunc</em> file.
 The trunc file is used to describe exactly which parts of the
 0000, 0001, etc. files are included in the viewable recording.</p>
 <p>
@@ -50,25 +50,33 @@ The trunc file is used to describe exactly which parts of the
 <hr />
 <h1><a name="constants">CONSTANTS</a></h1>
 <dl>
-<dt><strong><a name="trunc" class="item"><code>TRUNC</code></a></strong>
+<dt><strong><a name="trunc" class="item"><code>TRUNC</code></a></strong></dt>
 
 <dd>
-<p>The trunc url path component for the Beyonwiz (<code>trunc</code>).</p>
+<p>The <em>trunc</em> file name for the Beyonwiz (<code>trunc</code>).</p>
 </dd>
-</li>
-<dt><strong><a name="wmmeta" class="item"><code>WMMETA</code></a></strong>
+<dt><strong><a name="trunc_size_mult" class="item"><code>TRUNC_SIZE_MULT</code></a></strong></dt>
 
 <dd>
-<p>The wmmeta url path component for the Beyonwiz (<code>wmmeta</code>).</p>
+<p>The <em>trunc</em> file size should be a multiple of <a href="#trunc_size_mult"><code>TRUNC_SIZE_MULT</code></a>.</p>
 </dd>
-</li>
+<dt><strong><a name="wmmeta" class="item"><code>WMMETA</code></a></strong></dt>
+
+<dd>
+<p>The <em>wmmeta</em> file name for the Beyonwiz (<code>wmmeta</code>).</p>
+</dd>
+<dt><strong><a name="wmmeta_size" class="item"><code>WMMETA_SIZE</code></a></strong></dt>
+
+<dd>
+<p>The size of  <em>wmmeta</em> file.</p>
+</dd>
 </dl>
 <p>
 </p>
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::Trunc-&gt;new($name)</code></a></strong>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::Trunc-&gt;new($accessor, $name, $path)</code></a></strong></dt>
 
 <dd>
 <p>Create a new Beyonwiz recording file index object.
@@ -82,110 +90,109 @@ the name in the Beyonwiz recording index, see
 <code>$path</code> is the path to the source recording folder in <code>$name</code>, and can be a
 file system path or a URL depending on the type of <code>$accessor</code>.</p>
 </dd>
-</li>
-<dt><strong><a name="name" class="item"><code>$t-&gt;name([$val]);</code></a></strong>
+<dt><strong><a name="accessor" class="item"><code>$t-&gt;accessor([$val]);</code></a></strong></dt>
+
+<dd>
+<p>Returns (sets) the media file accessor object reference.</p>
+</dd>
+<dt><strong><a name="name" class="item"><code>$t-&gt;name([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the default recording name.</p>
 </dd>
-</li>
-<dt><strong><a name="filename" class="item"><code>$t-&gt;fileName([$val]);</code></a></strong>
+<dt><strong><a name="path" class="item"><code>$t-&gt;path([$val]);</code></a></strong></dt>
+
+<dd>
+<p>Returns (sets) the source recording folder name.</p>
+</dd>
+<dt><strong><a name="filename" class="item"><code>$t-&gt;fileName([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the name of the trunc file.</p>
 </dd>
-</li>
-<dt><strong><a name="beyonwizfilename" class="item"><code>$s-&gt;beyonwizFileName([$val]);</code></a></strong>
+<dt><strong><a name="beyonwizfilename" class="item"><code>$s-&gt;beyonwizFileName([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the name of the trunc file in the source.</p>
 </dd>
-</li>
-<dt><strong><a name="entries" class="item"><code>$t-&gt;entries([$val]);</code></a></strong>
+<dt><strong><a name="entries" class="item"><code>$t-&gt;entries([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the array reference containing the
 <a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
 objects in for the recording.</p>
 </dd>
-</li>
-<dt><strong><a name="nentries" class="item"><code>$t-&gt;nentries;</code></a></strong>
+<dt><strong><a name="nentries" class="item"><code>$t-&gt;nentries;</code></a></strong></dt>
 
 <dd>
 <p>Returns the number of entries in <a href="#entries"><code>$t-&gt;entries</code></a>.</p>
 </dd>
-</li>
-<dt><strong><a name="size" class="item"><code>$t-&gt;size;</code></a></strong>
+<dt><strong><a name="size" class="item"><code>$t-&gt;size;</code></a></strong></dt>
 
 <dd>
 <p>Returns the size of the last decoded trunc file.</p>
 </dd>
-</li>
-<dt><strong><a name="recordingsize" class="item"><code>$t-&gt;recordingSize([$nents]);</code></a></strong>
+<dt><strong><a name="recordingsize" class="item"><code>$t-&gt;recordingSize([$nents]);</code></a></strong></dt>
 
 <dd>
 <p>Returns the sum of all the <em>size</em> entries in the
 <a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
 objects in for the recording.</p>
-</dd>
-<dd>
 <p>If <code>$nents</code> is set, returns the size of the first <code>$nents</code> entries
 in the table.</p>
 </dd>
-</li>
-<dt><strong><a name="load" class="item"><code>$t-&gt;load;</code></a></strong>
+<dt><strong><a name="load" class="item"><code>$t-&gt;load;</code></a></strong></dt>
 
 <dd>
 <p>Loads the trunc data from the <code>trunc</code> or <code>wmmeta</code> file, depending on which
 is present in the recording or media file.</p>
 </dd>
-</li>
-<dt><strong><a name="valid" class="item"><code>$t-&gt;valid;</code></a></strong>
+<dt><strong><a name="valid" class="item"><code>$t-&gt;valid;</code></a></strong></dt>
 
 <dd>
 <p>Returns true if the last <a href="#load"><code>$i-&gt;load;</code></a>
 or <a href="#reconstruct"><code>$t-&gt;reconstruct($minScan, $maxScan, $targetLen);</code></a> succeeded.</p>
 </dd>
-</li>
-<dt><strong><a name="reconstruct" class="item"><code>$t-&gt;reconstruct($minScan, $maxScan, $targetLen);</code></a></strong>
+<dt><strong><a name="filelentime" class="item"><code>$t-&gt;fileLenTime([$file])</code></a></strong></dt>
+
+<dd>
+<p>Return the tuple <em>($len, $modifyTime)</em> for the trunc file.
+The modify time is a Unix timestamp (seconds since 00:00:00) Jan 1 1970 UTC).
+If <code>$file</code> is specified, use that as the name of the trunc file,
+otherwise use <code>$t-</code>beyonwizFileName&gt; for the name of the file.
+Returns <code>undef</code> if the data can't be found
+(access denied or file not found).</p>
+</dd>
+<dt><strong><a name="reconstruct" class="item"><code>$t-&gt;reconstruct($minScan, $maxScan, $targetLen);</code></a></strong></dt>
 
 <dd>
 <p>Attempts to reconstruct the <em>trunc</em> data from the recording data file
 names and sizes. <code>$minScan</code> and <code>$maxScan</code> are the minimum and maximum
 data file names (as integers) for the scan to find the first recording
 file name.</p>
-</dd>
-<dd>
 <p><code>$targetLen</code> is a guess at the maximum size of the recording data,
 including an allowance for parts of the files that were edited out in the
 original trunc file.</p>
-</dd>
-<dd>
 <p>Sets <a href="#valid"><code>$t-&gt;valid;</code></a> and
 <a href="#reconstructed"><code>$t-&gt;reconstructed;</code></a> to true if the reconsruction succeeded
 (even partially), otherwise sets it to <code>undef</code>.</p>
 </dd>
-</li>
-<dt><strong><a name="reconstructed" class="item"><code>$s-&gt;reconstructed([$val]);</code></a></strong>
+<dt><strong><a name="reconstructed" class="item"><code>$s-&gt;reconstructed([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) a flag marking that the object represents a reconstructed
 file, and the file should be encoded from the object rather than being
 copied from the source.</p>
-</dd>
-<dd>
 <p>Reset whenever <a href="#valid"><code>$s-&gt;valid;</code></a> is reset.
 Set when <a href="#reconstruct"><code>$t-&gt;reconstruct($targetLen);</code></a> succeeds.</p>
 </dd>
-</li>
-<dt><strong><a name="decode" class="item"><code>$t-&gt;decode($hdr_data);</code></a></strong>
+<dt><strong><a name="decode" class="item"><code>$t-&gt;decode($hdr_data);</code></a></strong></dt>
 
 <dd>
 <p>Load the contents of <code>$t</code> by decoding the <code>trunc</code> file data in
 <code>$hdr_data</code>.</p>
 </dd>
-</li>
-<dt><strong><a name="encodetrunc" class="item"><code>$t-&gt;encodeTrunc;</code></a></strong>
+<dt><strong><a name="encodetrunc" class="item"><code>$t-&gt;encodeTrunc;</code></a></strong></dt>
 
 <dd>
 <p>Returns <em>trunc</em> file data for
@@ -193,8 +200,7 @@ Set when <a href="#reconstruct"><code>$t-&gt;reconstruct($targetLen);</code></a>
 Should only be called if <code>$t</code> represents
 a <em>trunc</em> file.</p>
 </dd>
-</li>
-<dt><strong><a name="encodewmmeta" class="item"><code>$t-&gt;encodeWmmeta;</code></a></strong>
+<dt><strong><a name="encodewmmeta" class="item"><code>$t-&gt;encodeWmmeta;</code></a></strong></dt>
 
 <dd>
 <p>Returns <em>wmmeta</em> file data for
@@ -202,8 +208,7 @@ a <em>trunc</em> file.</p>
 Should only be called if <code>$t</code> represents
 a <em>wmmeta</em> file.</p>
 </dd>
-</li>
-<dt><strong><a name="truncstart" class="item"><code>$t-&gt;truncStart($recOffset)</code></a></strong>
+<dt><strong><a name="truncstart" class="item"><code>$t-&gt;truncStart($recOffset)</code></a></strong></dt>
 
 <dd>
 <p>Return the location of the logical <code>offset</code> (counting from 0
@@ -212,8 +217,7 @@ pair indicating which
 <a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>
 contains the position and the corresponding offset into the file.</p>
 </dd>
-</li>
-<dt><strong><a name="makefiletrunc" class="item"><code>$t-&gt;makeFileTrunc;</code></a></strong>
+<dt><strong><a name="makefiletrunc" class="item"><code>$t-&gt;makeFileTrunc;</code></a></strong></dt>
 
 <dd>
 <p>Return a new
@@ -225,16 +229,14 @@ The chunk file sizes and offsets are adjusted to have a single trunc
 representing the whole file. The <code>wizOffset</code> values are not particularly
 meaningful.</p>
 </dd>
-</li>
-<dt><strong><a name="filetruncfromdir" class="item"><code>$t-&gt;fileTruncFromDir;</code></a></strong>
+<dt><strong><a name="filetruncfromdir" class="item"><code>$t-&gt;fileTruncFromDir;</code></a></strong></dt>
 
 <dd>
 <p>Return a new
 <a href="../../../html/Beyonwiz/Recording/FileTrunc.html"><code>Beyonwiz::Recording::FileTrunc</code></a>
 that reflect the files in the the directory pointed to by
-<code>$t-&gt;path([$val])</code>.</p>
+<a href="#path"><code>$t-&gt;path([$val])</code></a>.</p>
 </dd>
-</li>
 </dl>
 <p>
 </p>

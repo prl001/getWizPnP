@@ -11,9 +11,11 @@ ifdef ComSpec
     # Ugly way to get a single \ into a variable
     /=$(shell echo \)
 else
-    OS=$(shell uname -o 2> /dev/null || uname -s)
+    OS=$(shell ( uname -o 2> /dev/null || uname -s ) | sed 's/GNU\///')
     /=/
 endif
+
+VERSION=$(shell .$/$(NAME).pl --version 2>&1)
 
 MKDIR=mkdir -p
 CP=cp
@@ -26,8 +28,9 @@ else ifeq ($(OS),Windows)
     CP=copy/y
 endif
 
-
-EXEDIR=Compiled$/$(OS)/getWizPnP
+OSCOMPILED=Compiled$/$(OS)
+OSCOMPILEDZIP=.$/.$/.
+EXEDIR=$(OSCOMPILED)$/$(NAME)
 
 BWMODULEDIR=Beyonwiz
 RECMODULEDIR=$(BWMODULEDIR)/Recording
@@ -38,11 +41,12 @@ EXE=$(NAME)$(EXEEXT)
 BWMODULES=$(BWMODULEDIR)/Utils.pm $(BWMODULEDIR)/WizPnP.pm \
 	$(BWMODULEDIR)/WizPnPDevice.pm
 
-RECMODULES=$(RECMODULEDIR)/Accessor.pm $(RECMODULEDIR)/FileAccessor.pm \
-	$(RECMODULEDIR)/HTTPAccessor.pm $(RECMODULEDIR)/Header.pm \
-	$(RECMODULEDIR)/Index.pm $(RECMODULEDIR)/IndexEntry.pm \
-	$(RECMODULEDIR)/Recording.pm $(RECMODULEDIR)/Stat.pm \
-	$(RECMODULEDIR)/Trunc.pm $(RECMODULEDIR)/TruncEntry.pm
+RECMODULES=$(RECMODULEDIR)/Accessor.pm $(RECMODULEDIR)/Check.pm \
+	$(RECMODULEDIR)/FileAccessor.pm $(RECMODULEDIR)/HTTPAccessor.pm \
+	$(RECMODULEDIR)/Header.pm $(RECMODULEDIR)/Index.pm \
+	$(RECMODULEDIR)/IndexEntry.pm $(RECMODULEDIR)/Recording.pm \
+	$(RECMODULEDIR)/Stat.pm $(RECMODULEDIR)/Trunc.pm \
+	$(RECMODULEDIR)/TruncEntry.pm
 
 CLEANUPMODULES=$(RECMODULEDIR)/HTTPIndex.pm $(RECMODULEDIR)/FileIndex.pm \
 	$(RECMODULEDIR)/HTTPRecording.pm $(RECMODULEDIR)/FileRecording.pm \
@@ -68,6 +72,15 @@ install_perl: $(BIN)
 
 install_bin: all compile $(BIN)
 	$(CP) "$(EXEDIR)$/$(EXE)" "$(BIN)"
+
+zip: check
+	rm -f ../$(NAME)-$(VERSION).zip
+	cd .. && zip -r $(NAME)-$(VERSION).zip $(NAME)
+
+zip-compile: compile
+	cd $(OSCOMPILED) && \
+	rm -f $(OSCOMPILEDZIP)$/$(NAME)-$(VERSION)-Compiled-$(OS).zip && \
+	zip -r $(OSCOMPILEDZIP)$/$(NAME)-$(VERSION)-Compiled-$(OS).zip $(NAME)
 
 compile: check $(EXEDIR) $(EXEDIR)$/$(EXE) doc
 	$(CP) "html/$(NAME).html" "$(EXEDIR)"

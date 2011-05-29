@@ -9,7 +9,7 @@ SYNOPSIS
                   [--device dev|-D dev] [--maxdevs=devs|-m devs]
                   [--longNames]
                   [--host=host|-H host] [--port=port|-p port]
-                  [--list|-l] [--List|-L]
+                  [--list|-l] [--List|-L] [--check|-c]
                   [--copy|-C] [--delete|-X] [--move|-M] [--dryrun|-n]
                   [--media=exts] [--stopFolders=folderlist]
                   [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]
@@ -29,10 +29,10 @@ SYNOPSIS
 
 DESCRIPTION
 
-    List, fetch, move or delete the recordings on a Beyonwiz DP series PVR
-    over the network using the *WizPnP* interface. If --inDir is specified,
-    perform the same operations on the computer where *getWizPnP* is
-    running. --inDir is most useful in combination with --ts.
+    List, check, fetch, move or delete the recordings on a Beyonwiz DP
+    series PVR over the network using the *WizPnP* interface. If --inDir is
+    specified, perform the same operations on the computer where *getWizPnP*
+    is running. --inDir is most useful in combination with --ts.
 
     If no pattern arguments are given, then all recordings in the included
     folders are listed. Otherwise recordings matching any of the patterns
@@ -922,8 +922,63 @@ ARGUMENTS
           -L
 
         Produce only a list of the index names of the recordings in the
-        recording index file. Intended for use by GUIs or other programs
-        calling *getWizPnP*.
+        recording index file. The options --folder and --recursive apply to
+        --List.
+
+        Intended for use by GUIs or other programs calling *getWizPnP*.
+
+    check
+          --check
+          -c
+
+        Perform some basic consistency checks on the recordings and media on
+        the Beyonwiz, indicating missing and misnamed (in some instances)
+        header files, and checking that the sizes of the header files are
+        correct.
+
+        Also check that all recording & media data files mentioned in the
+        header files are on the Beyonwiz.
+
+        Specifically:
+
+        *   Checks that the main header file exists (if one is expected) and
+            that it is the correct size, but it cannot distinguish between a
+            completely missing recording folder and a folder that is missing
+            its header file.
+
+        *   Checks that the *trunc* header file exists (if one is expected)
+            and that it is a valid size, and whether it is present but under
+            a known incorrect name.
+
+        *   Checks that the *stat* header file exists (if one is expected)
+            and that it is the correct size, and whether it is present but
+            under a known incorrect name.
+
+        *   Checks that the data file indicated by each *trunc*trunc file
+            entry is large enough to contain tha span of data indicated in
+            the enrty. Makes no attempt to check the contents of the data
+            files.
+
+        The options --folder and --recursive apply to --check.
+
+        If verbosity is non-zero, print the name of each recording and media
+        file as it is checked. Normally only prints the names of recordings
+        or meda files where there is an error found.
+
+        Without any further options, --check will only check recordings
+        directly contained in the "Recordings" folder.
+
+        To check all recordings on the recording HDD, use:
+
+                getWizPnP --check --recursive
+
+        To check all media files on the internal HDD, use:
+
+                getWizPnP --check --folder=/Contents --recursive
+
+        And to check all the recordings and media on the recording drive:
+
+                getWizPnP --check --folder=/ --recursive
 
     BWName
           --BWName
@@ -1000,8 +1055,9 @@ PREREQUSITES
     Uses packages "Beyonwiz::WizPnP", "Beyonwiz::Recording::HTTPAccessor",
     "Beyonwiz::Recording::FileAccessor", "Beyonwiz::Recording::Index",
     "Beyonwiz::Recording::Header", "Beyonwiz::Recording::Trunc",
-    "Beyonwiz::Recording::Trunc", "Beyonwiz::Recording::Recording",
-    "File::Spec::Functions", "File::Path", "HTTP::Status", "Getopt::Long".
+    "Beyonwiz::Recording::Stat", "Beyonwiz::Recording::Recording",
+    "Beyonwiz::Recording::Check", "File::Spec::Functions", "File::Path",
+    "HTTP::Status", "Getopt::Long".
 
 BUGS
 

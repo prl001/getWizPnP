@@ -4,7 +4,7 @@
 <head>
 <title>Stat</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:_postfix@neige.apple.com" />
+<link rev="made" href="mailto:prl@cambyses.nonet" />
 </head>
 
 <body style="background-color: white">
@@ -42,26 +42,31 @@
 </p>
 <hr />
 <h1><a name="synopsis">SYNOPSIS</a></h1>
-<p>Provides access to the Beyonwiz recording stat file.
-The purpose of the stat file isn't really known.</p>
+<p>Provides access to the Beyonwiz recording <em>stat</em> file.
+The purpose of the stat file isn't really known,
+but it contains the total logical length of the recording..</p>
 <p>
 </p>
 <hr />
 <h1><a name="constants">CONSTANTS</a></h1>
 <dl>
-<dt><strong><a name="stat" class="item"><code>STAT</code></a></strong>
+<dt><strong><a name="stat" class="item"><code>STAT</code></a></strong></dt>
 
 <dd>
-<p>The stat url path component for the Beyonwiz (<code>stat</code>).</p>
+<p>The <em>stat</em> (status?) file name for the Beyonwiz (<code>stat</code>).</p>
 </dd>
-</li>
+<dt><strong><a name="stat_size" class="item"><code>STAT_SIZE</code></a></strong></dt>
+
+<dd>
+<p>The size of the Beyonwiz <em>stat</em> file.</p>
+</dd>
 </dl>
 <p>
 </p>
 <hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::Stat-&gt;new($accessor, $name, $path)</code></a></strong>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::Stat-&gt;new($accessor, $name, $path)</code></a></strong></dt>
 
 <dd>
 <p>Create a new Beyonwiz recording file index object.
@@ -72,89 +77,92 @@ used to carry out the media file access functions in
 <code>$name</code> is the default name of the recording (usually
 the name in the Beyonwiz recording index, see
 <a href="../../../html/./Beyonwiz/Recording/IndexEntry.html"><code>Beyonwiz::Recording::IndexEntry</code></a>.
-<code>$path</code> is the path to the source recording folder in <code>$name</code>, and can be a
+<code>$path</code> is the path to the source recording folder for <code>$name</code>, and can be a
 file system path or a URL depending on the type of <code>$accessor</code>.</p>
 </dd>
-</li>
-<dt><strong><a name="name" class="item"><code>$s-&gt;name([$val]);</code></a></strong>
+<dt><strong><a name="accessor" class="item"><code>$s-&gt;accessor([$val]);</code></a></strong></dt>
+
+<dd>
+<p>Returns (sets) the media file accessor object reference.</p>
+</dd>
+<dt><strong><a name="name" class="item"><code>$s-&gt;name([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the default recording name.</p>
 </dd>
-</li>
-<dt><strong><a name="filename" class="item"><code>$s-&gt;fileName([$val]);</code></a></strong>
+<dt><strong><a name="path" class="item"><code>$s-&gt;path([$val]);</code></a></strong></dt>
+
+<dd>
+<p>Returns (sets) the source recording folder name.</p>
+</dd>
+<dt><strong><a name="filename" class="item"><code>$s-&gt;fileName([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the name of the stat file.</p>
 </dd>
-</li>
-<dt><strong><a name="beyonwizfilename" class="item"><code>$s-&gt;beyonwizFileName([$val]);</code></a></strong>
+<dt><strong><a name="beyonwizfilename" class="item"><code>$s-&gt;beyonwizFileName([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the name of the stat file in the source.</p>
 </dd>
-</li>
-<dt><strong><a name="recordingendoffset" class="item"><code>$s-&gt;recordingEndOffset([$val]);</code></a></strong>
+<dt><strong><a name="recordingendoffset" class="item"><code>$s-&gt;recordingEndOffset([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the logical file offset of the end of the recording
-as stred in the stat file.</p>
+as stored in the stat file.</p>
 </dd>
-</li>
-<dt><strong><a name="size" class="item"><code>$s-&gt;size;</code></a></strong>
+<dt><strong><a name="size" class="item"><code>$s-&gt;size;</code></a></strong></dt>
 
 <dd>
 <p>Returns the size of the last decoded stat file.</p>
 </dd>
-</li>
-<dt><strong><a name="load" class="item"><code>$s-&gt;load;</code></a></strong>
+<dt><strong><a name="load" class="item"><code>$s-&gt;load;</code></a></strong></dt>
 
 <dd>
 <p>Loads the stat data from the <code>stat</code> file, depending on which
 id present in the recording.</p>
 </dd>
-</li>
-<dt><strong><a name="valid" class="item"><code>$s-&gt;valid;</code></a></strong>
+<dt><strong><a name="valid" class="item"><code>$s-&gt;valid;</code></a></strong></dt>
 
 <dd>
 <p>Returns true if the last <a href="#load"><code>$i-&gt;load;</code></a>
-or <a href="#reconstruct"><code>$t-&gt;reconstruct($targetLen);</code></a> succeeded.</p>
+or <a href="#reconstruct"><code>$s-&gt;reconstruct($targetLen);</code></a> succeeded.</p>
 </dd>
-</li>
-<dt><strong><a name="reconstruct" class="item"><code>$t-&gt;reconstruct($targetLen);</code></a></strong>
+<dt><strong><a name="filelentime" class="item"><code>$s-&gt;fileLenTime([$file])</code></a></strong></dt>
+
+<dd>
+<p>Return the tuple <em>($len, $modifyTime)</em> for the stat file.
+The modify time is a Unix timestamp (seconds since 00:00:00) Jan 1 1970 UTC).
+If <code>$file</code> is specified, use that as the name of the stat file,
+otherwise use <code>$s-</code>beyonwizFileName&gt; for the name of the file.
+Returns <code>undef</code> if the data can't be found
+(access denied or file not found).</p>
+</dd>
+<dt><strong><a name="reconstruct" class="item"><code>$s-&gt;reconstruct($targetLen);</code></a></strong></dt>
 
 <dd>
 <p>Attempts to reconstruct the <em>stat</em>.</p>
-</dd>
-<dd>
 <p><code>$targetLen</code> is the size of the recorded data (or the best estimate if not
 known exactly).</p>
-</dd>
-<dd>
-<p>Sets <a href="#valid"><code>$t-&gt;valid;</code></a> and
-<a href="#reconstructed"><code>$t-&gt;reconstructed;</code></a> to true if the reconsruction succeeded
+<p>Sets <a href="#valid"><code>$s-&gt;valid;</code></a> and
+<a href="#reconstructed"><code>$s-&gt;reconstructed;</code></a> to true if the reconsruction succeeded
 (even partially), otherwise sets it to <code>undef</code>.</p>
 </dd>
-</li>
-<dt><strong><a name="reconstructed" class="item"><code>$s-&gt;reconstructed([$val]);</code></a></strong>
+<dt><strong><a name="reconstructed" class="item"><code>$s-&gt;reconstructed([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) a flag marking that the object represents a reconstructed
 file, and the file should be encoded from the object rather than being
 copied from the source.</p>
-</dd>
-<dd>
 <p>Reset whenever <a href="#valid"><code>$s-&gt;valid;</code></a> is reset.
-Set when <a href="#reconstruct"><code>$t-&gt;reconstruct($targetLen);</code></a> succeeds.</p>
+Set when <a href="#reconstruct"><code>$s-&gt;reconstruct($targetLen);</code></a> succeeds.</p>
 </dd>
-</li>
-<dt><strong><a name="decode" class="item"><code>$s-&gt;decode($hdr_data);</code></a></strong>
+<dt><strong><a name="decode" class="item"><code>$s-&gt;decode($hdr_data);</code></a></strong></dt>
 
 <dd>
 <p>Load the contents of <code>$s</code> by decoding the <code>stat</code> file data in
 <code>$hdr_data</code>.</p>
 </dd>
-</li>
 </dl>
 <p>
 </p>

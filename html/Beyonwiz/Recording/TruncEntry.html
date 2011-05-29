@@ -4,7 +4,7 @@
 <head>
 <title>TruncEntry</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:_postfix@neige.apple.com" />
+<link rev="made" href="mailto:prl@cambyses.nonet" />
 </head>
 
 <body style="background-color: white">
@@ -23,6 +23,7 @@
 
 	<li><a href="#name">NAME</a></li>
 	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#constants">CONSTANTS</a></li>
 	<li><a href="#methods">METHODS</a></li>
 	<li><a href="#prerequisites">PREREQUISITES</a></li>
 	<li><a href="#bugs">BUGS</a></li>
@@ -45,63 +46,111 @@
 <p>
 </p>
 <hr />
+<h1><a name="constants">CONSTANTS</a></h1>
+<dl>
+<dt><strong><a name="fullfile" class="item"><code>FULLFILE</code></a></strong></dt>
+
+<dd>
+<p>If set in <a href="#flags"><code>$te-&gt;flags</code></a>, then the entry represents the whole
+media file or recording.
+If this is set, it should be on a singleton entry in a
+<a href="../../../html/./Beyonwiz/Recording/Trunc.html"><code>Beyonwiz::Recording::Trunc</code></a>
+object, and the name of the associated file
+is the path to the recording (<a href="#path"><code>$te-&gt;path</code></a>);
+<a href="#filename"><code>$te-&gt;fileName</code></a> should be ignored.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
 <h1><a name="methods">METHODS</a></h1>
 <dl>
-<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::TruncEntry-&gt;new($wizOffset, $fileNum, $flags, $offset, $size)</code></a></strong>
+<dt><strong><a name="new" class="item"><code>Beyonwiz::Recording::TruncEntry-&gt;new($accessor, $path, $wizOffset, $fileNum, $flags, $offset, $size)</code></a></strong></dt>
 
 <dd>
 <p>Create a new Beyonwiz recording index entry object.
+<code>$accessor</code> is a reference to a
+<a href="../../../html/./Beyonwiz/Recording/Accessor.html"><code>Beyonwiz::Recording::Accessor</code></a>
+used to carry out the media file access functions in
+<a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::TruncEntry</code></a>.
+<code>$path</code> is the path to the source recording folder, and can be a
+file system path or a URL depending on the type of <code>$accessor</code>.
 <code>$wizOffset</code> logical byte offset of the entry in the recording
 (<code>bignum</code>).
-<code>$filenum</code> is the numbered recording file that the entry refers to.
+<code>$fileNum</code> is the numbered recording file that the entry refers to.
 The file name is this number printed in <code>printf</code> <code>%04d</code> format.
 <code>$flags</code> - flags for the entry - unknown purpose.
 <code>$offset</code> - offset of the recording data chunk in the file (<code>bignum</code>).
-<code>$size</code> - size of the recodding data chunk in the file.
+<code>$size</code> - size of the recording data chunk in the file.
 More than one <a href="../../../html/./Beyonwiz/Recording/TruncEntry.html"><code>Beyonwiz::Recording::Index</code></a>
 can refer to a given file.</p>
-</dd>
-<dd>
 <p>Normally constructed from the Beyonwiz trunc file by
 <a href="../../../html/./Beyonwiz/Recording/Trunc.html"><code>Beyonwiz::Recording::Trunc</code></a>.</p>
 </dd>
-</li>
-<dt><strong><a name="wizoffset" class="item"><code>$te-&gt;wizOffset([$val]);</code></a></strong>
+<dt><strong><a name="accessor" class="item"><code>$t-&gt;accessor([$val]);</code></a></strong></dt>
+
+<dd>
+<p>Returns (sets) the media file accessor object reference.</p>
+</dd>
+<dt><strong><a name="path" class="item"><code>$te-&gt;path([$val]);</code></a></strong></dt>
+
+<dd>
+<p>Returns (sets) the source recording folder name.</p>
+</dd>
+<dt><strong><a name="wizoffset" class="item"><code>$te-&gt;wizOffset([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the logical byte offset of the entry in the recording.</p>
 </dd>
-</li>
-<dt><strong><a name="filenum" class="item"><code>$te-&gt;filenum([$val]);</code></a></strong>
+<dt><strong><a name="filenum" class="item"><code>$te-&gt;fileNum([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the numbered recording file that the entry refers to.</p>
 </dd>
-</li>
-<dt><strong><a name="flags" class="item"><code>$te-&gt;flags([$val]);</code></a></strong>
+<dt><strong><a name="flags" class="item"><code>$te-&gt;flags([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the flags for the entry - unknown purpose.</p>
 </dd>
-</li>
-<dt><strong><a name="offset" class="item"><code>$te-&gt;offset([$val]);</code></a></strong>
+<dt><strong><a name="offset" class="item"><code>$te-&gt;offset([$val]);</code></a></strong></dt>
 
 <dd>
 <p>Returns (sets) the offset of the recording data chunk in the file (<code>bignum</code>).</p>
 </dd>
-</li>
-<dt><strong><a name="size" class="item"><code>$te-&gt;size([$val]);</code></a></strong>
+<dt><strong><a name="size" class="item"><code>$te-&gt;size([$val]);</code></a></strong></dt>
 
 <dd>
-<p>Returns (sets) the size of the recodding data chunk in the file.</p>
+<p>Returns (sets) the size of the recording data chunk in the file.</p>
 </dd>
-</li>
+<dt><strong><code>$te-&gt;accessor([$val]);</code></strong></dt>
+
+<dd>
+<p>Returns (sets) the media file accessor object reference.</p>
+</dd>
+<dt><strong><a name="filename" class="item"><code>$te-&gt;fileName;</code></a></strong></dt>
+
+<dd>
+<p>Returns the name of the numbered recording file that the entry refers to.
+Returns an emptr string if the entry is flagged with <a href="#fullfile"><code>FULLFILE</code></a>
+(the entry is for a single-file media file).</p>
+</dd>
+<dt><strong><a name="filelentime" class="item"><code>$te-&gt;fileLenTime([$file])</code></a></strong></dt>
+
+<dd>
+<p>Return the tuple <em>($len, $modifyTime)</em> for the recording data file.
+The modify time is a Unix timestamp (seconds since 00:00:00) Jan 1 1970 UTC).
+If the entry is flagged with <a href="#fullfile"><code>FULLFILE</code></a>, the time returned is for
+<code>$te-</code>path&gt;, otherwise for the file named 
+Returns <code>undef</code> if the data can't be found
+(access denied or file not found).</p>
+</dd>
 </dl>
 <p>
 </p>
 <hr />
 <h1><a name="prerequisites">PREREQUISITES</a></h1>
 <p>Uses packages:
+<a href="../../../html/./Beyonwiz/Recording/Trunc.html"><code>Beyonwiz::Recording::Trunc</code></a>,
 <a href="../../../html/./Beyonwiz/Utils.html"><code>Beyonwiz::Utils</code></a>.</p>
 <p>
 </p>

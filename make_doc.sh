@@ -44,14 +44,14 @@ for i in "$@"; do
 	    $i`
 
     # Convert the Perl POD markup to HTML
-    perl /usr/bin/pod2html --htmlroot=../$dots/html --podroot=. $podpath --htmldir=. \
+    pod2html --htmlroot=../$dots/html --podroot=. $podpath --htmldir=. \
              --header --title=$j \
              --infile=$i --outfile=html/$d/$j.html
     # Add a line to index.html
     echo "<li><a href=\"$d/$j.html\">$synopsis</li>" >> $index
 
     # Convert the Perl POD markup to plain text with DOS line separators
-    perl /usr/bin/pod2text --loose $i | perl -ape 's/\n/\r\n/ if(!/\r\n$/)' > doc/$j.txt
+    pod2text --loose $i | perl -ape 's/\n/\r\n/ if(!/\r\n$/)' > doc/$j.txt
 
 done
 

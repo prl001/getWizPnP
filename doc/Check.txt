@@ -1,0 +1,80 @@
+NAME
+
+        use Beyonwiz::Recording::Check;
+
+SYNOPSIS
+
+    Perform consistency checks on collections of Beyonwiz recordings and
+    media files.
+
+CONSTANTS
+
+    "STAT"
+        The stat url path component for the Beyonwiz ("stat").
+
+METHODS
+
+    "Beyonwiz::Recording::Check->new($accessor, $name, $path)"
+        Create a new Beyonwiz recording file index object. $accessor is a
+        reference to a "Beyonwiz::Recording::Accessor" used to carry out the
+        media file access functions in "Beyonwiz::Recording::Header". $name
+        is the default name of the recording (usually the name in the
+        Beyonwiz recording index, see "Beyonwiz::Recording::IndexEntry".
+        $path is the path to the source recording folder in $name, and can
+        be a file system path or a URL depending on the type of $accessor.
+
+    "$c->accessor([$val]);"
+        Returns (sets) the media file accessor object reference.
+
+    "$c->name([$val]);"
+        Returns (sets) the default recording/media file name.
+
+    "$c->path([$val]);"
+        Returns (sets) the source recording/media folder name.
+
+    "$c->path([$val]);"
+        Returns (sets) the source recording/media folder name.
+
+    "$c->showHeader([$val]);"
+        Returns (sets) flag to display recording name headers in
+        "$c->warning(@mess)". Set to true at object creation time.
+
+    "$c->warning(@mess);"
+        Prints the warning messages in @mess, after printing the recording
+        name if "$c->showHeader" is true. Then sets "$c->showHeader" to
+        false.
+
+    "$c->checkHeader($hdr);"
+        Checks that the main header file exists (if one is expected) and
+        that it is the correct size.
+
+        Cannot distinguish between a completely missing recording folder and
+        a folder that is missing its header file.
+
+    "$c->checkTrunc($trunc);"
+        Checks that the *trunc* header file exists (if one is expected) and
+        that it is a valid size, and whether it is present but under a known
+        incorrect name.
+
+    "$c->checkStat($stat);"
+        Checks that the *stat* header file exists (if one is expected) and
+        that it is the correct size, and whether it is present but under a
+        known incorrect name.
+
+    "$c->checkTruncEntries($trunc);"
+        Check that the data file indicated by each *trunc* file entry is
+        large enough to contain tha span of data indicated in the enrty.
+
+PREREQUISITES
+
+    Uses packages: "Beyonwiz::Recording::Header",
+    "Beyonwiz::Recording::Trunc", "Beyonwiz::Recording::Stat".
+
+BUGS
+
+    "$c->checkHeader($hdr)" cannot distinguish between a completely missing
+    recording folder and a folder that is missing its header file.
+
+    Uses "bignum" for 64-bit integers, even when the underlying Perl
+    integers are 64 bits.
+

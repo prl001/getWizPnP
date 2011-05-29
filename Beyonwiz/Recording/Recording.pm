@@ -27,6 +27,10 @@ If C<$resume> is true, allow resumption of recording download
 that appear to be incomplete.
 If C<$force> is true, allow a download to overwrite an existing download.
 
+=item C<< $r->accessor([$val]); >>
+
+Returns (sets) the media file accessor object reference.
+
 =item C<< $r->join([$val]); >>
 
 Returns (sets) the flag indicating whether the recording
@@ -156,7 +160,7 @@ use warnings;
 use strict;
 use bignum;
 
-use Beyonwiz::Recording::Trunc qw(TRUNC WMMETA FULLFILE);
+use Beyonwiz::Recording::Trunc qw(TRUNC WMMETA);
 use Beyonwiz::Recording::Header qw(TVHDR RADHDR);
 use Beyonwiz::Utils;
 use HTTP::Status;
@@ -470,7 +474,7 @@ sub getRecording($$$$$$$$) {
 
     foreach my $i ($startTrunc..$trunc->nentries-1) {
 	my $tr = $trunc->entries->[$i];
-	my $fn = ($tr->flags & FULLFILE) ? '' : sprintf("%04d", $tr->fileNum);
+	my $fn = $tr->fileName;
 
 	if(!$self->accessor->outFileHandle) {
 	    $status = $self->accessor->openRecordingFileOut(
@@ -526,27 +530,32 @@ sub deleteRecording($$$$$$) {
     my $name = $self->getRecordingName($hdr, $indexName, 0);
 
     foreach my $tr (@{$trunc->entries}[0..$trunc->nentries-1]) {
-	my $fn = sprintf "%04d", $tr->fileNum;
+	my $fn = $tr->fileName;
 
         $status = $self->accessor->deleteRecordingFile(
-				$self, $path, $name, $fn
-			    );
+			    $path, $name, $hdr->isMediaFile ? undef : $fn
+			);
+	return $status if($hdr->isMediaFile || !is_success($status));
     }
 
-    $status = $self->accessor->deleteRecordingFile($self, $path, $name,
+    $status = $self->accessor->deleteRecordingFile($path, $name,
 						   $hdr->headerName);
     return $status if(!is_success($status));
 
-    $status = $self->accessor->deleteRecordingFile($self, $path, $name,
-						   $trunc->beyonwizFileName);
-    return $status if(!is_success($status));
+    if(!$hdr->isMediaFolder) {
+	$status = $self->accessor->deleteRecordingFile(
+				$path, $name, $trunc->beyonwizFileName
+			    );
+	return $status if(!is_success($status));
 
-    $status = $self->accessor->deleteRecordingFile($self, $path, $name,
-						   $stat->beyonwizFileName);
-    return $status if(!is_success($status));
+	$status = $self->accessor->deleteRecordingFile(
+				$path, $name, $stat->beyonwizFileName
+			    );
+	return $status if(!is_success($status));
+    }
 
-    $status = $self->accessor->deleteRecordingFile($self, $path, $name,
-						   undef);
+    $status = $self->accessor->deleteRecordingFile($path, $name, undef);
+
     return $status if(!is_success($status));
 
     return $status;

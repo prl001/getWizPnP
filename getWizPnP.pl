@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 =head1 NAME
 
@@ -11,7 +11,7 @@ getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network
               [--device dev|-D dev] [--maxdevs=devs|-m devs]
               [--longNames]
               [--host=host|-H host] [--port=port|-p port]
-              [--list|-l] [--List|-L]
+              [--list|-l] [--List|-L] [--check|-c]
               [--copy|-C] [--delete|-X] [--move|-M] [--dryrun|-n]
               [--media=exts] [--stopFolders=folderlist]
               [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]
@@ -31,7 +31,7 @@ getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network
 
 =head1 DESCRIPTION
 
-List, fetch, move or delete the recordings on a Beyonwiz DP series
+List, check, fetch, move or delete the recordings on a Beyonwiz DP series
 PVR over the network using the I<WizPnP> interface.
 If B<--L<inDir>> is specified, perform the same operations on
 the computer where I<getWizPnP> is running.
@@ -1036,7 +1036,74 @@ B<--indir> is deprecated.
 
 Produce only a list of the index names of the recordings in the recording
 index file.
+The options B<--L<folder>> and  B<--L<recursive>> apply to B<--L<List>>.
+
 Intended for use by GUIs or other programs calling I<getWizPnP>.
+
+=item check
+
+  --check
+  -c
+
+Perform some basic consistency checks on the recordings and media
+on the Beyonwiz, indicating missing and misnamed (in some instances)
+header files, and checking that the sizes of the header files are correct.
+
+Also check that all recording & media data files mentioned in the header files
+are on the Beyonwiz.
+
+Specifically:
+
+=over
+
+=item
+
+Checks that the main header file exists (if one is expected)
+and that it is the correct size, but it cannot distinguish between
+a completely missing recording folder
+and a folder that is missing its header file.
+
+=item
+
+Checks that the I<trunc> header file exists (if one is expected)
+and that it is a valid size, and whether it is present
+but under a known incorrect name.
+
+=item
+
+Checks that the I<stat> header file exists (if one is expected)
+and that it is the correct size, and whether it is present
+but under a known incorrect name.
+
+=item
+
+Checks that the data file indicated by each I<trunc>trunc file entry is
+large enough to contain tha span of data indicated in the enrty.
+Makes no attempt to check the contents of the data files.
+
+=back
+
+The options B<--L<folder>> and  B<--L<recursive>> apply to B<--L<check>>.
+
+If verbosity is non-zero, print the name of each recording and media file
+as it is checked.
+Normally only prints the names of recordings or meda files where
+there is an error found.
+
+Without any further options, B<--L<check>> will only check recordings directly
+contained in the C<Recordings> folder.
+
+To check all recordings on the recording HDD, use:
+
+	getWizPnP --check --recursive
+
+To check all media files on the internal HDD, use:
+
+	getWizPnP --check --folder=/Contents --recursive
+
+And to check all the recordings and media on the recording drive:
+
+	getWizPnP --check --folder=/ --recursive
 
 =item BWName
 
@@ -1128,8 +1195,9 @@ L<C<Beyonwiz::Recording::FileAccessor>|Beyonwiz::Recording::FileAccessor>,
 L<C<Beyonwiz::Recording::Index>|Beyonwiz::Recording::Index>,
 L<C<Beyonwiz::Recording::Header>|Beyonwiz::Recording::Header>,
 L<C<Beyonwiz::Recording::Trunc>|Beyonwiz::Recording::Trunc>,
-L<C<Beyonwiz::Recording::Trunc>|Beyonwiz::Recording::Stat>,
+L<C<Beyonwiz::Recording::Stat>|Beyonwiz::Recording::Stat>,
 L<C<Beyonwiz::Recording::Recording>|Beyonwiz::Recording::Recording>,
+L<C<Beyonwiz::Recording::Check>|Beyonwiz::Recording::Check>,
 C<File::Spec::Functions>,
 C<File::Path>,
 C<HTTP::Status>,
@@ -1237,16 +1305,17 @@ Instant recordings will not sort in their correct alphabetic sequence
 use strict;
 use warnings;
 
-my $VERSION = '0.5.0';
+my $VERSION = '0.5.1';
 
 use Beyonwiz::WizPnP;
 use Beyonwiz::Recording::HTTPAccessor;
 use Beyonwiz::Recording::FileAccessor;
 use Beyonwiz::Recording::Index;
 use Beyonwiz::Recording::Header;
-use Beyonwiz::Recording::Stat;
+use Beyonwiz::Recording::Stat qw(STAT);
 use Beyonwiz::Recording::Trunc;
 use Beyonwiz::Recording::Recording;
+use Beyonwiz::Recording::Check;
 use File::Spec::Functions qw(catfile);
 use File::Path qw(mkpath);
 
@@ -1255,12 +1324,13 @@ use Getopt::Long qw(:config no_ignore_case bundling);
 
 use constant CONFIG => $^O eq 'MSWin32' ? 'getwizpnp.conf' : '.getwizpnp';
 
-use constant MODE_LIST   => 0;
-use constant MODE_LISTBW => 1;
-use constant MODE_COPY   => 2;
-use constant MODE_MOVE   => 3;
-use constant MODE_DELETE => 4;
-use constant MODE_SEARCH => 5;
+use constant MODE_LIST    => 0;
+use constant MODE_LISTBW  => 1;
+use constant MODE_CHECKBW => 2;
+use constant MODE_COPY    => 3;
+use constant MODE_MOVE    => 4;
+use constant MODE_DELETE  => 5;
+use constant MODE_SEARCH  => 6;
 
 use constant MATCH_SUBSTR => 0;
 use constant MATCH_REGEXP => 1;
@@ -1307,6 +1377,7 @@ our (
 	# initialised to 0
 	$list,
 	$List,
+	$check,
 	$delete,
 	$copy,
 	$move,
@@ -1331,7 +1402,7 @@ our (
 	$discover,
 	$wizpnpPoll,
 	$wizpnpTimeout,
-    ) = ((0) x 26);
+    ) = ((0) x 27);
 
 our (
 	# initialised to 1
@@ -1427,7 +1498,7 @@ sub Usage(;$) {
 	"                  [--device dev|-D dev] [--maxdevs=devs|-m devs]\n" .
 	"                  [--longNames]\n" .
 	"                  [--host=host|-H host] [--port=port|-p port]\n" .
-	"                  [--list|-l] [--List|-L]\n" .
+	"                  [--list|-l] [--List|-L] [--check|-c]\n" .
 	"                  [--copy|-C] [--delete|-X] [--move|-M] [--dryrun|-n]\n" .
 	"                  [--media=exts] [--stopFolders=folderlist]\n" .
 	"                  [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]\n" .
@@ -1454,7 +1525,7 @@ sub Usage(;$) {
 
 sub Version($) {
     my ($do_exit) = @_;
-    warn "Version: $VERSION\n";
+    warn "$VERSION\n";
     exit(0) if($do_exit);
 }
 
@@ -1496,6 +1567,7 @@ GetOptions(
 	'N|longNames!'		=> \$longNames,
 	'l|list'		=> \$list,
 	'L|List'		=> \$List,
+	'c|check'		=> \$check,
 	'X|delete'		=> \$delete,
 	'C|copy'		=> \$copy,
 	'M|move'		=> \$move,
@@ -1737,6 +1809,7 @@ sub processOpts() {
     $mode = MODE_COPY   if($copy);
     $mode = MODE_LIST   if($list);
     $mode = MODE_LISTBW if($List);
+    $mode = MODE_CHECKBW if($check);
     $mode = MODE_SEARCH if($discover);
 
     $matchType = MATCH_REGEXP if($regexp);
@@ -2377,9 +2450,9 @@ sub doRecordingOperation($$$$$$) {
 		return;
 	    }
 	    $stat = getStat($stat, $inDir, $device, $ie, $trunc);
-	    if(!$stat->valid) {
+	    if($trunc->fileName eq STAT && !$stat->valid) {
 		warn $ie->name,
-		     " skipped - can't load or reconstruct stat file\n";
+		     " can't load or reconstruct stat file\n";
 	    }
 	    my $progressBar;
 	    $progressBar = ProgressBar->new if($verbose >= 1);
@@ -2405,7 +2478,7 @@ sub doRecordingOperation($$$$$$) {
 		return;
 	    }
 	    $stat = getStat($stat, $inDir, $device, $ie, $trunc);
-	    if(!$stat->valid) {
+	    if($trunc->fileName eq STAT && !$stat->valid) {
 		warn $ie->name,
 		     " warning - can't load or reconstruct stat file\n";
 	    }
@@ -2457,23 +2530,45 @@ sub scanRecordingsBWName($$$$) {
     my ($inDir, $device, $index, $mode) = @_;
     my %args = map { ( $_ => 1 ) } @ARGV;
     foreach my $ie (@{$index->entries}) {
-	if($args{$ie->name}) {
+	if($args{$ie->name} && matchFolder($ie->sortFolder)) {
 	    my $hdr = newHeader($inDir, $device, $ie);
 
-	    if(matchFolder($ie->sortFolder)) {
-		# Force lazy fetch if it hasn't already happened
-		# and test for a valid header
-		$hdr->loadMain if(!$hdr->validMain);
-		return if(!$hdr->validMain);
+	    # Force lazy fetch if it hasn't already happened
+	    # and test for a valid header
+	    $hdr->loadMain if(!$hdr->validMain);
+	    return if(!$hdr->validMain);
 
-		if($mode == MODE_LIST || !$hdr->inRec) {
-		    my $rec = newRecording($inDir, $device, joinFlag($hdr),
-					    $nameFormat, $dateFormat,
-					    $resume, $force);
-		    doRecordingOperation(
-				$inDir, $device, $hdr, $ie, $rec, $mode)
-		}
+	    if($mode == MODE_LIST || !$hdr->inRec) {
+		my $rec = newRecording($inDir, $device, joinFlag($hdr),
+					$nameFormat, $dateFormat,
+					$resume, $force);
+		doRecordingOperation(
+			    $inDir, $device, $hdr, $ie, $rec, $mode)
 	    }
+	}
+    }
+}
+
+sub checkRecordings($$$$) {
+    my ($inDir, $device, $index, $mode) = @_;
+
+    foreach my $ie (@{$index->entries}) {
+	if(matchFolder($ie->sortFolder)) {
+	    my $hdr = newHeader($inDir, $device, $ie);
+
+	    my $checker = Beyonwiz::Recording::Check->new(
+				*STDERR, $hdr->name , $verbose >= 1
+			    );
+
+	    $checker->checkHeader($hdr);
+
+	    my $trunc = newTrunc($inDir, $device, $ie);
+	    $checker->checkTrunc($trunc);
+
+	    my $stat = newStat($inDir, $device, $ie);
+	    $checker->checkStat($stat, $trunc);
+
+	    $checker->checkTruncEntries($trunc);
 	}
     }
 }
@@ -2528,6 +2623,8 @@ if($mode == MODE_LISTBW) {
 	print $ie->name, "\n"
 	    if(matchFolder($ie->sortFolder));
     }
+} elsif($mode == MODE_CHECKBW) {
+    checkRecordings($inDir, $device, $index, $mode);
 } else {
     if($matchType == MATCH_BWNAME) {
 	scanRecordingsBWName($inDir, $device, $index, $mode);

@@ -292,6 +292,15 @@ Returns the size of the header file (256kB).
 A convenience method that returns the duration of
 the recording in seconds.
 
+=item C<< $h->fileLenTime([$file]) >>
+
+Return the tuple I<($len, $modifyTime)> for the trunc file.
+The modify time is a Unix timestamp (seconds since 00:00:00) Jan 1 1970 UTC).
+If C<$file> is specified, use that as the name of the trunc file,
+otherwise use C<$t->headerName> for the name of the file.
+Returns C<undef> if the data can't be found
+(access denied or file not found).
+
 =item C<< $h->starttime >>
 
 Returns a Unix-like timestamp for the start time of the recording
@@ -412,6 +421,7 @@ from the start of the header file.
 
 Uses packages:
 L<C<Beyonwiz::Utils>|Beyonwiz::Utils>,
+L<C<Beyonwiz::Recording::Trunc>|Beyonwiz::Recording::Trunc>;
 C<LWP::Simple>,
 C<URI>,
 C<URI::Escape>,
@@ -779,6 +789,14 @@ sub playtime($) {
 		: -1;
 }
 
+sub fileLenTime($$) {
+    my ($self, $file) = @_;
+    if(@_ >= 2) {
+	return $self->accessor->fileLenTime($self->path, $file);
+    }
+    return $self->accessor->fileLenTime($self->path, $self->headerName);
+}
+
 sub starttime($) {
     my ($self) = @_;
     # Unix epoch, 00:00 1 Jan 1970 UTC, is 40587 days after MJD epoch,
@@ -1071,12 +1089,12 @@ sub _setMainMediaFile($$$) {
     $self->{title}		 = basename($self->name);
     $self->{last}		 = -1;
     $self->{sec}		 = -1;
-    $self->{validMain}	 = 1;
+    $self->{validMain}		 = 1;
     $self->endOffset($size);
     $self->{offsets}->[0]	 = 0;
     $self->_setUnixTime($time);
 
-    $self->{reconstructed}   = undef;
+    $self->{reconstructed}	 = undef;
 
     $self->{validEpisode}	 = 1;
     $self->episode('');
@@ -1101,9 +1119,10 @@ sub loadHdrWmmeta() {
 					    $self->name, $self->path
 					);
 	    $trunc->load;
-	    if($trunc->valid && $trunc->fileName eq WMMETA) {
-		$self->_setMainMediaFile($trunc->recordingSize, $time);
-		$self->{headerName} = WMMETA;
+	    if($trunc->fileName eq WMMETA) {
+		$self->_setMainMediaFile($trunc->recordingSize, $time)
+		    if($trunc->valid);
+		$self->{headerName} = $trunc->fileName;
 	    }
 	}
     }

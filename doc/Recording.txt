@@ -20,6 +20,9 @@ METHODS
         recording download that appear to be incomplete. If $force is true,
         allow a download to overwrite an existing download.
 
+    "$r->accessor([$val]);"
+        Returns (sets) the media file accessor object reference.
+
     "$r->join([$val]);"
         Returns (sets) the flag indicating whether the recording should be
         joined into a single file.

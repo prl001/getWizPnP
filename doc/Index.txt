@@ -9,7 +9,7 @@ SYNOPSIS
 CONSTANTS
 
     "INDEX"
-        The index url path for the beyonwiz ("index.txt").
+        The name of the recording index file on the Beyonwiz ("index.txt").
 
 METHODS
 

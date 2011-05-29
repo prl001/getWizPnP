@@ -6,27 +6,46 @@ SYNOPSIS
 
     Represents an entry in the Beyonwiz trunc file.
 
+CONSTANTS
+
+    "FULLFILE"
+        If set in "$te->flags", then the entry represents the whole media
+        file or recording. If this is set, it should be on a singleton entry
+        in a "Beyonwiz::Recording::Trunc" object, and the name of the
+        associated file is the path to the recording ("$te->path");
+        "$te->fileName" should be ignored.
+
 METHODS
 
-    "Beyonwiz::Recording::TruncEntry->new($wizOffset, $fileNum, $flags,
-    $offset, $size)"
-        Create a new Beyonwiz recording index entry object. $wizOffset
+    "Beyonwiz::Recording::TruncEntry->new($accessor, $path, $wizOffset,
+    $fileNum, $flags, $offset, $size)"
+        Create a new Beyonwiz recording index entry object. $accessor is a
+        reference to a "Beyonwiz::Recording::Accessor" used to carry out the
+        media file access functions in "Beyonwiz::Recording::TruncEntry".
+        $path is the path to the source recording folder, and can be a file
+        system path or a URL depending on the type of $accessor. $wizOffset
         logical byte offset of the entry in the recording ("bignum").
-        $filenum is the numbered recording file that the entry refers to.
+        $fileNum is the numbered recording file that the entry refers to.
         The file name is this number printed in "printf" %04d format. $flags
         - flags for the entry - unknown purpose. $offset - offset of the
         recording data chunk in the file ("bignum"). $size - size of the
-        recodding data chunk in the file. More than one
+        recording data chunk in the file. More than one
         "Beyonwiz::Recording::Index" can refer to a given file.
 
         Normally constructed from the Beyonwiz trunc file by
         "Beyonwiz::Recording::Trunc".
 
+    "$t->accessor([$val]);"
+        Returns (sets) the media file accessor object reference.
+
+    "$te->path([$val]);"
+        Returns (sets) the source recording folder name.
+
     "$te->wizOffset([$val]);"
         Returns (sets) the logical byte offset of the entry in the
         recording.
 
-    "$te->filenum([$val]);"
+    "$te->fileNum([$val]);"
         Returns (sets) the numbered recording file that the entry refers to.
 
     "$te->flags([$val]);"
@@ -37,11 +56,27 @@ METHODS
         ("bignum").
 
     "$te->size([$val]);"
-        Returns (sets) the size of the recodding data chunk in the file.
+        Returns (sets) the size of the recording data chunk in the file.
+
+    "$te->accessor([$val]);"
+        Returns (sets) the media file accessor object reference.
+
+    "$te->fileName;"
+        Returns the name of the numbered recording file that the entry
+        refers to. Returns an emptr string if the entry is flagged with
+        "FULLFILE" (the entry is for a single-file media file).
+
+    "$te->fileLenTime([$file])"
+        Return the tuple *($len, $modifyTime)* for the recording data file.
+        The modify time is a Unix timestamp (seconds since 00:00:00) Jan 1
+        1970 UTC). If the entry is flagged with "FULLFILE", the time
+        returned is for "$te-"path>, otherwise for the file named Returns
+        "undef" if the data can't be found (access denied or file not
+        found).
 
 PREREQUISITES
 
-    Uses packages: "Beyonwiz::Utils".
+    Uses packages: "Beyonwiz::Recording::Trunc", "Beyonwiz::Utils".
 
 BUGS
 
