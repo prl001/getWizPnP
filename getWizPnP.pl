@@ -1305,7 +1305,7 @@ Instant recordings will not sort in their correct alphabetic sequence
 use strict;
 use warnings;
 
-my $VERSION = '0.5.1';
+my $VERSION = '0.5.2';
 
 use Beyonwiz::WizPnP;
 use Beyonwiz::Recording::HTTPAccessor;
@@ -1604,7 +1604,7 @@ GetOptions(
 	'q|quiet+'		=> \$quiet,
     ) or Usage;
 
-# Class implementing a progress bar
+# Class implementing a generic (no action) progress bar
 
 {
 
@@ -1628,8 +1628,6 @@ GetOptions(
 	    avgBuf      => [],
 	    avgIndex    => 0,
 	    avgBufSz => 21,
-	    display     => '',
-	    newLine	=> '',
 	};
 
 	bless $self, $class;
@@ -1646,15 +1644,7 @@ GetOptions(
     # Reset it when used
 
     sub newLine($;$) {
-	my ($self, $nl) = @_;
-	my $retVal;
-	$retVal = $self->{newLine};
-	if(@_ == 2) {
-	    $self->{newLine} = $nl;
-	} else {
-	    $self->{newLine} = '';
-	}
-	return $retVal;
+	return '';
     }
 
     # Return/set the total number of bytes to transfer
@@ -1669,9 +1659,7 @@ GetOptions(
 	    $self->percen(0);
 	    $self->mb(0);
 	    $self->totMb(int($val / 1000000 + 0.5));
-	    $self->display('');
 	}
-	$self->newLine('');
 	return $ret;
     }
 
@@ -1723,8 +1711,101 @@ GetOptions(
 	    my $mb = int($self->{done} / 1000000 + 0.5);
 	    if($percen != $self->percen
 	    || $mb != $self->mb
-	    || $self->display eq ''
 	    || $self->{done} >= $self->total) {
+		$self->percen($percen);
+		$self->mb($mb);
+	    }
+	}
+	return $ret;
+    }
+
+}
+
+
+# Class implementing a text progress bar
+
+{
+
+    package TextProgressBar;
+
+    use Time::HiRes;
+
+    our @ISA = qw( ProgressBar );
+
+    my $accessorsDone;
+
+    sub new() {
+	my ($class) = @_;
+	$class = ref($class) if(ref($class));
+
+	my %fields = (
+	    display     => '',
+	    newLine	=> '',
+	);
+
+	my $self = ProgressBar->new;
+
+	$self = {
+	    %$self,
+	    %fields,
+	};
+
+	bless $self, $class;
+
+	unless($accessorsDone) {
+	    Beyonwiz::Utils::makeAccessors(__PACKAGE__, keys %$self);
+	    $accessorsDone = 1;
+	}
+
+	return $self;
+    }
+
+    # Set newline character if needed to move to next line after display
+    # Reset it when used
+
+    sub newLine($;$) {
+	my ($self, $nl) = @_;
+	my $retVal;
+	$retVal = $self->{newLine};
+	if(@_ == 2) {
+	    $self->{newLine} = $nl;
+	} else {
+	    $self->{newLine} = '';
+	}
+	return $retVal;
+    }
+
+    # Return/set the total number of bytes to transfer
+
+    sub total($;$) {
+	my ($self, $val) = @_;
+	my $ret;
+	if(@_ == 2) {
+	    $ret = $self->SUPER::total($val);
+	    $self->display('');
+	} else {
+	    $ret = $self->SUPER::total;
+	}
+	$self->newLine('');
+	return $ret;
+    }
+
+    # Return/set the total number of bytes transferred
+    # Update the progress bar if the progress bar has changed.
+
+    sub done($;$) {
+	my ($self, $val) = @_;
+	my $ret = $self->SUPER::done;
+	if(@_ == 2) {
+	    my $percen = $self->percen;
+	    my $mb = $self->mb;
+
+	    $ret = $self->SUPER::done($val);
+
+	    if($percen != $self->percen
+	    || $mb != $self->mb
+	    || $self->display eq '') {
+		my $donechars = int($self->percen / 2 + 0.5);
 		my $donestr = '=' x $donechars;
 		my $leftstr = '-' x (50 - $donechars);
 		if($donechars <= 50) {
@@ -1734,18 +1815,17 @@ GetOptions(
 		    $donestr = '=' x 49;
 		    $leftstr = '+';
 		}
-		my $now = Time::HiRes::time;
 		my $dispstr = sprintf "\r|%s%s|%4.1fMB/s %3d%% %.0f/%.0fMB",
 		    $donestr, $leftstr,
 		    $self->rate,
 		    $percen,
-		    $mb, $self->totMb;
-		$self->percen($percen);
-		$self->mb($mb);
+		    $self->mb, $self->totMb;
 		print $dispstr;
 		$self->display($dispstr);
 		$self->newLine("\n");
 	    }
+	} else {
+	    $ret = $self->SUPER::done;
 	}
 	return $ret;
     }
@@ -2449,13 +2529,14 @@ sub doRecordingOperation($$$$$$) {
 		     " skipped - can't load or reconstruct trunc file\n";
 		return;
 	    }
-	    $stat = getStat($stat, $inDir, $device, $ie, $trunc);
+	    $stat = getStat($stat, $inDir, $device, $ie, $hdr);
 	    if($trunc->fileName eq STAT && !$stat->valid) {
 		warn $ie->name,
 		     " can't load or reconstruct stat file\n";
 	    }
-	    my $progressBar;
-	    $progressBar = ProgressBar->new if($verbose >= 1);
+	    my $progressBar = $verbose >= 1
+				? TextProgressBar->new
+				: ProgressBar->new;
 	    my $status = $rec->getRecording(
 					$hdr, $trunc, $stat,
 					$ie->name,
@@ -2468,7 +2549,7 @@ sub doRecordingOperation($$$$$$) {
 			status_message($status), "\n";
 		return;
 	    }
-	    print $progressBar->newLine if($progressBar);
+	    print $progressBar->newLine;
 	}
 	if($mode == MODE_DELETE || $mode == MODE_MOVE) {
 	    $trunc = getTrunc($trunc, $inDir, $device, $ie, $hdr);
@@ -2477,7 +2558,7 @@ sub doRecordingOperation($$$$$$) {
 		     " skipped - can't load or reconstruct trunc file\n";
 		return;
 	    }
-	    $stat = getStat($stat, $inDir, $device, $ie, $trunc);
+	    $stat = getStat($stat, $inDir, $device, $ie, $hdr);
 	    if($trunc->fileName eq STAT && !$stat->valid) {
 		warn $ie->name,
 		     " warning - can't load or reconstruct stat file\n";

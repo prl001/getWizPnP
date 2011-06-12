@@ -87,8 +87,8 @@ C<$append> is false if C<$file> is to be created, true if
 it is to be appended to.
 If C<$outdir> is defined and not the empty string, the record file is
 placed in that directory, rather than the current directory.
-If C<$progressBar> is defined, formats error messages differently to properly
-terminate the progress-bar line.
+Uses C<$progressBar> to properly terminate the progress-bar line
+on errors.
 If C<$quiet> is true, then don't print an error message if the source file
 can't be found.
 
@@ -125,10 +125,10 @@ C<$off> and C<$size> is the chunk to be transferred.
 If C<$outdir> is defined and not the empty string, the record file is
 placed in that directory, rather than the current directory.
 C<$outoff> is the offset to where to write the chunk into the output file.
-If C<$progressBar> is defined, C<< $progressBar->done($totalTransferred) >> is
+C<< $progressBar->done($totalTransferred) >> is
 called at regular intervals to update the progress bar
-and C<< $progressBar->newLine >> is used to move to a new line if the progress
-bar is being drawn on the terminal.
+and C<< $progressBar->newLine >> is used to move to a new line
+if the progress bar is being drawn on the terminal.
 If C<$quiet> is true, then don't print an error message if the source file
 can't be found.
 

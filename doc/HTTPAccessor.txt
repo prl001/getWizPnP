@@ -56,12 +56,12 @@ METHODS
         chunk. $off and $size is the chunk to be transferred. If $outdir is
         defined and not the empty string, the record file is placed in that
         directory, rather than the current directory. $outoff is the offset
-        to where to write the chunk into the output file. If $progressBar is
-        defined, "$progressBar->done($totalTransferred)" is called at
-        regular intervals to update the progress bar and
-        "$progressBar->newLine" is used to move to a new line if the
-        progress bar is being drawn on the terminal. If $quiet is true, then
-        don't print an error message if the source file can't be found.
+        to where to write the chunk into the output file.
+        "$progressBar->done($totalTransferred)" is called at regular
+        intervals to update the progress bar and "$progressBar->newLine" is
+        used to move to a new line if the progress bar is being drawn on the
+        terminal. If $quiet is true, then don't print an error message if
+        the source file can't be found.
 
         Returns "RC_OK" if successful. Otherwise it will print a warning
         with the HTTP status message of the HTTP operation that failed, and

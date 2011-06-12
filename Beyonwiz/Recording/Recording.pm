@@ -356,10 +356,8 @@ sub getRecording($$$$$$$$) {
 	    }
 	}
 
-	if($progressBar) {
-	    $progressBar->total($size);
-	    $progressBar->done($done);
-	}
+	$progressBar->total($size);
+	$progressBar->done($done);
 
     } else {
 	$trunc = $trunc->makeFileTrunc;
@@ -413,10 +411,9 @@ sub getRecording($$$$$$$$) {
 	    }
 	}
 	$size = $hdr->size + $trunc->size + STATSIZE + $trunc->recordingSize;
-	if($progressBar) {
-	    $progressBar->total($size);
-	    $progressBar->done($done);
-	}
+
+	$progressBar->total($size);
+	$progressBar->done($done);
 
 	if($hdr->isRadio || $hdr->isTV) {
 	    if(!$hdr->reconstructed) {
@@ -430,7 +427,7 @@ sub getRecording($$$$$$$$) {
 	    }
 	    return $status if(!is_success($status));
 	    $done += $hdr->size;
-	    $progressBar->done($done) if($progressBar);
+	    $progressBar->done($done);
 
 	    $status = $self->accessor->getRecordingFile($path, $name,
 					    $stat->beyonwizFileName,
@@ -443,7 +440,7 @@ sub getRecording($$$$$$$$) {
 	    }
 	    if(is_success($status)) {
 		$done += STATSIZE;
-		$progressBar->done($done) if($progressBar);
+		$progressBar->done($done);
 	    } else {
 		warn "Stat file not found for $name: ",
 			status_message($status),
@@ -464,7 +461,7 @@ sub getRecording($$$$$$$$) {
 	}
 	return $status if(!is_success($status));
 	$done += $trunc->size;
-	$progressBar->done($done) if($progressBar);
+	$progressBar->done($done);
 
     }
 
@@ -509,7 +506,7 @@ sub getRecording($$$$$$$$) {
 
 	$done += $size;
 
-	$progressBar->done($done) if($progressBar);
+	$progressBar->done($done);
 	$self->accessor->closeRecordingFileOut if(!$self->join);
     }
 

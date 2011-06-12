@@ -74,7 +74,7 @@ C<$off> and C<$size> is the chunk to be transferred.
 If C<$outdir> is defined and not the empty string, the record file is
 placed in that directory, rather than the current directory.
 C<$outoff> is the offset to where to write the chunk into the output file.
-If C<$progressBar> is defined, C<< $progressBar->done($totalTransferred) >> is
+C<< $progressBar->done($totalTransferred) >> is
 called at regular intervals to update the progress bar
 and C<< $progressBar->newLine >> is used to move to a new line if the progress
 bar is being drawn on the terminal.
@@ -290,28 +290,26 @@ sub getRecordingFileChunk($$$$$$$$$$) {
 			    # Use $_[0] for $content, to avoid copying
 			    # the data...
 			    syswrite $self->outFileHandle, $_[0]
-				or die ( ($progressBar ? "\n" : ''),
+				or die ( $progressBar->newLine,
 					'Write error on ',
 					$self->outFileName, ": $!\n" );
-			    if($progressBar) {
-			        $progressCount += length $_[0];
-				if($progressCount > 256 * 1024) {
-				    $progressBar->done(
-					    $progressBar->done
-					    + $progressCount
-					);
-				    $progressCount = 0;
-				}
+			    $progressCount += length $_[0];
+			    if($progressCount > 256 * 1024) {
+				$progressBar->done(
+					$progressBar->done
+					+ $progressCount
+				    );
+				$progressCount = 0;
 			    }
 			}
 		    );
 
     my $status = $response->code;
 
-    $progressBar->done($progressBar->done + $progressCount) if($progressBar);
+    $progressBar->done($progressBar->done + $progressCount);
 
     warn( $progressBar->newLine,
-	    'Error fetching ', $self->outFileName,
+	    'Error fetching ', $self->outFileName, ' ',
 	    ($file ne '' ? $path . '/' . $file : $path), ': ',
 	    $response->status_line, "\n" )
 	if(!$quiet && !is_success($status));

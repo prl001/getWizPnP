@@ -456,13 +456,14 @@ use constant RADHDR       => 'header.radwiz';
 
 use constant MAX_TS_POINT => 8640;
 use constant HDR_SIZE     => 256 * 1024;
+use constant MAX_BOOKMARKS=> 64;
 
 use constant HDR_MAIN_OFF      => 0;
 use constant HDR_MAIN_SZ     => 1564;
 use constant HDR_OFFSETS_OFF   => 1564;
 use constant HDR_OFFSETS_SIZE  => (MAX_TS_POINT-1) * 8;
 use constant HDR_BOOKMARKS_OFF => 79316;
-use constant HDR_BOOKMARKS_SZ  => 20 + 64 * 8;
+use constant HDR_BOOKMARKS_SZ  => 20 + MAX_BOOKMARKS * 8;
 use constant HDR_EPISODE_OFF   => 79856;
 use constant HDR_EPISODE_SZ   => 1 + 255;
 use constant HDR_EXTINFO_OFF  => 80114;
@@ -1003,25 +1004,30 @@ sub decodeBookmarks($$) {
     my ($self, $hdr_data) = @_;
 
     $self->{reconstructed} = undef;
+    @{$self->{bookmarks}} = ();
     if(defined $hdr_data
     && length($hdr_data) >= HDR_BOOKMARKS_SZ) {
 	my $nbkmk = unpack 'v', $hdr_data;
 	my @offsets = unpack '@20 (V2)' . $nbkmk, $hdr_data;
+	if($nbkmk > MAX_BOOKMARKS) {
+	    warn 'Too many bookmarks. Found ', $nbkmk,
+		 '. Should be no more than ', MAX_BOOKMARKS, "\n";
+	    $nbkmk = MAX_BOOKMARKS;
+	}
 	for(my $i = 0; $i < $nbkmk; $i++ ) {
-	    push @{$self->bookmarks},
+	    push @{$self->{bookmarks}},
 		(($offsets[$i*2+1] << 32) | $offsets[$i*2]);
 	}
 	$self->{validBookmarks} = 1;
     } else {
 	$self->{validBookmarks} = undef;
-	@{$self->bookmarks} = ();
     }
 }
 
 sub encodeBookmarks($$) {
     my ($self) = @_;
 
-    my $hdr_data = pack 'v @20', ($self->bookmarks);
+    my $hdr_data = pack 'v @20', $self->nbookmarks;
     foreach my $b (@{$self->bookmarks}) {
 	$hdr_data .= pack 'V2', $b & 0xffffffff, ($b >> 32) & 0xffffffff;
     }
@@ -1103,7 +1109,7 @@ sub _setMainMediaFile($$$) {
     $self->extInfo('');
 
     $self->{validBookmarks}	 = 1;
-    @{$self->bookmarks}	 = ();
+    @{$self->{bookmarks}}	 = ();
 
     $self->{validOffsets}	 = 1;
     $self->size(0);

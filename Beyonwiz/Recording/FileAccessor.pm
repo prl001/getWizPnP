@@ -80,7 +80,7 @@ files on the Beyonwiz.
 C<$file> is the name of the Beyonwiz file containing the chunk.
 C<$off> and C<$size> is the chunk to be transferred.
 C<$outoff> is the offset to where to write the chunk into the output file.
-If C<$progressBar> is defined, C<< $progressBar->done($totalTransferred) >> is
+C<< $progressBar->done($totalTransferred) >> is
 called at regular intervals to update the progress bar
 and C<< $progressBar->newLine >> is used to move to a new line if the progress
 bar is being drawn on the terminal.
@@ -432,19 +432,17 @@ sub getRecordingFileChunk($$$$$$$$$) {
 	    last;
 	}
 	$size -= $nread;
-	if($progressBar) {
-	    $progressCount += $nread;
-	    if($progressCount > 256 * 1024) {
-		$progressBar->done(
-			$progressBar->done
-			+ $progressCount
-		    );
-		$progressCount = 0;
-	    }
+	$progressCount += $nread;
+	if($progressCount > 256 * 1024) {
+	    $progressBar->done(
+		    $progressBar->done
+		    + $progressCount
+		);
+	    $progressCount = 0;
 	}
     }
 
-    $progressBar->done($progressBar->done + $progressCount) if($progressBar);
+    $progressBar->done($progressBar->done + $progressCount);
 
     if(!defined $nread) {
 	warn( $progressBar->newLine,

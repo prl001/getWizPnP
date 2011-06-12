@@ -119,8 +119,8 @@ located at <a href="#base"><code>$h-&gt;base([$val]);</code></a>.</p>
 it is to be appended to.
 If <code>$outdir</code> is defined and not the empty string, the record file is
 placed in that directory, rather than the current directory.
-If <code>$progressBar</code> is defined, formats error messages differently to properly
-terminate the progress-bar line.
+Uses <code>$progressBar</code> to properly terminate the progress-bar line
+on errors.
 If <code>$quiet</code> is true, then don't print an error message if the source file
 can't be found.</p>
 <p>Returns <code>RC_OK</code> if successful, otherwise some other <code>RC_FORBIDDEN</code>
@@ -156,10 +156,10 @@ it is to be appended to.
 If <code>$outdir</code> is defined and not the empty string, the record file is
 placed in that directory, rather than the current directory.
 <code>$outoff</code> is the offset to where to write the chunk into the output file.
-If <code>$progressBar</code> is defined, <code>$progressBar-&gt;done($totalTransferred)</code> is
+<code>$progressBar-&gt;done($totalTransferred)</code> is
 called at regular intervals to update the progress bar
-and <code>$progressBar-&gt;newLine</code> is used to move to a new line if the progress
-bar is being drawn on the terminal.
+and <code>$progressBar-&gt;newLine</code> is used to move to a new line
+if the progress bar is being drawn on the terminal.
 If <code>$quiet</code> is true, then don't print an error message if the source file
 can't be found.</p>
 <p>Returns <code>RC_OK</code> if successful.
