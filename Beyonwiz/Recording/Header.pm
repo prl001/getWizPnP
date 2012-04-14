@@ -451,23 +451,28 @@ use Time::Local;
 use File::Basename;
 
 use constant DAY          => 24*60*60; # Seconds in a day
-use constant TVHDR        => 'header.tvwiz';
-use constant RADHDR       => 'header.radwiz';
+use constant TVEXT        => '.tvwiz';
+use constant TVHDR        => 'header' . TVEXT;
+use constant RADEXT       => '.radwiz';
+use constant RADHDR       => 'header' . RADEXT;
 
 use constant MAX_TS_POINT => 8640;
 use constant HDR_SIZE     => 256 * 1024;
 use constant MAX_BOOKMARKS=> 64;
 
 use constant HDR_MAIN_OFF      => 0;
-use constant HDR_MAIN_SZ     => 1564;
+use constant HDR_MAIN_SZ       => 1564;
 use constant HDR_OFFSETS_OFF   => 1564;
 use constant HDR_OFFSETS_SIZE  => (MAX_TS_POINT-1) * 8;
 use constant HDR_BOOKMARKS_OFF => 79316;
 use constant HDR_BOOKMARKS_SZ  => 20 + MAX_BOOKMARKS * 8;
 use constant HDR_EPISODE_OFF   => 79856;
-use constant HDR_EPISODE_SZ   => 1 + 255;
-use constant HDR_EXTINFO_OFF  => 80114;
-use constant HDR_EXTINFO_SZ   => 2 + 1024;
+use constant HDR_EPISODE_SZ    => 1 + 255;
+use constant HDR_EXTINFO_OFF   => 80114;
+use constant HDR_EXTINFO_SZ    => 2 + 1024;
+
+use constant HEADER_DATA_OFF  => HDR_MAIN_OFF;
+use constant HEADER_DATA_SZ   => HDR_EXTINFO_OFF + HDR_EXTINFO_SZ;
 
 use Exporter;
 our @ISA = qw(Exporter);
@@ -487,6 +492,7 @@ sub new($$$) {
     $class = ref($class) if(ref($class));
     my $self = {
 	accessor	=> $accessor,
+	validData	=> undef,
 	validMain	=> undef,
 	validEpisode	=> undef,
 	validExtInfo	=> undef,
@@ -494,6 +500,7 @@ sub new($$$) {
 	validOffsets	=> undef,
 	reconstructed	=> undef,
 	ie		=> $ie,
+	data		=> undef,
 	headerName	=> undef,
 	magic		=> undef,
 	version		=> undef,
@@ -850,7 +857,7 @@ sub offsetTime($$) {
 	$index = $l;
     }
 
-    return $dt * ($index + ($offset - $low) / ($high - $low));
+    return 10 * $index + $dt * ($offset - $low) / ($high - $low);
 }
 
 sub updateOffsets($$$) {
@@ -874,12 +881,12 @@ sub updateOffsets($$$) {
     $self->reconstructed(1);
 }
 
-sub decodeMain($$) {
-    my ($self, $hdr_data) = @_;
+sub decodeMain($) {
+    my ($self) = @_;
 
     $self->{reconstructed} = undef;
-    if(defined $hdr_data
-    && length($hdr_data) >= HDR_MAIN_SZ) {
+    if(defined $self->data
+    && length($self->data) >= HDR_MAIN_OFF+HDR_MAIN_SZ) {
 	my ($ad0, $ad1, $so0, $so1, $eo0, $eo1);
 	(
 	    $self->{magic},
@@ -901,7 +908,7 @@ sub decodeMain($$) {
 	    $eo0, $eo1,
 	    $so0, $so1,
 	) = unpack 'v6 C3 x C2 @1024 Z256 Z256 v x2 V v v @1548 (V2)2',
-		$hdr_data;
+		substr $self->data, HDR_MAIN_OFF, HDR_MAIN_SZ;
 	$self->{validMain} = 1;
 	$self->endOffset(($eo1 << 32) | $eo0);
 	$self->{offsets}->[0] = (($so1 << 32) | $so0);
@@ -942,16 +949,19 @@ sub encodeMain($) {
     return $hdr_data;
 }
 
-sub decodeEpisode($$) {
-    my ($self, $hdr_data) = @_;
+sub decodeEpisode($) {
+    my ($self) = @_;
 
     $self->{reconstructed} = undef;
 
-    if(defined $hdr_data
-    && length($hdr_data) >= HDR_EPISODE_SZ) {
-	my $len = unpack 'C', $hdr_data;
-	$len = HDR_EPISODE_SZ if($len > HDR_EPISODE_SZ);
-	my $episode = unpack '@1 Z' . $len, $hdr_data;
+    if(defined $self->data
+    && length($self->data) >= HDR_EPISODE_OFF + HDR_EPISODE_SZ) {
+	my $len = unpack 'C',
+		    substr $self->data, HDR_EPISODE_OFF, 1;
+	$len = HDR_EPISODE_SZ - 1 if($len > HDR_EPISODE_SZ - 1);
+	my $episode = unpack 'Z' . $len,
+			substr $self->data, HDR_EPISODE_OFF + 1,
+						HDR_EPISODE_SZ - 1;
 	$episode =~ s/^[\x00-\x1f]+//;
 	$episode =~ s/^\s+//;
 	$episode =~ s/\s+$//;
@@ -966,22 +976,24 @@ sub decodeEpisode($$) {
 sub encodeEpisode($) {
     my ($self) = @_;
 
-    my $hdr_data = pack 'C Z' . (HDR_EPISODE_SZ-1) , (
+    my $hdr_data = pack 'C Z' . (HDR_EPISODE_SZ - 1) , (
 	length $self->episode, $self->episode
     );
     return $hdr_data;
 }
 
-sub decodeExtInfo($$) {
-    my ($self, $hdr_data) = @_;
+sub decodeExtInfo($) {
+    my ($self) = @_;
 
     $self->{reconstructed} = undef;
 
-    if(defined $hdr_data
-    && length($hdr_data) >= HDR_EXTINFO_SZ) {
-	my $len = unpack 'v', $hdr_data;
-	$len = HDR_EXTINFO_SZ if($len > HDR_EXTINFO_SZ);
-	my $extInfo = unpack '@2 Z' . $len, $hdr_data;
+    if(defined $self->data
+    && length($self->data) >= HDR_EXTINFO_OFF + HDR_EXTINFO_SZ) {
+	my $len = unpack 'v', substr $self->data, HDR_EXTINFO_OFF, 2;
+	$len = HDR_EXTINFO_SZ - 2 if($len > HDR_EXTINFO_SZ - 2);
+	my $extInfo = unpack 'Z' . $len,
+			substr $self->data, HDR_EXTINFO_OFF + 2,
+						HDR_EXTINFO_SZ - 2;
 	$extInfo =~ s/^[\x00-\x1f]+//;
 	$self->{validExtInfo} = 1;
 	$self->extInfo($extInfo);
@@ -994,21 +1006,23 @@ sub decodeExtInfo($$) {
 sub encodeExtInfo($) {
     my ($self) = @_;
 
-    my $hdr_data = pack 'v Z' . (HDR_EXTINFO_SZ-2) , (
+    my $hdr_data = pack 'v Z' . (HDR_EXTINFO_SZ - 2) , (
 	length $self->extInfo, $self->extInfo
     );
     return $hdr_data;
 }
 
-sub decodeBookmarks($$) {
-    my ($self, $hdr_data) = @_;
+sub decodeBookmarks($) {
+    my ($self) = @_;
 
     $self->{reconstructed} = undef;
     @{$self->{bookmarks}} = ();
-    if(defined $hdr_data
-    && length($hdr_data) >= HDR_BOOKMARKS_SZ) {
-	my $nbkmk = unpack 'v', $hdr_data;
-	my @offsets = unpack '@20 (V2)' . $nbkmk, $hdr_data;
+    if(defined $self->data
+    && length($self->data) >= HDR_BOOKMARKS_OFF + HDR_BOOKMARKS_SZ) {
+	my $nbkmk = unpack 'v', substr $self->data, HDR_BOOKMARKS_OFF, 2;
+	my @offsets = unpack '(V2)' . $nbkmk,
+			substr $self->data, HDR_BOOKMARKS_OFF+20,
+						HDR_BOOKMARKS_SZ-20;
 	if($nbkmk > MAX_BOOKMARKS) {
 	    warn 'Too many bookmarks. Found ', $nbkmk,
 		 '. Should be no more than ', MAX_BOOKMARKS, "\n";
@@ -1035,14 +1049,15 @@ sub encodeBookmarks($$) {
     return $hdr_data;
 }
 
-sub decodeOffsets($$) {
-    my ($self, $hdr_data) = @_;
+sub decodeOffsets($) {
+    my ($self) = @_;
 
     $self->{reconstructed} = undef;
-    if(defined $hdr_data
-    && length($hdr_data) >= HDR_OFFSETS_SIZE) {
+    if(defined $self->data
+    && length($self->data) >= HDR_OFFSETS_OFF + HDR_OFFSETS_SIZE) {
 	my @offsets = unpack '(V2)' . ($self->last),
-			    $hdr_data;
+			    substr $self->data, HDR_OFFSETS_OFF,
+			    			HDR_OFFSETS_SIZE;
 	$self->{validOffsets} = 1;
 	while((my @o = splice(@offsets,0,2))) {
 	    last if($o[0] == 0 && $o[1] == 0);
@@ -1070,15 +1085,15 @@ sub encodeHeader($) {
     my ($self) = @_;
     return
 	  $self->encodeMain
-	. ("\0" x (HDR_OFFSETS_OFF-(HDR_MAIN_OFF+HDR_MAIN_SZ)))
+	. ("\0" x (HDR_OFFSETS_OFF - (HDR_MAIN_OFF + HDR_MAIN_SZ)))
 	. $self->encodeOffsets
-	. ("\0" x (HDR_BOOKMARKS_OFF-(HDR_OFFSETS_OFF+HDR_OFFSETS_SIZE)))
+	. ("\0" x (HDR_BOOKMARKS_OFF - (HDR_OFFSETS_OFF + HDR_OFFSETS_SIZE)))
 	. $self->encodeBookmarks
-	. ("\0" x (HDR_EPISODE_OFF-(HDR_BOOKMARKS_OFF+HDR_BOOKMARKS_SZ)))
+	. ("\0" x (HDR_EPISODE_OFF - (HDR_BOOKMARKS_OFF + HDR_BOOKMARKS_SZ)))
 	. $self->encodeEpisode
-	. ("\0" x (HDR_EXTINFO_OFF-(HDR_EPISODE_OFF+HDR_EPISODE_SZ)))
+	. ("\0" x (HDR_EXTINFO_OFF - (HDR_EPISODE_OFF + HDR_EPISODE_SZ)))
 	. $self->encodeExtInfo
-	. ("\0" x (HDR_SIZE-(HDR_EXTINFO_OFF+HDR_EXTINFO_SZ)));
+	. ("\0" x (HDR_SIZE - (HDR_EXTINFO_OFF + HDR_EXTINFO_SZ)));
 }
 
 sub _setMainMediaFile($$$) {
@@ -1136,41 +1151,59 @@ sub loadHdrWmmeta() {
 
 sub loadHdrFile() {
     my ($self) = @_;
-    my ($size, $time) = $self->accessor->fileLenTime($self->path);
-    if(defined $size) {
-	$self->_setMainMediaFile($size, $time);
-	$self->{headerName} = '';
+    if(substr($self->path, -length(TVEXT)) ne TVEXT
+    && substr($self->path, -length(RADEXT)) ne RADEXT) {
+	my ($size, $time) = $self->accessor->fileLenTime($self->path);
+	if(defined $size) {
+	    $self->_setMainMediaFile($size, $time);
+	    $self->{headerName} = '';
+	}
     }
+}
+
+sub loadHdrData($) {
+    my ($self) = @_;
+    $self->data($self->_readHdrChunk(HEADER_DATA_OFF, HEADER_DATA_SZ))
+	if(!$self->validData);
+    $self->validData(defined($self->data));
 }
 
 sub loadMain($) {
     my ($self) = @_;
     $self->loadHdrFile;
-    $self->decodeMain(
-	    $self->_readHdrChunk(HDR_MAIN_OFF, HDR_MAIN_SZ)
-	) if(!$self->validMain);
+    if(!$self->validMain) {
+	$self->loadHdrData;
+	$self->decodeMain(HDR_MAIN_OFF, HDR_MAIN_SZ)
+	    if($self->validData);
+    }
     $self->loadHdrWmmeta if(!$self->validMain);
 }
 
 sub loadEpisode($) {
     my ($self) = @_;
-    $self->decodeEpisode(
-	    $self->_readHdrChunk(HDR_EPISODE_OFF, HDR_EPISODE_SZ)
-	);
+    if(!$self->validEpisode) {
+	$self->loadHdrData;
+	$self->decodeEpisode(HDR_EPISODE_OFF, HDR_EPISODE_SZ)
+	    if($self->validData);
+    }
 }
 
 sub loadExtInfo($) {
     my ($self) = @_;
-    $self->decodeExtInfo(
-	    $self->_readHdrChunk(HDR_EXTINFO_OFF, HDR_EXTINFO_SZ)
-	);
+    if(!$self->validExtInfo) {
+	$self->loadHdrData;
+	$self->decodeExtInfo(HDR_EXTINFO_OFF, HDR_EXTINFO_SZ)
+	    if($self->validData);
+    }
 }
 
 sub loadBookmarks($) {
     my ($self) = @_;
-    $self->decodeBookmarks(
-	    $self->_readHdrChunk(HDR_BOOKMARKS_OFF, HDR_BOOKMARKS_SZ)
-	);
+    if(!$self->validBookmarks) {
+	$self->loadHdrData;
+	$self->decodeBookmarks(HDR_BOOKMARKS_OFF, HDR_BOOKMARKS_SZ)
+	    if($self->validData);
+    }
 }
 
 sub loadOffsets($) {
@@ -1178,6 +1211,11 @@ sub loadOffsets($) {
     $self->decodeOffsets(
 	    $self->_readHdrChunk(HDR_OFFSETS_OFF, HDR_OFFSETS_SIZE)
 	);
+    if(!$self->validOffsets) {
+	$self->loadHdrData;
+	$self->decodeOffsets(HDR_OFFSETS_OFF, HDR_OFFSETS_SIZE)
+	    if($self->validData);
+    }
 }
 
 sub _readHdrChunk($$$) {

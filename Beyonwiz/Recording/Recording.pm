@@ -70,8 +70,8 @@ Write the data C<$data> to C<$file> in directory
 C<$outdir>.
 Append rather than overwrite if C<$append> is true.
 
-=item C<< $r->getRecording($hdr, $trunc, $stat, $indexName, $path,
-					$outdir, $progressBar) = @_; >>
+=item C<< $r->getRecording($self, $hdr, $trunc, $stat, $indexName, $path,
+				$outdir, $useStdout, $progressBar) = @_; >>
 
 Download a Beyonwiz recording, either as a direct copy from the Beyonwiz, or
 combine tham into a single file (if C<< $r->join >> is true
@@ -89,13 +89,16 @@ The name of the downloaded recording is derived from the recording title
 in the C<$hdr>, with the episode name appended if C<< $r->episode >>
 is true, and there are any non-whitespace characters in the episode name
 and with the recording date appended if C<< $r->date >> is true.
+If C<$useStdout> is set, output the recording to standard output instead
+of to a file. This will only faithfully copy recordings if
+C<< $r->join >> is true.
 If C<$progressBar> is not C<undef> it must be an object in a class
 implementing the methods C<< $progressBar->total([$val]) >> and
 C<< $progressBar->done([$val]) >>. C<total> registers the total
 number of bytes to transfer, and C<done> updates the number of
 bytes transferred in the progress bar.
 
-If C<< $obj->reconstructed >> is true,
+If C<< $r->reconstructed >> is true,
 for any of C<$hdr>, C<$trunc> or C<$stat>,
 then the header files for the respective objects are written from the
 objects instead of being copied from the source recording.
@@ -106,22 +109,22 @@ Move a recording described by C<$hdr> and the given
 source C<$path> (from the recording's
 L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>)
 to C<$outdir> by renaming the recording directory.
-Returns C<RC_OK> if successful.
+Returns C<HTTP_OK> if successful.
 
 On Unix(-like) systems, C<renameRecording> will  fail if the source
 and destinations for the move are on different file systems.
 It will also fail if C<< $r->join >> is true and it will fail if
 the source recording is on the Beyonwiz.
-In all these cases, it will return C<RC_NOT_IMPLEMENTED>,
+In all these cases, it will return C<HTTP_NOT_IMPLEMENTED>,
 and not print a warning.
 
 For other errors it will print a warning with the system error message,
 and return one of
-C<RC_FORBIDDEN>,
-C<RC_NOT_FOUND>
-or C<RC_INTERNAL_SERVER_ERROR>;
+C<HTTP_FORBIDDEN>,
+C<HTTP_NOT_FOUND>
+or C<HTTP_INTERNAL_SERVER_ERROR>;
 
-Returns C<RC_NOT_IMPLEMENTED>, must be overridden in any
+Returns C<HTTP_NOT_IMPLEMENTED>, must be overridden in any
 derived class that can provide this function.
 
 =item C<< $r->deleteRecording($hdr, $trunc, $path) >>
@@ -163,7 +166,7 @@ use bignum;
 use Beyonwiz::Recording::Trunc qw(TRUNC WMMETA);
 use Beyonwiz::Recording::Header qw(TVHDR RADHDR);
 use Beyonwiz::Utils;
-use HTTP::Status;
+use HTTP::Status qw(:constants :is);
 use File::Spec::Functions;
 use File::Basename;
 use POSIX;
@@ -274,14 +277,14 @@ sub putFile($$$$$$) {
 
     if(!open TO, ($append ? '>>' : '>'), $name) {
 	warn "Can't create $name: $!\n";
-	return RC_FORBIDDEN;
+	return HTTP_FORBIDDEN;
     }
     if(!defined syswrite TO, $data, length $data) {
 	warn "Write error on $name: $!\n";
-	return RC_BAD_REQUEST;
+	return HTTP_BAD_REQUEST;
     }
     close TO;
-    return RC_OK;
+    return HTTP_OK;
 }
 
 sub getRecordingName($$$$) {
@@ -311,9 +314,9 @@ sub getRecordingName($$$$) {
     return $name;
 }
 
-sub getRecording($$$$$$$$) {
+sub getRecording($$$$$$$$$) {
     my ($self, $hdr, $trunc, $stat, $indexName, $path,
-					$outdir, $progressBar) = @_;
+				$outdir, $useStdout, $progressBar) = @_;
     my $status;
 
     my $name = $self->getRecordingName($hdr, $path, $self->join);
@@ -329,11 +332,11 @@ sub getRecording($$$$$$$$) {
 	my $fullname = addDir($outdir, $name);
 	$size = $hdr->endOffset - $hdr->startOffset
 	    if($hdr->endOffset - $hdr->startOffset < $size);
-	if(-f $fullname) {
+	if(-f $fullname && !$useStdout) {
 	    my $recSize = (stat $fullname)[7];
 	    if(!defined $recSize) {
 		warn "Can't get file size of $name: $!\n";
-		return RC_FORBIDDEN;
+		return HTTP_FORBIDDEN;
 	    }
 	    if($recSize < $size) {
 		if($self->resume) {
@@ -345,13 +348,13 @@ sub getRecording($$$$$$$$) {
 		} else {
 		    warn "Recording $name already exists, but is incomplete\n";
 		    warn "Use --resume to resume fetching it\n";
-		    return RC_FORBIDDEN;
+		    return HTTP_FORBIDDEN;
 		}
 	    } else {
 		if(!$self->force) {
 		    warn "Recording $name already exists\n";
 		    warn "Use --force to overwrite it\n";
-		    return RC_FORBIDDEN;
+		    return HTTP_FORBIDDEN;
 		}
 	    }
 	}
@@ -388,7 +391,7 @@ sub getRecording($$$$$$$$) {
 			    warn "Recording $name already exists,",
 				" but is incomplete\n";
 			    warn "Use --resume to resume fetching it\n";
-			    return RC_FORBIDDEN;
+			    return HTTP_FORBIDDEN;
 			}
 		    } else {
 			if($self->force) {
@@ -396,18 +399,18 @@ sub getRecording($$$$$$$$) {
 			} else {
 			    warn "Recording $name already exists\n";
 			    warn "Use --force to overwrite it\n";
-			    return RC_FORBIDDEN;
+			    return HTTP_FORBIDDEN;
 			}
 		    }
 		} else {
 		    warn "Can't load trunc file for $name\n";
-		    return RC_PRECONDITION_FAILED;
+		    return HTTP_PRECONDITION_FAILED;
 		}
 	    }
 	} else {
 	    if(!mkdir($dirname)) {
 		warn "Can't create $dirname: $!\n";
-		return RC_FORBIDDEN;
+		return HTTP_FORBIDDEN;
 	    }
 	}
 	$size = $hdr->size + $trunc->size + STATSIZE + $trunc->recordingSize;
@@ -474,10 +477,16 @@ sub getRecording($$$$$$$$) {
 	my $fn = $tr->fileName;
 
 	if(!$self->accessor->outFileHandle) {
-	    $status = $self->accessor->openRecordingFileOut(
-			    $self, $name, $fn, $outdir, $append, $progressBar
-			);
-	    return $status if(!is_success($status));
+	    if($useStdout) {
+		$self->accessor->outFileHandle(\*STDOUT);
+		$self->accessor->outFileName('stdout');
+	    } else {
+		$status = $self->accessor->openRecordingFileOut(
+				$self, $name, $fn, $outdir,
+				$append, $progressBar
+			    );
+		return $status if(!is_success($status));
+	    }
 	}
 
 	my $offset = $tr->offset;

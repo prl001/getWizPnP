@@ -7,12 +7,19 @@ use warnings;
 use File::Spec::Functions qw(splitdir);
 
 my %checkedModule;
+my %osOptional = (
+    Win32 => { Win32 => 1,  cygwin => 1 },
+);
+
 my %optional = (
     'IO::Socket::Multicast'
 	=> 'you will need to use --host to connect to your Beyonwiz devices',
     'IO::Interface::Simple' =>
 	=> '--longNames will use IP addresses instead'
-	 . ' of the shorter host addresses'
+	 . ' of the shorter host addresses',
+    'Win32'
+	=> 'getWizPnP will use a restricted port range for HTTP access' . "\n"
+	 . '    and --check may run slower than if Win32 is available',
 );
 
 sub moduleName($) {
@@ -37,19 +44,22 @@ sub checkRequire(*$$) {
 	chomp $@;
 	$ok = 0;
 	if($@ =~ /^Can't locate /) {
-	    $@ =~ s///;
-	    $@ =~ s/ in \@INC.*//;
-	    my $module = moduleName($@);
-	    $@ = 'Can\'t locate ' . $module . ' in file ' . $inFile . "\n";
-	    if($type eq 'Beyonwiz::Utils::tryUse') {
-		$@ .= "    $module is optional";
-		$@ .= ", but\n    $optional{$module}" if($optional{$module});
-		$ok = 1;
+	    if((!exists $osOptional{$module} || $osOptional{$module}->{$^O})) {
+		$@ = 'Can\'t locate ' . $module . ' in file ' . $inFile . "\n";
+		if($type eq 'Beyonwiz::Utils::tryUse') {
+		    $@ .= "    $module is optional";
+		    $@ .= ", but\n    $optional{$module}"
+		        if($optional{$module});
+		    $ok = 1;
+		} else {
+		    $@ .= "    $module is required";
+		}
 	    } else {
-		$@ .= "    $module is required";
+		$@ = '';
+		$ok = 1;
 	    }
 	}
-	warn "$@\n";
+	warn "$@\n" if($@);
     }
     return $ok;
 }

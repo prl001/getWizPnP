@@ -244,11 +244,10 @@ sub decodeStat($$) {
     my ($self, $hdr_data) = @_;
     
     $self->{reconstructed} = undef;
-    $self->{size} = 0;
+    $self->{size} = defined($hdr_data) ? length($hdr_data) : undef;
 
     if(defined $hdr_data
     && length($hdr_data) == STAT_SIZE) {
-	$self->{size} = length $hdr_data;
 	my ($sz0, $sz1) = unpack STAT_FMT, $hdr_data;
 	$self->recordingEndOffset(($sz1 << 32) | $sz0);
 	$self->{valid} = 1;

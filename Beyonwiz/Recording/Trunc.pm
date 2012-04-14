@@ -402,7 +402,6 @@ sub load($) {
 	    my $trunc_data = $self->accessor->readFile(
 					$self->path, $t
 				);
-
 	    if(defined $trunc_data) {
 		if($tfn eq TRUNC) {
 		    $self->decodeTrunc($trunc_data);
@@ -411,7 +410,7 @@ sub load($) {
 		}
 		$self->fileName($tfn);
 		$self->beyonwizFileName($t);
-		return if($self->valid);
+		return;
 	    }
 	}
     }
@@ -430,12 +429,13 @@ sub load($) {
 	$self->fileName('');
 	$self->beyonwizFileName('');
 	$self->{valid} = 1;
+	$self->{size} = TRUNC_SIZE_MULT;
 	return;
     }
 
     $self->{valid} = undef;
     @{$self->entries} = ();
-    $self->{size} = 0;
+    $self->{size} = undef;
 }
 
 sub reconstruct($$$$) {
@@ -448,7 +448,7 @@ sub reconstruct($$$$) {
     my ($recLen, $recOff) = (0, 256*1024);
     my $scannedSize = 0;
     for($f = $minScan; $f <= $maxScan; $f++) {
-	my $fn = sprintf '%04d', $f;
+	my $fn = sprintf '%04u', $f;
 	print "Scan for start: $fn\r";
 	($len, $t) = $self->accessor->fileLenTime(
 				    $self->accessor->joinPaths(
@@ -458,7 +458,7 @@ sub reconstruct($$$$) {
 	last if(defined $len);
     }
     if(defined $len) {
-	my $fn = sprintf '%04d', $f;
+	my $fn = sprintf '%04u', $f;
 	print "\nFound start at $fn\n";
 	do {
 	    if(defined $len) {
@@ -480,7 +480,7 @@ sub reconstruct($$$$) {
 		$recLen += $len;
 	    }
 	    $f++;
-	    $fn = sprintf '%04d', $f;
+	    $fn = sprintf '%04u', $f;
 	    print "Check $fn\r";
 	    ($len, $t) = $self->accessor->fileLenTime(
 					$self->accessor->joinPaths(
@@ -498,11 +498,10 @@ sub decodeTrunc($$) {
     my ($self, $hdr_data) = @_;
     
     @{$self->entries} = ();
-    $self->{size} = 0;
+    $self->{size} = defined($hdr_data) ? length($hdr_data) : undef;
 
     if(defined $hdr_data
     && length($hdr_data) % TRUNC_SIZE_MULT == 0) {
-	$self->{size} = length $hdr_data;
 	my @trunc = unpack '(V2 v v V2 V)*', $hdr_data;
 	for(my $o = 0; $o < $self->{size}; $o += TRUNC_SIZE_MULT) {
 	    my @t = unpack TRUNC_FMT, substr $hdr_data, $o, TRUNC_SIZE_MULT;
@@ -546,7 +545,7 @@ sub decodeWmmeta($$) {
     my ($self, $hdr_data) = @_;
     
     @{$self->entries} = ();
-    $self->{size} = 0;
+    $self->{size} = defined($hdr_data) ? length $hdr_data : undef;
     $self->{valid} = undef;
     $self->{reconstructed} = undef;
 

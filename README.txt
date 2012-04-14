@@ -85,7 +85,14 @@ is known to work with the free version of ActivePerl
 (http://www.activestate.com/).  Use version 5.10.0.1003 or more
 recent.
 
-There's no installation script for getWizPnP for Windows.
+There's no installation script for getWizPnP for Windows, but the
+Makefile will work (see below, Using the Makefile on Windows), and
+with some modifications (to the destination pathnames, for example), running
+	make install
+in a command window should work. Making the "precompiled" version of
+getWizPnP should also work if you also install the PAR-Packer module
+into ActivePerl using
+	ppm install PAR-Packer
 
 The simplest installation is to unpack getWizPnP into a suitable
 location (say, in C:\Program Files) and add its directory
@@ -93,7 +100,7 @@ location (say, in C:\Program Files) and add its directory
 environment variable.
 
 You'll also need to add the directory to your PERLLIB environment
-variable, or create a new PATHLIB variable if there isn't one
+variable, or create a new PERLLIB variable if there isn't one
 already.
 
 If, when you run getWizPnP, you get an error like:
@@ -181,3 +188,35 @@ Unfortunately, IO::Interface::Simple module does not appear to be
 available on any ppm repository. getWizPnP will still work, but the
 unique names for Beyonwiz servers used in the --longNames will be
 longer than they would be if the modle could be installed.
+
+It is also possible to use the GUI interface to ppm to install any missing
+ppm packages into ActivePerl. You can start the ppm GUI just by running it
+without any command-line arguments:
+	ppm
+
+Using the Makefile on Windows
+=============================
+
+To run make on Windows you'll need to download GNU make package for Windows from
+    http://gnuwin32.sourceforge.net/packages/make.htm
+and the GNU CoreUtils package
+    http://gnuwin32.sourceforge.net/packages/coreutils.htm
+
+To make the precompiled ZIP packages in the getWizPnP release pages, you'll
+also need the GNU Zip package
+    http://gnuwin32.sourceforge.net/packages/zip.htm
+and to examine it you may also want the GNU UnZip package
+    http://gnuwin32.sourceforge.net/packages/unzip.htm
+
+These packages install their programs in by default in
+    C:\Program Files (x86)\GnuWin32\bin
+and you'll need to add that to the end of your PATH environment variable
+to use the commands and to run make on the Makefile.
+
+This should allow you to run
+    make doc
+to generate getWizPnP text and HTML documentation,
+    make compile
+to make a "pre-compiled" version of getWizPnP and
+    make zip-compile
+to make a "pre-compiled" ZIP distribution package.

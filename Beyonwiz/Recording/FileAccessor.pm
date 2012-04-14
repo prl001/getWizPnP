@@ -87,7 +87,7 @@ bar is being drawn on the terminal.
 If C<$quiet> is true, then don't print an error message if the source file
 can't be found.
 
-Returns C<RC_OK> if successful.
+Returns C<HTTP_OK> if successful.
 Otherwise it will print a warning with the HTTP status
 message of the HTTP operation that failed, and return that status.
 
@@ -109,7 +109,7 @@ from an incorrect name in the recording.
 C<< $progressBar->newLine >> is used to move to a new line if the progress
 bar is being drawn on the terminal.
 
-Returns C<RC_OK> if successful, or an HTTP error status that
+Returns C<HTTP_OK> if successful, or an HTTP error status that
 corresponds with the operating system error that caused the failure.
 If C<$quiet> is false, it will print a warning with the operating
 system error for the operation that failed.
@@ -120,20 +120,20 @@ Move a recording described by C<$hdr> and the given
 source C<$path> (from the recording's
 L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>)
 to C<$outdir> by renaming the recording directory.
-Returns C<RC_OK> if successful.
+Returns C<HTTP_OK> if successful.
 
 On Unix(-like) systems, C<renameRecording> will  fail if the source
 and destinations for the move are on different file systems.
 It will also fail if C<< $r->join >> is true and it will fail if
 the source recording is on the Beyonwiz.
-In all these cases, it will return C<RC_NOT_IMPLEMENTED>,
+In all these cases, it will return C<HTTP_NOT_IMPLEMENTED>,
 and not print a warning.
 
 For other errors it will print a warning with the system error message,
 and return one of
-C<RC_FORBIDDEN>,
-C<RC_NOT_FOUND>
-or C<RC_INTERNAL_SERVER_ERROR>.
+C<HTTP_FORBIDDEN>,
+C<HTTP_NOT_FOUND>
+or C<HTTP_INTERNAL_SERVER_ERROR>.
 
 =item C<< $r->deleteRecordingFile($path, $name, $file) >>
 
@@ -143,7 +143,7 @@ L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
 C<$name> is the name of the recording,
 and C<$file> is the name of the file within the recording to delete.
 
-Returns C<RC_OK> if successful.
+Returns C<HTTP_OK> if successful.
 Otherwise it will print a warning with the HTTP status
 message of the HTTP operation that failed, and return that status.
 
@@ -177,7 +177,7 @@ use Beyonwiz::Utils;
 use File::Spec::Functions qw(!path splitdir);
 use File::Find;
 use File::Basename;
-use HTTP::Status;
+use HTTP::Status qw(:constants :is);
 use POSIX;
 
 our @ISA = qw( Beyonwiz::Recording::Accessor );
@@ -326,7 +326,7 @@ sub loadIndex($) {
 			? substr $File::Find::name, $cutBase
 			: $File::Find::name;
 	/\.([^.]+)$/;
-	my $ext = lc $1;
+	my $ext = defined($1) ? lc($1) : undef;
 
 	# Fake up parsed index.txt lines for identified recordings/media files
 
@@ -397,17 +397,18 @@ sub getRecordingFileChunk($$$$$$$$$) {
 		? $self->joinPaths($path, $file)
 		: $path;
 
-    if(!sysseek $self->outFileHandle, $outOff, SEEK_SET) {
+    if(!(-s $self->outFileHandle || -p $self->outFileHandle)
+    && !sysseek $self->outFileHandle, $outOff, SEEK_SET) {
 	warn( $progressBar->newLine,
 	     'Seek error on ', $self->outFileName, ": $!\n" );
 	$self->closeRecordingFileOut;
-	return RC_BAD_REQUEST;
+	return HTTP_BAD_REQUEST;
     }
 
     if(!open FROM, '<', $path) {
 	warn( $progressBar->newLine,
 	     "Can't open $path: $!\n") if(!$quiet);
-	return RC_NOT_FOUND;
+	return HTTP_NOT_FOUND;
     }
     binmode FROM;
 
@@ -416,19 +417,19 @@ sub getRecordingFileChunk($$$$$$$$$) {
 	     "Seek error on $path: $!\n");
 	close FROM;
 	$self->closeRecordingFileOut;
-	return RC_BAD_REQUEST;
+	return HTTP_BAD_REQUEST;
     }
 
     my $nread;
     my $buf;
-    my $status = RC_OK;
+    my $status = HTTP_OK;
     my $progressCount = 0;
     my $rdLen = 64 * 1024;
     while($nread = sysread FROM, $buf, ($size > $rdLen ? $rdLen : $size)) {
 	if(!defined syswrite $self->outFileHandle, $buf, $nread) {
 	    warn( $progressBar->newLine,
 		'Write error on ', $self->outFileName, ": $!\n" );
-	    $status = RC_BAD_REQUEST;
+	    $status = HTTP_BAD_REQUEST;
 	    last;
 	}
 	$size -= $nread;
@@ -447,10 +448,10 @@ sub getRecordingFileChunk($$$$$$$$$) {
     if(!defined $nread) {
 	warn( $progressBar->newLine,
 	     "Read error on $path: $!\n" );
-	$status = RC_BAD_REQUEST;
+	$status = HTTP_BAD_REQUEST;
     }
     close FROM;
-    return RC_OK;
+    return HTTP_OK;
 }
 
 sub getRecordingFile($$$$$$$$) {
@@ -467,40 +468,40 @@ sub getRecordingFile($$$$$$$$) {
     if(!open FROM, '<', $path) {
 	warn( $progressBar->newLine,
 	     "Can't open $path: $!\n") if(!$quiet);
-	return RC_NOT_FOUND;
+	return HTTP_NOT_FOUND;
     }
     if(!open TO, '>', $name) {
 	warn( $progressBar->newLine,
 	     "Can't create $name: $!\n");
 	close FROM;
-	return RC_FORBIDDEN;
+	return HTTP_FORBIDDEN;
     }
     my $nread;
     my $buf;
-    my $status = RC_OK;
+    my $status = HTTP_OK;
     my $rdLen = 64 * 1024;
     while($nread = sysread FROM, $buf, $rdLen) {
 	if(!defined syswrite TO, $buf, $nread) {
 	    warn( $progressBar->newLine,
 		 "Write error on $name: $!\n");
-	    $status = RC_BAD_REQUEST;
+	    $status = HTTP_BAD_REQUEST;
 	    last;
 	}
     }
     if(!defined $nread) {
 	warn( $progressBar->newLine,
 	     "Read error on $path: $!\n");
-	$status = RC_BAD_REQUEST;
+	$status = HTTP_BAD_REQUEST;
     }
     close TO;
     close FROM;
-    return RC_OK;
+    return HTTP_OK;
 }
 
 sub renameRecording($$$$$) {
     my ($self, $rec, $hdr, $path, $outdir) = @_;
 
-    return RC_NOT_IMPLEMENTED if($rec->join);
+    return HTTP_NOT_IMPLEMENTED if($rec->join);
 
     my $name = $rec->getRecordingName($hdr, $path);
 
@@ -513,27 +514,27 @@ sub renameRecording($$$$$) {
 	$errstr = $!.'';
     }
 
-    my $status = RC_OK;
+    my $status = HTTP_OK;
 
     if($errno == EACCES || $errno == EPERM || $errno == ENOTEMPTY) {
-	$status = RC_UNAUTHORIZED;
+	$status = HTTP_UNAUTHORIZED;
     } elsif($errno == EROFS || $errno == EBUSY || $errno == ENAMETOOLONG
          || $errno == ELOOP || $errno == EFAULT || $errno == EDQUOT
 	 || $errno == EISDIR || $errno == ELOOP || $errno == ENOSPC) {
-	$status = RC_FORBIDDEN;
+	$status = HTTP_FORBIDDEN;
     } elsif($errno == ENOENT || $errno ==  ENOTDIR) {
-	$status = RC_NOT_FOUND;
+	$status = HTTP_NOT_FOUND;
     } elsif($errno == EIO) {
-	$status = RC_INTERNAL_SERVER_ERROR;
+	$status = HTTP_INTERNAL_SERVER_ERROR;
     } elsif($errno == EXDEV) {
-	$status = RC_NOT_IMPLEMENTED;
+	$status = HTTP_NOT_IMPLEMENTED;
     } elsif($errno != 0) {
-	$status = RC_INTERNAL_SERVER_ERROR;
+	$status = HTTP_INTERNAL_SERVER_ERROR;
     }
 
     warn 'Recording file/directory ', $name, ' at ',  $path, ': ',
 	    $errstr, "\n"
-	if(!is_success($status) && $status != RC_NOT_IMPLEMENTED);
+	if(!is_success($status) && $status != HTTP_NOT_IMPLEMENTED);
 
     return $status;
 }
@@ -557,19 +558,19 @@ sub deleteRecordingFile($$$$) {
 	}
     }
 
-    my $status = RC_OK;
+    my $status = HTTP_OK;
 
     if($errno == EACCES || $errno == EPERM || $errno == ENOTEMPTY) {
-	$status = RC_UNAUTHORIZED;
+	$status = HTTP_UNAUTHORIZED;
     } elsif($errno == EROFS || $errno == EBUSY || $errno == ENAMETOOLONG
          || $errno == ELOOP || $errno == EFAULT ) {
-	$status = RC_FORBIDDEN;
+	$status = HTTP_FORBIDDEN;
     } elsif($errno == ENOENT || $errno ==  ENOTDIR) {
-	$status = RC_NOT_FOUND;
+	$status = HTTP_NOT_FOUND;
     } elsif($errno == EIO) {
-	$status = RC_INTERNAL_SERVER_ERROR;
+	$status = HTTP_INTERNAL_SERVER_ERROR;
     } elsif($errno != 0) {
-	$status = RC_INTERNAL_SERVER_ERROR;
+	$status = HTTP_INTERNAL_SERVER_ERROR;
     }
 
     warn 'Recording file/directory ', $name, ' at ',  $path, ': ',

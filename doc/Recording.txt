@@ -53,8 +53,8 @@ METHODS
         Write the data $data to $file in directory $outdir. Append rather
         than overwrite if $append is true.
 
-    "$r->getRecording($hdr, $trunc, $stat, $indexName, $path, $outdir,
-    $progressBar) = @_;"
+    "$r->getRecording($self, $hdr, $trunc, $stat, $indexName, $path,
+    $outdir, $useStdout, $progressBar) = @_;"
         Download a Beyonwiz recording, either as a direct copy from the
         Beyonwiz, or combine tham into a single file (if "$r->join" is true
         for Beyonwiz folder media formats). $hdr is the recording's main
@@ -67,32 +67,35 @@ METHODS
         recording is derived from the recording title in the $hdr, with the
         episode name appended if "$r->episode" is true, and there are any
         non-whitespace characters in the episode name and with the recording
-        date appended if "$r->date" is true. If $progressBar is not "undef"
-        it must be an object in a class implementing the methods
-        "$progressBar->total([$val])" and "$progressBar->done([$val])".
-        "total" registers the total number of bytes to transfer, and "done"
-        updates the number of bytes transferred in the progress bar.
+        date appended if "$r->date" is true. If $useStdout is set, output
+        the recording to standard output instead of to a file. This will
+        only faithfully copy recordings if "$r->join" is true. If
+        $progressBar is not "undef" it must be an object in a class
+        implementing the methods "$progressBar->total([$val])" and
+        "$progressBar->done([$val])". "total" registers the total number of
+        bytes to transfer, and "done" updates the number of bytes
+        transferred in the progress bar.
 
-        If "$obj->reconstructed" is true, for any of $hdr, $trunc or $stat,
+        If "$r->reconstructed" is true, for any of $hdr, $trunc or $stat,
         then the header files for the respective objects are written from
         the objects instead of being copied from the source recording.
 
     "$r->renameRecording($hdr, $path, $outdir)"
         Move a recording described by $hdr and the given source $path (from
         the recording's "Beyonwiz::Recording::IndexEntry") to $outdir by
-        renaming the recording directory. Returns "RC_OK" if successful.
+        renaming the recording directory. Returns "HTTP_OK" if successful.
 
         On Unix(-like) systems, "renameRecording" will fail if the source
         and destinations for the move are on different file systems. It will
         also fail if "$r->join" is true and it will fail if the source
         recording is on the Beyonwiz. In all these cases, it will return
-        "RC_NOT_IMPLEMENTED", and not print a warning.
+        "HTTP_NOT_IMPLEMENTED", and not print a warning.
 
         For other errors it will print a warning with the system error
-        message, and return one of "RC_FORBIDDEN", "RC_NOT_FOUND" or
-        "RC_INTERNAL_SERVER_ERROR";
+        message, and return one of "HTTP_FORBIDDEN", "HTTP_NOT_FOUND" or
+        "HTTP_INTERNAL_SERVER_ERROR";
 
-        Returns "RC_NOT_IMPLEMENTED", must be overridden in any derived
+        Returns "HTTP_NOT_IMPLEMENTED", must be overridden in any derived
         class that can provide this function.
 
     "$r->deleteRecording($hdr, $trunc, $path)"

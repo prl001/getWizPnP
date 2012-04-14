@@ -201,7 +201,8 @@ sub checkTrunc($$) {
 			 $trunc->beyonwizFileName,
 			 "\n");
 	}
-	my ($len, $time) = $trunc->fileLenTime;
+
+	my $len = $trunc->size;
 
 	if(defined $len) {
 	    if($trunc->fileName eq WMMETA) {
@@ -224,7 +225,7 @@ sub checkTrunc($$) {
 		}
 		if(($len % TRUNC_SIZE_MULT) != 0) {
 		    $self->warning('    ', $trunc->fileName,
-			 ' header file incorrect length',
+			 ' header file incorrect length:',
 			 ' expected a multiple of ', TRUNC_SIZE_MULT,
 			 ' got ', $len,
 			 "\n");
@@ -254,7 +255,7 @@ sub checkStat($$) {
     if(defined $stat->fileName && defined $stat->beyonwizFileName
     && defined $trunc->fileName
     && $trunc->fileName eq TRUNC) {
-	my ($len, $time) = $stat->fileLenTime;
+	my $len = $stat->size;
 	if(defined $len) {
 	    if($len != STAT_SIZE) {
 		$self->warning('    ', $stat->fileName,
@@ -275,19 +276,34 @@ sub checkTruncEntries($$) {
     my ($self, $trunc) = @_;
 
     if($trunc->valid) {
+	my $prevTr = undef;
+	my ($len, $time);
 	foreach my $i (0..$trunc->nentries-1) {
 	    my $tr = $trunc->entries->[$i];
 	    my $fn = $tr->fileName;
-	    my ($len, $time) = $tr->fileLenTime;
+
+	    if(!defined($prevTr) || $fn ne $prevTr->fileName) {
+		($len, $time) = $tr->fileLenTime;
+	    }
+
+	    if(defined($prevTr)) {
+		if($prevTr->wizOffset + $prevTr->size != $tr->wizOffset) {
+		    $self->warning('    trunc file entry ', $i,
+			 ' has an inconsistent offset: (',
+			 $prevTr->wizOffset, ' + ', $prevTr->size,
+			 ' = ', $prevTr->wizOffset + $prevTr->size,
+			 ') != ', $tr->wizOffset, "\n");
+		}
+	    }
 
 	    if(!defined $len) {
-		warn('    data file ',
+		$self->warning('    data file ',
 		     $fn, ($fn eq '' ? '' : ' '),
 		     'missing',
 		     "\n");
 	    } else {
 		if(($tr->offset + $tr->size) > $len) {
-		    warn('    data file ',
+		    $self->warning('    data file ',
 			 $fn, ($fn eq '' ? '' : ' '),
 			 'too short: expected at least ',
 			 $tr->offset + $tr->size,
@@ -296,6 +312,7 @@ sub checkTruncEntries($$) {
 			 "\n");
 		 }
 	    }
+	    $prevTr = $tr;
 	}
     }
 }

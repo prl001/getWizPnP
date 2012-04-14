@@ -270,7 +270,7 @@ use IO::Select;
 use Socket;
 use HTTP::Response;
 use HTTP::Request;
-use HTTP::Status;
+use HTTP::Status qw(:is);
 use LWP::Simple qw(get $ua);
 use URI;
 use XML::DOM;

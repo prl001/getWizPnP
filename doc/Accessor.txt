@@ -72,16 +72,16 @@ METHODS
         line on errors. If $quiet is true, then don't print an error message
         if the source file can't be found.
 
-        Returns "RC_OK" if successful, otherwise some other "RC_FORBIDDEN"
-        if the file could not be created or opened for appending (depending
-        on the value of $append) and prints an operating system message
-        describing the error.
+        Returns "HTTP_OK" if successful, otherwise some other
+        "HTTP_FORBIDDEN" if the file could not be created or opened for
+        appending (depending on the value of $append) and prints an
+        operating system message describing the error.
 
     "$a->closeRecordingFileOut"
         Close "$a->outFileHandle". Set "$a->outFileHandle" and
         "$a->outFileName" to "undef".
 
-        Always returns "RC_OK".
+        Always returns "HTTP_OK".
 
     "$a->getRecordingFileChunk($rec, $path, $name, $file, $outdir, $append,
     $off, $size, $outOff, $progressBar, $quiet);"
@@ -103,7 +103,7 @@ METHODS
         terminal. If $quiet is true, then don't print an error message if
         the source file can't be found.
 
-        Returns "RC_OK" if successful. Otherwise it will print a warning
+        Returns "HTTP_OK" if successful. Otherwise it will print a warning
         with the HTTP status message of the HTTP operation that failed, and
         return that status.
 
@@ -120,7 +120,7 @@ METHODS
         "$progressBar->newLine" is used to move to a new line if the
         progress bar is being drawn on the terminal.
 
-        Returns "RC_OK" if successful. Otherwise it will return the HTTP
+        Returns "HTTP_OK" if successful. Otherwise it will return the HTTP
         error status (or a HTTP status corresponding to the underlying error
         for non-HTTP accessors).
 
@@ -129,20 +129,20 @@ METHODS
     "$a->renameRecording($hdr, $path, $outdir)"
         Move a recording described by $hdr and the given source $path (from
         the recording's "Beyonwiz::Recording::IndexEntry") to $outdir by
-        renaming the recording directory. Returns "RC_OK" if successful.
+        renaming the recording directory. Returns "HTTP_OK" if successful.
 
         On Unix(-like) systems, "renameRecording" will fail if the source
         and destinations for the move are on different file systems. It will
         also fail if "$r->join" is true and it will fail if the source
         recording is on the Beyonwiz. In all these cases, it will return
-        "RC_NOT_IMPLEMENTED", and not print a warning.
+        "HTTP_NOT_IMPLEMENTED", and not print a warning.
 
         For other errors it will print a warning with the system error
-        message, and return one of "RC_FORBIDDEN", "RC_NOT_FOUND" or
-        "RC_INTERNAL_SERVER_ERROR".
+        message, and return one of "HTTP_FORBIDDEN", "HTTP_NOT_FOUND" or
+        "HTTP_INTERNAL_SERVER_ERROR".
 
         This implementation always does nothing and returns
-        RC_NOT_IMPLEMENTED.
+        HTTP_NOT_IMPLEMENTED.
 
         Must be implemented in a derived class for it to have any effect.
 
@@ -152,7 +152,7 @@ METHODS
         recording, and $file is the name of the file within the recording to
         delete.
 
-        Returns "RC_OK" if successful. Otherwise it will print a warning
+        Returns "HTTP_OK" if successful. Otherwise it will print a warning
         with the HTTP status message of the HTTP operation that failed, and
         return that status.
 

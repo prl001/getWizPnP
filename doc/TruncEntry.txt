@@ -26,7 +26,7 @@ METHODS
         system path or a URL depending on the type of $accessor. $wizOffset
         logical byte offset of the entry in the recording ("bignum").
         $fileNum is the numbered recording file that the entry refers to.
-        The file name is this number printed in "printf" %04d format. $flags
+        The file name is this number printed in "printf" %04u format. $flags
         - flags for the entry - unknown purpose. $offset - offset of the
         recording data chunk in the file ("bignum"). $size - size of the
         recording data chunk in the file. More than one

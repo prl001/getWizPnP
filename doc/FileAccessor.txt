@@ -70,7 +70,7 @@ METHODS
         terminal. If $quiet is true, then don't print an error message if
         the source file can't be found.
 
-        Returns "RC_OK" if successful. Otherwise it will print a warning
+        Returns "HTTP_OK" if successful. Otherwise it will print a warning
         with the HTTP status message of the HTTP operation that failed, and
         return that status.
 
@@ -89,7 +89,7 @@ METHODS
         "$progressBar->newLine" is used to move to a new line if the
         progress bar is being drawn on the terminal.
 
-        Returns "RC_OK" if successful, or an HTTP error status that
+        Returns "HTTP_OK" if successful, or an HTTP error status that
         corresponds with the operating system error that caused the failure.
         If $quiet is false, it will print a warning with the operating
         system error for the operation that failed.
@@ -97,17 +97,17 @@ METHODS
     "$r->renameRecording($hdr, $path, $outdir)"
         Move a recording described by $hdr and the given source $path (from
         the recording's "Beyonwiz::Recording::IndexEntry") to $outdir by
-        renaming the recording directory. Returns "RC_OK" if successful.
+        renaming the recording directory. Returns "HTTP_OK" if successful.
 
         On Unix(-like) systems, "renameRecording" will fail if the source
         and destinations for the move are on different file systems. It will
         also fail if "$r->join" is true and it will fail if the source
         recording is on the Beyonwiz. In all these cases, it will return
-        "RC_NOT_IMPLEMENTED", and not print a warning.
+        "HTTP_NOT_IMPLEMENTED", and not print a warning.
 
         For other errors it will print a warning with the system error
-        message, and return one of "RC_FORBIDDEN", "RC_NOT_FOUND" or
-        "RC_INTERNAL_SERVER_ERROR".
+        message, and return one of "HTTP_FORBIDDEN", "HTTP_NOT_FOUND" or
+        "HTTP_INTERNAL_SERVER_ERROR".
 
     "$r->deleteRecordingFile($path, $name, $file)"
         Delete a recording file. $path is the path name from the recording's
@@ -115,7 +115,7 @@ METHODS
         recording, and $file is the name of the file within the recording to
         delete.
 
-        Returns "RC_OK" if successful. Otherwise it will print a warning
+        Returns "HTTP_OK" if successful. Otherwise it will print a warning
         with the HTTP status message of the HTTP operation that failed, and
         return that status.
 

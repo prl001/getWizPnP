@@ -42,7 +42,7 @@ file system path or a URL depending on the type of C<$accessor>.
 C<$wizOffset> logical byte offset of the entry in the recording
 (C<bignum>).
 C<$fileNum> is the numbered recording file that the entry refers to.
-The file name is this number printed in C<printf> C<%04d> format.
+The file name is this number printed in C<printf> C<%04u> format.
 C<$flags> - flags for the entry - unknown purpose.
 C<$offset> - offset of the recording data chunk in the file (C<bignum>).
 C<$size> - size of the recording data chunk in the file.
@@ -117,6 +117,8 @@ Perl integers are 64 bits.
 use warnings;
 use strict;
 
+use bignum;
+
 use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(FULLFILE);
@@ -156,7 +158,7 @@ sub fileLenTime($) {
 
 sub fileName($) {
     my ($self) = @_;
-    return ($self->flags & FULLFILE) ? '' : sprintf("%04d", $self->fileNum);
+    return ($self->flags & FULLFILE) ? '' : sprintf("%04u", $self->fileNum);
 }
 
 1;

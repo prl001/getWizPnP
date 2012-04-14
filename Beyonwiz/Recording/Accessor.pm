@@ -92,7 +92,7 @@ on errors.
 If C<$quiet> is true, then don't print an error message if the source file
 can't be found.
 
-Returns C<RC_OK> if successful, otherwise some other C<RC_FORBIDDEN>
+Returns C<HTTP_OK> if successful, otherwise some other C<HTTP_FORBIDDEN>
 if the file could not be created or opened for appending
 (depending on the value of C<$append>) and
 prints an operating system message describing the error.
@@ -104,7 +104,7 @@ Set C<< $a->outFileHandle >>
 and C<< $a->outFileName >>
 to C<undef>.
 
-Always returns C<RC_OK>.
+Always returns C<HTTP_OK>.
 
 =item C<< $a->getRecordingFileChunk($rec, $path, $name, $file, $outdir,
         $append, $off, $size, $outOff, $progressBar, $quiet); >>
@@ -132,7 +132,7 @@ if the progress bar is being drawn on the terminal.
 If C<$quiet> is true, then don't print an error message if the source file
 can't be found.
 
-Returns C<RC_OK> if successful.
+Returns C<HTTP_OK> if successful.
 Otherwise it will print a warning with the HTTP status
 message of the HTTP operation that failed, and return that status.
 
@@ -151,7 +151,7 @@ are as in I<getRecordingFileChunk>.
 C<< $progressBar->newLine >> is used to move to a new line if the progress
 bar is being drawn on the terminal.
 
-Returns C<RC_OK> if successful.
+Returns C<HTTP_OK> if successful.
 Otherwise it will return the HTTP error status (or a HTTP status
 corresponding to the underlying error for non-HTTP accessors).
 
@@ -163,23 +163,23 @@ Move a recording described by C<$hdr> and the given
 source C<$path> (from the recording's
 L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>)
 to C<$outdir> by renaming the recording directory.
-Returns C<RC_OK> if successful.
+Returns C<HTTP_OK> if successful.
 
 On Unix(-like) systems, C<renameRecording> will  fail if the source
 and destinations for the move are on different file systems.
 It will also fail if C<< $r->join >> is true and it will fail if
 the source recording is on the Beyonwiz.
-In all these cases, it will return C<RC_NOT_IMPLEMENTED>,
+In all these cases, it will return C<HTTP_NOT_IMPLEMENTED>,
 and not print a warning.
 
 For other errors it will print a warning with the system error message,
 and return one of
-C<RC_FORBIDDEN>,
-C<RC_NOT_FOUND>
-or C<RC_INTERNAL_SERVER_ERROR>.
+C<HTTP_FORBIDDEN>,
+C<HTTP_NOT_FOUND>
+or C<HTTP_INTERNAL_SERVER_ERROR>.
 
 This implementation always does
-nothing and returns RC_NOT_IMPLEMENTED.
+nothing and returns HTTP_NOT_IMPLEMENTED.
 
 Must be implemented in a derived class for it to have any effect.
 
@@ -191,7 +191,7 @@ L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
 C<$name> is the name of the recording,
 and C<$file> is the name of the file within the recording to delete.
 
-Returns C<RC_OK> if successful.
+Returns C<HTTP_OK> if successful.
 Otherwise it will print a warning with the HTTP status
 message of the HTTP operation that failed, and return that status.
 
@@ -209,7 +209,7 @@ C<Beyonwiz::Recording::Recording>.
 
 =cut
 
-use HTTP::Status;
+use HTTP::Status qw(:constants);
 use File::Spec::Functions;
 use Beyonwiz::Utils;
 use Beyonwiz::Recording::Recording qw(addDir);
@@ -281,23 +281,24 @@ sub openRecordingFileOut($$$$$$$) {
     if(!open $fh, ($append ? '+<' : '>'), $name) {
 	warn( $progressBar->newLine,
 	     "Can't create $name: $!\n");
-	return RC_FORBIDDEN;
+	return HTTP_FORBIDDEN;
     }
 
     binmode $fh;
     $self->outFileHandle($fh);
 
-    return RC_OK;
+    return HTTP_OK;
 }
 
 sub closeRecordingFileOut($) {
     my ($self) = @_;
 
-    close $self->outFileHandle if($self->outFileHandle);
+    close $self->outFileHandle
+	if($self->outFileHandle && $self->outFileHandle != \*STDOUT);
     $self->outFileHandle(undef);
     $self->outFileName(undef);
 
-    return RC_OK;
+    return HTTP_OK;
 }
 
 sub getRecordingFileChunk($$$$$$$$$$$) {
@@ -321,7 +322,7 @@ sub getRecordingFile($$$$$$$$) {
 sub renameRecording($$$$$) {
     my ($self, $rec, $hdr, $path, $outdir) = @_;
 
-    return RC_NOT_IMPLEMENTED;
+    return HTTP_NOT_IMPLEMENTED;
 }
 
 sub deleteRecordingFile($$$$) {

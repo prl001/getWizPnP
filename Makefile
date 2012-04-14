@@ -4,33 +4,30 @@ LIB=$(PREFIX)/lib/perl
 
 NAME=getWizPnP
 
-# Basic Windows vs Unix shell configuration: $/ is the separator in file paths.
+# Basic Windows vs Unix shell configuration: / is the separator in file paths.
 
 ifdef ComSpec
-    OS=Windows
-    # Ugly way to get a single \ into a variable
-    /=$(shell echo \)
+    OSNAME=Windows
+    MKDIR=mkdir
 else
-    OS=$(shell ( uname -o 2> /dev/null || uname -s ) | sed 's/GNU\///')
-    /=/
+    OSNAME:=$(shell ( uname -o 2> /dev/null || uname -s ) | sed "s/GNU\///")
+    MKDIR=mkdir -p
 endif
 
-VERSION=$(shell .$/$(NAME).pl --version 2>&1)
+VERSION:=$(shell perl ./$(NAME).pl --version 2>&1)
 
-MKDIR=mkdir -p
 CP=cp
 
-ifeq ($(OS),Cygwin)
+ifeq ($(OSNAME),Cygwin)
     EXEEXT=.exe
-else ifeq ($(OS),Windows)
+else ifeq ($(OSNAME),Windows)
     EXEEXT=.exe
-    MKDIR=mkdir
-    CP=copy/y
 endif
 
-OSCOMPILED=Compiled$/$(OS)
-OSCOMPILEDZIP=.$/.$/.
-EXEDIR=$(OSCOMPILED)$/$(NAME)
+COMPILED=Compiled
+OSCOMPILED=$(COMPILED)/$(OSNAME)
+OSCOMPILEDZIP=../../..
+EXEDIR=$(OSCOMPILED)/$(NAME)
 
 BWMODULEDIR=Beyonwiz
 RECMODULEDIR=$(BWMODULEDIR)/Recording
@@ -58,20 +55,21 @@ CLEANUPMODULES=$(RECMODULEDIR)/HTTPIndex.pm $(RECMODULEDIR)/FileIndex.pm \
 MODULES=$(BWMODULES) $(RECMODULES)
 
 all:
+	echo ver $(VERSION)
 
 install: all check install_lib install_perl
 
 install_lib:
-	mkdir -p '$(LIB)/$(BWMODULEDIR)' '$(LIB)/$(RECMODULEDIR)'
-	cd '$(LIB)' && rm -f $(CLEANUPMODULES)
-	cp $(BWMODULES) '$(LIB)/$(BWMODULEDIR)'
-	cp $(RECMODULES) '$(LIB)/$(RECMODULEDIR)'
+	mkdir -p "$(LIB)/$(BWMODULEDIR)" "$(LIB)/$(RECMODULEDIR)"
+	cd "$(LIB)" && rm -f $(CLEANUPMODULES)
+	cp $(BWMODULES) "$(LIB)/$(BWMODULEDIR)"
+	cp $(RECMODULES) "$(LIB)/$(RECMODULEDIR)"
 
 install_perl: $(BIN)
 	$(CP) $(SCRIPTS) "$(BIN)"
 
 install_bin: all compile $(BIN)
-	$(CP) "$(EXEDIR)$/$(EXE)" "$(BIN)"
+	$(CP) "$(EXEDIR)/$(EXE)" "$(BIN)"
 
 zip: check
 	rm -f ../$(NAME)-$(VERSION).zip
@@ -79,35 +77,40 @@ zip: check
 
 zip-compile: compile
 	cd $(OSCOMPILED) && \
-	rm -f $(OSCOMPILEDZIP)$/$(NAME)-$(VERSION)-Compiled-$(OS).zip && \
-	zip -r $(OSCOMPILEDZIP)$/$(NAME)-$(VERSION)-Compiled-$(OS).zip $(NAME)
+	rm -f $(OSCOMPILEDZIP)/$(NAME)-$(VERSION)-Compiled-$(OSNAME).zip && \
+	zip -r $(OSCOMPILEDZIP)/$(NAME)-$(VERSION)-Compiled-$(OSNAME).zip $(NAME)
 
-compile: check $(EXEDIR) $(EXEDIR)$/$(EXE) doc
+compile: check $(EXEDIR) $(EXEDIR)/$(EXE) doc
 	$(CP) "html/$(NAME).html" "$(EXEDIR)"
 	$(CP) "doc/$(NAME).txt" "$(EXEDIR)"
+	$(CP) "README-VERSION.txt" "$(EXEDIR)"
+	$(CP) "getwizpnp.conf" "$(EXEDIR)"
 
 uninstall: uninstall_bin uninstall_lib
 
 uninstall_perl:
-	cd '$(BIN)' && rm -f $(SCRIPTS)
+	cd "$(BIN)" && rm -f $(SCRIPTS)
 	
 uninstall_bin:
-	cd '$(BIN)' && rm -f $(EXE)
+	cd "$(BIN)" && rm -f $(EXE)
 	
 uninstall_lib:
-	cd '$(LIB)' && rm -f $(MODULES)
-	-rmdir '$(LIB)/$(RECMODULEDIR)' '$(LIB)/$(BWMODULEDIR)'
+	cd "$(LIB)" && rm -f $(MODULES)
+	-rmdir "$(LIB)/$(RECMODULEDIR)" "$(LIB)/$(BWMODULEDIR)"
 
 .PHONY: doc
 	
 doc:
-	./make_doc.sh $(SCRIPTS) $(MODULES)
+	perl ./make_doc.pl $(SCRIPTS) $(MODULES)
 
 check:
 	./checkModules.pl $(SCRIPTS) $(MODULES)
 
-$(EXEDIR)$/$(EXE): $(SCRIPTS)
-	pp -o "$(EXEDIR)$/$(EXE)" $(SCRIPTS)
+clean:
+	rm -rf $(COMPILED)
+
+$(EXEDIR)/$(EXE): $(SCRIPTS)
+	pp -o "$(EXEDIR)/$(EXE)" $(SCRIPTS)
 
 $(EXEDIR):
 	$(MKDIR) "$(EXEDIR)"

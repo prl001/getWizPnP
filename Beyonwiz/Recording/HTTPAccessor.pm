@@ -81,7 +81,7 @@ bar is being drawn on the terminal.
 If C<$quiet> is true, then don't print an error message if the source file
 can't be found.
 
-Returns C<RC_OK> if successful.
+Returns C<HTTP_OK> if successful.
 Otherwise it will print a warning with the HTTP status
 message of the HTTP operation that failed, and return that status.
 
@@ -103,7 +103,7 @@ from an incorrect name in the recording.
 C<< $progressBar->newLine >> is used to move to a new line if the progress
 bar is being drawn on the terminal.
 
-Returns C<RC_OK> if successful.
+Returns C<HTTP_OK> if successful.
 Otherwise it will return the HTTP error status.
 
 =item C<< $r->renameRecording($hdr, $path, $outdir) >>
@@ -112,20 +112,20 @@ Move a recording described by C<$hdr> and the given
 source C<$path> (from the recording's
 L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>)
 to C<$outdir> by renaming the recording directory.
-Returns C<RC_OK> if successful.
+Returns C<HTTP_OK> if successful.
 
 On Unix(-like) systems, C<renameRecording> will  fail if the source
 and destinations for the move are on different file systems.
 It will also fail if C<< $r->join >> is true and it will fail if
 the source recording is on the Beyonwiz.
-In all these cases, it will return C<RC_NOT_IMPLEMENTED>,
+In all these cases, it will return C<HTTP_NOT_IMPLEMENTED>,
 and not print a warning.
 
 For other errors it will print a warning with the system error message,
 and return one of
-C<RC_FORBIDDEN>,
-C<RC_NOT_FOUND>
-or C<RC_INTERNAL_SERVER_ERROR>.
+C<HTTP_FORBIDDEN>,
+C<HTTP_NOT_FOUND>
+or C<HTTP_INTERNAL_SERVER_ERROR>.
 
 =item C<< $r->deleteRecordingFile($path, $name, $file) >>
 
@@ -135,7 +135,7 @@ L<C<Beyonwiz::Recording::IndexEntry>|Beyonwiz::Recording::IndexEntry>.
 C<$name> is the name of the recording,
 and C<$file> is the name of the file within the recording to delete.
 
-Returns C<RC_OK> if successful.
+Returns C<HTTP_OK> if successful.
 Otherwise it will print a warning with the HTTP status
 message of the HTTP operation that failed, and return that status.
 
@@ -166,16 +166,25 @@ use Beyonwiz::Recording::Recording qw(addDir);
 use LWP::Simple qw(get getstore head $ua);
 use URI;
 use URI::Escape;
-use HTTP::Status;
+use HTTP::Status qw(:constants :is);
 use POSIX;
 
 our @ISA = qw( Beyonwiz::Recording::Accessor );
 
 my $accessorsDone;
+my $uaDone;
+
+our $numEphemPorts;
+our $ephemPortsFrac;
 
 sub new() {
     my ($class, $base) = @_;
     $class = ref($class) if(ref($class));
+
+    if(!$uaDone) {
+	$ua = LWP::UserAgentRetry->new(retrytimeout => 15);
+	$uaDone = 1;
+    }
 
     my %fields = (
 	base    => $base,
@@ -274,11 +283,13 @@ sub getRecordingFileChunk($$$$$$$$$$) {
 
     $data_url->path(_uriPathEscape($file ne '' ? $path . '/' . $file : $path));
 
-    if(!sysseek $self->outFileHandle, $outOff, SEEK_SET) {
+    # Avoid trying to seek on pipes and FIFOs
+    if(!(-s $self->outFileHandle || -p $self->outFileHandle)
+    && !sysseek $self->outFileHandle, $outOff, SEEK_SET) {
 	warn( $progressBar->newLine,
 	     'Seek error on ', $self->outFileName, ": $!\n" );
 	$self->closeRecordingFileOut;
-	return RC_BAD_REQUEST;
+	return HTTP_BAD_REQUEST;
     }
 
     my $request = HTTP::Request->new(GET => $data_url);
@@ -355,6 +366,150 @@ sub deleteRecordingFile($$$$;$) {
 	if(!is_success($status));
 
     return $status;
+}
+
+{
+    package LWP::UserAgentRetry;
+
+    use vars qw(@ISA);
+    use LWP::UserAgent;
+    use Beyonwiz::Utils;
+    use HTTP::Status qw(:constants);
+
+    our @ISA = qw(LWP::UserAgent);
+
+    my $accessorsDone;
+
+    my @portTimeQueue;
+
+
+    use constant PORTWAIT => 120;
+    use constant EPORTSSMALL => 5000 - 1024;
+    use constant EPORTSLARGE => 65536 - 49152;
+
+    my $hasWin32;
+
+    my $sleepResid = 0;
+
+    BEGIN {
+	$hasWin32 = Beyonwiz::Utils::tryUse Win32;
+    }
+
+    sub new {
+	my ($class, %config) = @_;
+	$class = ref($class) if(ref($class));
+
+	my $retrytimeout = delete $config{retrytimeout};
+
+	my $self = LWP::UserAgent->new(%config);
+
+	unless($accessorsDone) {
+	    Beyonwiz::Utils::makeAccessors(__PACKAGE__,
+					    qw(retrytimeout portuse));
+	    $accessorsDone = 1;
+	}
+
+	$self->{retrytimeout} = $retrytimeout;
+
+	my ($numPorts, $ephemFrac);
+
+
+	if($^O eq 'MSWin32' || $^O eq 'cygwin') {
+	    if($hasWin32) {
+		my (undef, $major, $minor, undef, $id) = Win32::GetOSVersion();
+		if($id >= 2 && $major >= 6) {
+		    $numPorts = defined($numEphemPorts)
+					? $numEphemPorts
+					: EPORTSLARGE;
+		    $ephemFrac = defined($ephemPortsFrac)
+					? $ephemPortsFrac
+					: 0.1;
+		} else {
+		    $numPorts = defined($numEphemPorts)
+					? $numEphemPorts
+					: EPORTSSMALL;
+		    $ephemFrac = defined($ephemPortsFrac)
+					? $ephemPortsFrac
+					: 0.2;
+		}
+	    } else {
+		warn "Can't determine Windows variant,",
+		     ' using small port range: ',
+		     "Can't load Win32 module\n";
+		$numPorts = defined($numEphemPorts)
+				    ? $numEphemPorts
+				    : EPORTSSMALL;
+		$ephemFrac = defined($ephemPortsFrac)
+				    ? $ephemPortsFrac
+				    : 0.2;
+	    }
+	} else {
+	    $numPorts = defined($numEphemPorts)
+				? $numEphemPorts
+				: EPORTSLARGE;
+	    $ephemFrac = defined($ephemPortsFrac)
+				? $ephemPortsFrac
+				: 0.1;
+	}
+
+	$ephemFrac = 0 if($ephemFrac < 0);
+	$ephemFrac = 1 if($ephemFrac > 1);
+
+	$self->{portuse} = int($numPorts * $ephemFrac);
+
+	return bless $self, $class;
+    }
+
+    sub _dequeuePorts($) {
+	my ($self, $now) = @_;
+	while(@portTimeQueue && $now - $portTimeQueue[0] >= PORTWAIT) {
+	    shift @portTimeQueue;
+	}
+    }
+
+    sub request {
+	my ($self, @args) = @_;
+	my $response;
+
+	my $portUse = $self->portuse;
+
+	my $now = time;
+
+
+
+	$self->_dequeuePorts($now) if($portUse > 0);
+
+	while($portUse > 0 && @portTimeQueue > 0) {
+	    my $sleeptime;
+	    if(@portTimeQueue >= $portUse - 1) {
+		$sleeptime =  PORTWAIT - $now + $portTimeQueue[0];
+	    } else {
+		$sleeptime = int((PORTWAIT * @portTimeQueue / $portUse)
+		      - $portTimeQueue[-1] + $portTimeQueue[0] + 0.5);
+	    }
+	    last unless($sleeptime > 0);
+	    sleep $sleeptime;
+	    $now = time;
+	    $self->_dequeuePorts($now);
+	    last if(@portTimeQueue <= $portUse);
+	}
+
+	my $retrytimeout = $self->retrytimeout;
+	my $repeat = 1;
+	$repeat = int(($self->timeout + $retrytimeout - 1) / $retrytimeout)
+	    if($retrytimeout);
+	$repeat = 1 if($repeat < 1);
+	foreach my $i (1..$repeat) {
+	    $response = $self->SUPER::request(@args);
+	    last if($response->code != HTTP_INTERNAL_SERVER_ERROR
+		 && ($response->status_line !~ /timeout/));
+	}
+
+	push @portTimeQueue, time if($portUse > 0);
+
+	return $response;
+    }
+
 }
 
 1;
