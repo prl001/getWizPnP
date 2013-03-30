@@ -19,7 +19,8 @@ SYNOPSIS
                   [--sort=sortcode|-s sortcode]
                   [--dictionarySort=ignoretype|-i ignoretype]
                   [--dictStoplist=words|-S words]
-                  [--date|-d] [--episode|-E] [--ts|-t] [--join|-j]
+                  [--date|-d] [--episode|-E]
+                  [--ts|-t] [--join|-j] [--stdout]
                   [--before=datetime] [--since=datetime]
                   [--reconstruct[=[maxscan],[frac],[fixed]]]
                   [--resume|-R] [--force|-F][--retry=n]
@@ -28,7 +29,7 @@ SYNOPSIS
                   [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
                   [--debug=debugcode] [--index|-x]
                   [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]
-                  [ recording match patterns... ]\n";
+                  [ recording match patterns... ]
 
 DESCRIPTION
 
@@ -669,10 +670,11 @@ ARGUMENTS
           --noepisode
           --noE
 
-        Add the recording episode name (if there is one) to a recording when
-        it's downloaded. Adds the episode name to the end of the
-        --nameFormat string after the date if it's set by --date or before
-        the date it it's set by --dateLast. Useful for downloading series.
+        Add the recording episode name (if there is one) to the name of the
+        recording when it's downloaded. Adds the episode name to the end of
+        the --nameFormat string after the date if it's set by --date or
+        before the date it it's set by --dateLast. Useful for downloading
+        series.
 
     date
           --date
