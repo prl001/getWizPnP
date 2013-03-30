@@ -67,6 +67,10 @@ The Perl modules that you are most likely to need to install are:
 	XML::DOM
 	IO::Socket::Multicast
 	IO::Interface::Simple
+	DateTime::Format::Natural
+	DateTime::TimeZone
+	Params::Validate::XS
+	Params::Validate::PP
 
 Running:
 	make install
@@ -125,6 +129,10 @@ The Perl modules that you are most likely to need to install are:
 	XML::DOM
 	IO::Socket::Multicast
 	IO::Interface::Simple
+	DateTime::Format::Natural
+	DateTime::TimeZone
+	Params::Validate::XS
+	Params::Validate::PP
 
 Running:
 	@checkModules

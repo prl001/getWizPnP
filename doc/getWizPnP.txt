@@ -18,15 +18,17 @@ SYNOPSIS
                   [--regexp|-r] [--expression|-e] [-BWName|-B]
                   [--sort=sortcode|-s sortcode]
                   [--dictionarySort=ignoretype|-i ignoretype]
-                  [--dictStoplist=words|-S word]
-                  [--episode|-E] [--date|-d] [--dateLast]
-                  [--ts|-t] [--join|-j] [--stdout]
-                  [--resume|-R] [--force|-F]
+                  [--dictStoplist=words|-S words]
+                  [--date|-d] [--episode|-E] [--ts|-t] [--join|-j]
+                  [--before=datetime] [--since=datetime]
+                  [--reconstruct[=[maxscan],[frac],[fixed]]]
+                  [--resume|-R] [--force|-F][--retry=n]
+                  [--delay=time]
                   [--outDir=dir|-O dir] [--inDir=dir|-I dir]
                   [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
                   [--debug=debugcode] [--index|-x]
                   [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]
-                  [ recording match patterns... ]
+                  [ recording match patterns... ]\n";
 
 DESCRIPTION
 
@@ -54,15 +56,18 @@ DESCRIPTION
     In the absence of --regexp or --expression a pattern matches if it is a
     substring of the string *servicename*#*longtitle*#*date*, case
     insensitive. The *longtitle* is just the title if the header has no
-    episode information, otherwise it is *title*/*episodename*.
+    episode information, otherwise it is *title*/*episodename*. The format
+    of *date* defaults to *yyyy*"-"*mm*"-"*dd* *HH*"-"*MM*, but it is
+    changed by the --dateFormat option. The default is "dateFormat=default",
+    which itself is equivalent to "dateFormat=isoLike".
 
     For example:
 
-        SC10 Canberra#MOVIE: Pride & Prejudice#Fri Feb 15 20:28:00 2008
+        SC10 Canberra#MOVIE: Pride & Prejudice#2008-02-15 20-28
 
     or
 
-        WIN TV Canberra#Underbelly/Team Purana#Wed May  7 20:28:00 2008
+        WIN TV Canberra#Underbelly/Team Purana#2012-05-25 19-30
 
     To download all recordings, an empty string will match everything:
 
@@ -258,7 +263,7 @@ ARGUMENTS
         Beyonwiz TV and radio recordings on the computer running getWizPnP
         are also recognised if they have no filename extension on their
         folder. This is to allow recognition of recordings copied using old
-        versions of getWizPnP which did not add a .tvwiz/.radwiz extension
+        versions of *getWizPnP* which did not add a .tvwiz/.radwiz extension
         to the folder name. This feature may be removed in future versions.
 
         Recognition of these beyonwiz-format recordings cannot be controlled
@@ -335,7 +340,7 @@ ARGUMENTS
         The date of the recording. The most recently modified time for media
         files stored on computer file systems. The format of the date
         defaults to an ISO-likeformat "YYYY-MM-DD HH-MM" (e.g. 2009-02-22
-        20:30). The format of the date can be set using --dateFormat.
+        20-30). The format of the date can be set using --dateFormat.
 
         Codes from --dateFormat are also interpreted if they are present in
         *fmt*, but it is probably cleaner to change the date format using
@@ -381,6 +386,8 @@ ARGUMENTS
         The default --nameFormat can be set in the configuration file and
         the list of canned formats can be modified or extended (user
         definitions override program definitions where both are specified).
+
+        Also see --episode, --date and --dateLast.
 
     dateFormat
          --dateFormat=fmt
@@ -662,8 +669,10 @@ ARGUMENTS
           --noepisode
           --noE
 
-        Add the recording episode name (if there is one) to the name of the
-        recording when it's downloaded. Useful for downloading series.
+        Add the recording episode name (if there is one) to a recording when
+        it's downloaded. Adds the episode name to the end of the
+        --nameFormat string after the date if it's set by --date or before
+        the date it it's set by --dateLast. Useful for downloading series.
 
     date
           --date
@@ -687,6 +696,36 @@ ARGUMENTS
         to the name of the recording when it's downloaded. Useful for
         downloading series. Adds the date to the end of the --nameFormat
         string after the episode name if it's set by --episode.
+
+    since
+          --since=timeString
+
+        Restricts *getWizPnP* to operate on recordings made since the time
+        given in the time string. If the time string specifies only the day,
+        it is recordings since 00:00 in the morning of the day concerned, so
+        "--since today" will operate on anything recorded today.
+
+        The format of *timeString* is intended to allow for relatively
+        free-form conversational dates and times, as well as more formal
+        dates, but some uses may find them unintuitive. For example, "1 day
+        before yesterday" is not recognised, but "yesterday 1 day ago" is
+        recognised (as the same thing).
+
+        More documentation of the formats allowed is on CPAN
+        <http://search.cpan.org/~schubiger/DateTime-Format-Natural-0.99/lib/
+        DateTime/Format/Natural/Lang/EN.pm>. Dates with '/' are in the form
+        d/m/y, not m/d/y.
+
+    since
+          --before=timeString
+
+        Restricts *getWizPnP* to operate on recordings made before the time
+        given in the time string. If the time string specifies only the day,
+        it is recordings before 00:00 in the morning of the day concerned,
+        so "--before today" will operate on anything recorded before (the
+        start of) today.
+
+        See --since for the format of *timeString*.
 
     ts
           --ts
@@ -846,6 +885,40 @@ ARGUMENTS
         reconstruction of the "stat" and "trunc" header files even if they
         can be found. The interaction with --reconstruct is mainly intended
         for debugging use.
+
+    retry
+          --retry=n
+
+        Automatically try to resume recording downloads (--copy or --copy)
+        up to <n> times on particular kinds of HTTP error. The *n* retries
+        are in addition to the initial download request. There is a short
+        pause (2 sec) before each attempted retry. These retries resume
+        recording downloads even if the original download did not have
+        --resume set.
+
+        At the moment, retries are only attempted for HTTP "BAD_REQUEST"
+        errors.
+
+        The main intention of this option is to help overcome a problem with
+        downloads from Windows systems, which occasionally fail with
+        "BAD_REQUEST" for an unknown reason.
+
+        *This option may be removed at some future time if the underlying
+        problem is fixed*.
+
+    delay
+          --delay=time
+
+        Delay *time* seconds between HTTP requests when downloading a
+        recording from a Beyonwiz. *Time* may be given in floating point, so
+        using, say, "--time=0.5" should work as expected.
+
+        The main intention of this option is to try to help overcome a
+        problem with downloads from Windows systems, which occasionally fail
+        with "BAD_REQUEST" for an unknown reason.
+
+        *This option may be removed at some future time if the underlying
+        problem is fixed*.
 
     verbose
           --verbose
@@ -1047,9 +1120,9 @@ ARGUMENTS
 
         It is possible to increase the fraction of the available ephemeral
         ports that *getWizPnP* uses by setting
-        $Beyonwiz::Recording::HTTPAccessor::ephemPortsFrac in the getWizPnP
-        configuration file. It is probably inadvisable to set this value
-        greater than 0.5 (50%).
+        $Beyonwiz::Recording::HTTPAccessor::ephemPortsFrac in the
+        *getWizPnP* configuration file. It is probably inadvisable to set
+        this value greater than 0.5 (50%).
 
         It is possible to increase the number of ephemeral ports available
         in Windows XP by modifications to the Registry by following the
@@ -1059,7 +1132,7 @@ ARGUMENTS
         <http://support.microsoft.com/default.aspx?scid=kb;en-us;196271>. If
         you do this, you need to correspondingly set the number of available
         ephemeral ports by setting
-        $Beyonwiz::Recording::HTTPAccessor::numEphemPorts in the getWizPnP
+        $Beyonwiz::Recording::HTTPAccessor::numEphemPorts in the *getWizPnP*
         configuration file. *getWizPnP* otherwise has no way of discovering
         the number of available ephemeral ports. Make a backup of your
         Registry before modifying it in this way.
@@ -1137,8 +1210,19 @@ FILES
     It is probably most useful for setting the default --device or --host
     option, or making --episode set by default.
 
-    An example ".getwizpnp" file is included with *getWizPnP*, in the file
-    "getwizpnp.conf".
+    An example *getWizPnP* configuration file file is included with the
+    *getWizPnP* distribution, in the file "getwizpnp.conf".
+
+    The *getWizPnP* configuration file can be specified explicitly by
+    setting the "GETWIZPNPCONF" environment variable. For example (on Unix
+    Bourne-like shells like *bash*):
+
+        export GETWIZPNPCONF=~/mygetwizpnp.conf
+
+    If "GETWIZPNPCONF" is set to the empty string, then no configuration
+    file is executed:
+
+        export GETWIZPNPCONF=
 
 PREREQUSITES
 
@@ -1147,7 +1231,8 @@ PREREQUSITES
     "Beyonwiz::Recording::Header", "Beyonwiz::Recording::Trunc",
     "Beyonwiz::Recording::Stat", "Beyonwiz::Recording::Recording",
     "Beyonwiz::Recording::Check", "File::Spec::Functions", "File::Path",
-    "HTTP::Status", "Getopt::Long".
+    "HTTP::Status", "Getopt::Long", "POSIX", "DateTime",
+    "DateTime::Format::Natural".
 
 BUGS
 

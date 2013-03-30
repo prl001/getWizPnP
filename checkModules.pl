@@ -9,6 +9,7 @@ use File::Spec::Functions qw(splitdir);
 my %checkedModule;
 my %osOptional = (
     Win32 => { Win32 => 1,  cygwin => 1 },
+    'DateTime::TimeZone::Local::Win32' => { Win32 => 1,  cygwin => 1 },
 );
 
 my %optional = (

@@ -402,7 +402,7 @@ sub getRecordingFileChunk($$$$$$$$$) {
 	warn( $progressBar->newLine,
 	     'Seek error on ', $self->outFileName, ": $!\n" );
 	$self->closeRecordingFileOut;
-	return HTTP_BAD_REQUEST;
+	return HTTP_FORBIDDEN;
     }
 
     if(!open FROM, '<', $path) {
@@ -417,7 +417,7 @@ sub getRecordingFileChunk($$$$$$$$$) {
 	     "Seek error on $path: $!\n");
 	close FROM;
 	$self->closeRecordingFileOut;
-	return HTTP_BAD_REQUEST;
+	return HTTP_FORBIDDEN;
     }
 
     my $nread;
@@ -429,7 +429,7 @@ sub getRecordingFileChunk($$$$$$$$$) {
 	if(!defined syswrite $self->outFileHandle, $buf, $nread) {
 	    warn( $progressBar->newLine,
 		'Write error on ', $self->outFileName, ": $!\n" );
-	    $status = HTTP_BAD_REQUEST;
+	    $status = HTTP_FORBIDDEN;
 	    last;
 	}
 	$size -= $nread;
@@ -448,7 +448,7 @@ sub getRecordingFileChunk($$$$$$$$$) {
     if(!defined $nread) {
 	warn( $progressBar->newLine,
 	     "Read error on $path: $!\n" );
-	$status = HTTP_BAD_REQUEST;
+	$status = HTTP_FORBIDDEN;
     }
     close FROM;
     return HTTP_OK;
@@ -484,14 +484,14 @@ sub getRecordingFile($$$$$$$$) {
 	if(!defined syswrite TO, $buf, $nread) {
 	    warn( $progressBar->newLine,
 		 "Write error on $name: $!\n");
-	    $status = HTTP_BAD_REQUEST;
+	    $status = HTTP_FORBIDDEN;
 	    last;
 	}
     }
     if(!defined $nread) {
 	warn( $progressBar->newLine,
 	     "Read error on $path: $!\n");
-	$status = HTTP_BAD_REQUEST;
+	$status = HTTP_FORBIDDEN;
     }
     close TO;
     close FROM;

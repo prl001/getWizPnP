@@ -20,16 +20,19 @@ getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network
               [--regexp|-r] [--expression|-e] [-BWName|-B]
               [--sort=sortcode|-s sortcode]
               [--dictionarySort=ignoretype|-i ignoretype]
-              [--dictStoplist=words|-S word]
-              [--episode|-E] [--date|-d] [--dateLast]
-	      [--ts|-t] [--join|-j] [--stdout]
-              [--resume|-R] [--force|-F]
+              [--dictStoplist=words|-S words]
+              [--date|-d] [--episode|-E]
+              [--ts|-t] [--join|-j] [--stdout]
+              [--before=datetime] [--since=datetime]
+              [--reconstruct[=[maxscan],[frac],[fixed]]]
+              [--resume|-R] [--force|-F][--retry=n]
+              [--delay=time]
               [--outDir=dir|-O dir] [--inDir=dir|-I dir]
               [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
               [--debug=debugcode] [--index|-x]
               [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]
               [ recording match patterns... ]
-
+ 
 =head1 DESCRIPTION
 
 List, check, fetch, move or delete the recordings on a Beyonwiz DP series
@@ -60,14 +63,22 @@ if it is a substring of the string I<servicename>B<#>I<longtitle>#I<date>,
 case insensitive.
 The I<longtitle> is just the title if the header has no episode information,
 otherwise it is I<title>B</>I<episodename>.
+The format of I<date> defaults to
+I<yyyy>C<->I<mm>C<->I<dd> I<HH>C<->I<MM>, but it is changed by the
+B<--L<dateFormat>>
+option.
+The default is
+C<dateFormat=default>,
+which itself is equivalent to
+C<dateFormat=isoLike>.
 
 For example:
 
-    SC10 Canberra#MOVIE: Pride & Prejudice#Fri Feb 15 20:28:00 2008
+    SC10 Canberra#MOVIE: Pride & Prejudice#2008-02-15 20-28
 
 or
 
-    WIN TV Canberra#Underbelly/Team Purana#Wed May  7 20:28:00 2008
+    WIN TV Canberra#Underbelly/Team Purana#2012-05-25 19-30
 
 To download all recordings, an empty string will match everything:
 
@@ -292,7 +303,7 @@ Beyonwiz TV and radio recordings on the computer running B<getWizPnP>
 are also recognised if they have no filename extension on their
 folder.
 This is to allow recognition of recordings copied using old versions
-of getWizPnP which did not add a .tvwiz/.radwiz extension to the folder name.
+of I<getWizPnP> which did not add a .tvwiz/.radwiz extension to the folder name.
 This feature may be removed in future versions.
 
 Recognition of these beyonwiz-format recordings cannot be controlled by
@@ -375,7 +386,7 @@ The date of the recording.
 The most recently modified time for media files stored on computer
 file systems.
 The format of the date defaults to an ISO-likeformat C<YYYY-MM-DD HH-MM>
-(e.g. 2009-02-22 20:30).
+(e.g. 2009-02-22 20-30).
 The format of the date can be set using B<--L<dateFormat>>.
 
 Codes from B<--L<dateFormat>> are also interpreted if they are present
@@ -428,6 +439,8 @@ The default B<--L<nameFormat>> can be set in the
 B<L<configuration file|/FILES>> and the list of canned formats
 can be modified or extended (user definitions override program definitions
 where both are specified).
+
+Also see B<--L<episode>>,  B<--L<date>> and B<--L<dateLast>>.
 
 =item dateFormat
 
@@ -750,6 +763,9 @@ if B<case> is set in B<--L<dictionarySort>>.
 
 Add the recording episode name (if there is one) to the name of the
 recording when it's downloaded.
+Adds the episode name to the end of the B<--L<nameFormat>> string
+after the date if it's set by B<--L<date>> or before the date
+it it's set by B<--L<dateLast>>.
 Useful for downloading series.
 
 =item date
@@ -778,6 +794,37 @@ to the name of the recording when it's downloaded.
 Useful for downloading series.
 Adds the date to the end of the B<--L<nameFormat>> string
 after the episode name if it's set by B<--L<episode>>.
+
+=item since
+
+  --since=timeString
+
+Restricts I<getWizPnP> to operate on recordings made since the time given in
+the time string. If the time string specifies only the day,
+it is recordings since 00:00 in the morning of the day concerned, so
+C<--since today>
+will operate on anything recorded today.
+
+The format of I<timeString> is intended to allow for relatively free-form
+conversational dates and times, as well as more formal dates, but some
+uses may find them unintuitive.
+For example, "1 day before yesterday" is not recognised, but
+"yesterday 1 day ago" is recognised (as the same thing).
+
+More documentation of the formats allowed is on CPAN
+L<http://search.cpan.org/~schubiger/DateTime-Format-Natural-0.99/lib/DateTime/Format/Natural/Lang/EN.pm>. Dates with '/' are in the form d/m/y, not m/d/y.
+
+=item since
+
+  --before=timeString
+
+Restricts I<getWizPnP> to operate on recordings made before the time given in
+the time string. If the time string specifies only the day,
+it is recordings before 00:00 in the morning of the day concerned, so
+C<--before today>
+will operate on anything recorded before (the start of) today.
+
+See B<--L<since>> for the format of I<timeString>.
 
 =item ts
 
@@ -949,6 +996,41 @@ Allow downloads to overwrite existing recordings that appear to be complete.
 If B<--L<reconstruct>> is also set, then also force reconstruction of the
 C<stat> and C<trunc> header files even if they can be found.
 The interaction with B<--L<reconstruct>> is mainly intended for debugging use.
+
+=item retry
+
+  --retry=n
+
+Automatically try to resume recording downloads (B<--L<copy>> or B<--L<copy>>)
+up to <n> times on particular kinds of HTTP error.
+The I<n> retries are in addition to the initial download request.
+There is a short pause (2 sec) before each attempted retry.
+These retries resume recording downloads even if the original
+download did not have B<--L<resume>> set.
+
+At the moment, retries are only attempted for HTTP C<BAD_REQUEST> errors.
+
+The main intention of this option is to help overcome a problem
+with downloads from Windows systems, which occasionally fail with
+C<BAD_REQUEST> for an unknown reason.
+
+I<This option may be removed at some future time if the underlying problem
+is fixed>.
+
+=item delay
+
+  --delay=time
+
+Delay I<time> seconds between HTTP requests when downloading a
+recording from a Beyonwiz. I<Time> may be given in floating point,
+so using, say, C<--time=0.5> should work as expected.
+
+The main intention of this option is to try to help overcome a
+problem with downloads from Windows systems, which occasionally
+fail with C<BAD_REQUEST> for an unknown reason.
+
+I<This option may be removed at some future time if the underlying problem
+is fixed>.
 
 =item verbose
 
@@ -1185,7 +1267,7 @@ and will take about 2.1 sec/GB on systems with more ports available.
 It is possible to increase the fraction of the available ephemeral ports that
 I<getWizPnP> uses by setting
 C<$Beyonwiz::Recording::HTTPAccessor::ephemPortsFrac>
-in the getWizPnP B<L<configuration file|/FILES>>.
+in the I<getWizPnP> B<L<configuration file|/FILES>>.
 It is probably inadvisable to set this value greater than 0.5 (50%).
 
 It is possible to increase the number of ephemeral ports
@@ -1198,7 +1280,7 @@ at L<http://support.microsoft.com/default.aspx?scid=kb;en-us;196271>.
 If you do this, you need to correspondingly set the number of
 available ephemeral ports by setting
 C<$Beyonwiz::Recording::HTTPAccessor::numEphemPorts>
-in the getWizPnP B<L<configuration file|/FILES>>.
+in the I<getWizPnP> B<L<configuration file|/FILES>>.
 I<getWizPnP> otherwise has no way of discovering the number
 of available ephemeral ports.
 Make a backup of your Registry before modifying it
@@ -1288,8 +1370,19 @@ but not command-line options.
 It is probably most useful for setting the default B<--L<device>>
 or B<--L<host>> option, or making B<--L<episode>> set by default.
 
-An example C<.getwizpnp> file is included with I<getWizPnP>, in
-the file C<getwizpnp.conf>.
+An example I<getWizPnP> configuration file file is included with the
+I<getWizPnP> distribution, in the file C<getwizpnp.conf>.
+
+The I<getWizPnP> configuration file can be specified explicitly by setting
+the C<GETWIZPNPCONF> environment variable.
+For example (on Unix Bourne-like shells like I<bash>):
+
+    export GETWIZPNPCONF=~/mygetwizpnp.conf
+
+If C<GETWIZPNPCONF> is set to the empty string, then no configuration
+file is executed:
+
+    export GETWIZPNPCONF=
 
 =head1 PREREQUSITES
 
@@ -1306,7 +1399,10 @@ L<C<Beyonwiz::Recording::Check>|Beyonwiz::Recording::Check>,
 C<File::Spec::Functions>,
 C<File::Path>,
 C<HTTP::Status>,
-C<Getopt::Long>.
+C<Getopt::Long>,
+C<POSIX>,
+C<DateTime>,
+C<DateTime::Format::Natural>.
 
 =head1 BUGS
 
@@ -1410,7 +1506,7 @@ Instant recordings will not sort in their correct alphabetic sequence
 use strict;
 use warnings;
 
-my $VERSION = '0.5.3';
+my $VERSION = '0.5.4';
 
 use Beyonwiz::WizPnP;
 use Beyonwiz::Recording::HTTPAccessor;
@@ -1424,7 +1520,11 @@ use Beyonwiz::Recording::Check;
 use File::Spec::Functions qw(catfile);
 use File::Path qw(mkpath);
 
-use HTTP::Status qw(:is);
+use POSIX;
+use DateTime;
+use DateTime::Format::Natural;
+
+use HTTP::Status qw(:constants :is status_message);
 use Getopt::Long qw(:config no_ignore_case bundling);
 
 use constant CONFIG => $^O eq 'MSWin32' ? 'getwizpnp.conf' : '.getwizpnp';
@@ -1478,6 +1578,8 @@ our $reconMinScan = 0;
 our $reconMaxScan = 200;
 our $reconFrac = 0.2;
 our $reconFixed = 5 * 32 * 2**20;
+our $before;
+our $since;
 
 
 our (
@@ -1505,12 +1607,13 @@ our (
 	$useStdout,
 	$resume,
 	$force,
+	$retry,
 	$help,
 	$printVersion,
 	$discover,
 	$wizpnpPoll,
 	$wizpnpTimeout,
-    ) = ((0) x 28);
+    ) = ((0) x 29);
 
 our (
 	# initialised to 1
@@ -1589,6 +1692,9 @@ my @defaultStopFolders =
 	:     ('lost+found', '.Trash');
 my @stopFolders;
 
+my %retryCodes = map { $_, 1 } (
+			HTTP_BAD_REQUEST,
+		    );
 my $dictStopRe;
 my %dictionarySort;
 my @dictStoplist;
@@ -1597,6 +1703,8 @@ my $debugStr;
 my $mode = MODE_COPY;
 my $matchType = MATCH_SUBSTR;
 my $accessor;
+my $parseDT;
+my ($beforeDT, $sinceDT);
 
 my @pids = qw( vidPID audPID PCRPID PMTPID );
 
@@ -1605,28 +1713,32 @@ select($outFile);
 
 sub Usage(;$) {
     my ($warn) = @_;
-    my $message = "Usage: $0 [--help|-h] [--version]\n" .
-	"                  [--device dev|-D dev] [--maxdevs=devs|-m devs]\n" .
-	"                  [--longNames]\n" .
-	"                  [--host=host|-H host] [--port=port|-p port]\n" .
-	"                  [--list|-l] [--List|-L] [--check|-c]\n" .
-	"                  [--copy|-C] [--delete|-X] [--move|-M] [--dryrun|-n]\n" .
-	"                  [--media=exts] [--stopFolders=folderlist]\n" .
-	"                  [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]\n" .
-	"                  [--folder=folderlist|-f folderlist]\n" .
-	"                  [--recursive|--all|-a]\n" .
-	"                  [--regexp|-r] [--expression|-e] [-BWName|-B]\n" .
-	"                  [--sort=sortcode|-s sortcode]\n" .
-	"                  [--dictionarySort=ignoretype|-i ignoretype]\n" .
-	"                  [--dictStoplist=words|-S words]\n" .
-	"                  [--date|-d] [--episode|-E] [--ts|-t] [--join|-j]\n" .
-	"                  [--reconstruct[=[maxscan],[frac],[fixed]]]\n" .
-	"                  [--resume|-R] [--force|-F]\n" .
-	"                  [--outDir=dir|-O dir] [--inDir=dir|-I dir]\n" .
-	"                  [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]\n" .
-	"                  [--debug=debugcode] [--index|-x]\n" .
-	"                  [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]\n" .
-	"                  [ recording match patterns... ]\n";
+    my $message = "Usage: $0 [--help|-h] [--version]\n"
+	. "                  [--device dev|-D dev] [--maxdevs=devs|-m devs]\n"
+	. "                  [--longNames]\n"
+	. "                  [--host=host|-H host] [--port=port|-p port]\n"
+	. "                  [--list|-l] [--List|-L] [--check|-c]\n"
+	. "                  [--copy|-C] [--delete|-X] [--move|-M] [--dryrun|-n]\n"
+	. "                  [--media=exts] [--stopFolders=folderlist]\n"
+	. "                  [--nameFormat=fmt|-T fmt] [--dateFormat=fmt]\n"
+	. "                  [--folder=folderlist|-f folderlist]\n"
+	. "                  [--recursive|--all|-a]\n"
+	. "                  [--regexp|-r] [--expression|-e] [-BWName|-B]\n"
+	. "                  [--sort=sortcode|-s sortcode]\n"
+	. "                  [--dictionarySort=ignoretype|-i ignoretype]\n"
+	. "                  [--dictStoplist=words|-S words]\n"
+	. "                  [--date|-d] [--episode|-E]\n"
+	. "                  [--ts|-t] [--join|-j] [--stdout]\n"
+	. "                  [--before=datetime] [--since=datetime]\n"
+	. "                  [--reconstruct[=[maxscan],[frac],[fixed]]]\n"
+	. "                  [--resume|-R] [--force|-F][--retry=n]\n"
+	. "                  [--delay=time]\n"
+	. "                  [--outDir=dir|-O dir] [--inDir=dir|-I dir]\n"
+	. "                  [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]\n"
+	. "                  [--debug=debugcode] [--index|-x]\n"
+	. "                  [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]\n"
+	. "                  [ recording match patterns... ]\n";
+
     if($warn) {
 	warn $message;
     } else {
@@ -1641,33 +1753,28 @@ sub Version($) {
 }
 
 my $configDir;
+my $config;
 
-if($^O eq 'MSWin32') {
-    if(defined $ENV{APPDATA} and $ENV{APPDATA} ne '') {
-	$configDir = catfile($ENV{APPDATA}, 'Prl', 'getWizPnP');
-    }
+if(defined $ENV{GETWIZPNPCONF}) {
+    $config = $ENV{GETWIZPNPCONF};
 } else {
-    if(defined $ENV{HOME} and $ENV{HOME} ne '') {
-	$configDir = $ENV{HOME};
-    }
-}
-
-if(defined $configDir) {
-    if(!-d $configDir) {
-	eval { mkpath $configDir };
-	if ($@) {
-	    $configDir = undef;
+    if($^O eq 'MSWin32') {
+	if(defined $ENV{APPDATA} and $ENV{APPDATA} ne '') {
+	    $configDir = catfile($ENV{APPDATA}, 'Prl', 'getWizPnP');
+	}
+    } else {
+	if(defined $ENV{HOME} and $ENV{HOME} ne '') {
+	    $configDir = $ENV{HOME};
 	}
     }
-}
-
-my $config = defined $configDir && length($configDir) > 0
+    $config = defined $configDir && length($configDir) > 0
 		? $configDir . '/' . CONFIG
 		: CONFIG;
+}
 
 
-do $config if(-f $config);
-warn "config file: $@\n" if($@); #ZZ
+do $config if(length($config) > 0 && -f $config);
+warn "Config file: $@\n" if($@);
 
 GetOptions(
 	'version'		=> \$printVersion,
@@ -1697,9 +1804,12 @@ GetOptions(
 	'd|date!'		=> \$date,
 	'dateLast!'		=> \$dateLast,
 	'E|episode!'		=> \$episode,
+	'before=s'		=> \$before,
+	'since=s'		=> \$since,
 	'reconstruct:s'		=> \$reconstruct,
 	'R|resume!'		=> \$resume,
 	'F|force!'		=> \$force,
+	'retry=i'		=> \$retry,
 	'r|regexp!'		=> \$regexp,
 	'e|expression!'		=> \$expression,
 	'B|BWName!'		=> \$bwName,
@@ -1715,6 +1825,7 @@ GetOptions(
 	'wizpnpPoll=i'		=> \$wizpnpPoll,
 	'wizpnpTimeout=f'	=> \$wizpnpTimeout,
 	'q|quiet+'		=> \$quiet,
+	'delay=f',		=> \$Beyonwiz::Recording::HTTPAccessor::reqDelay,
     ) or Usage;
 
 # Class implementing a generic (no action) progress bar
@@ -1767,7 +1878,7 @@ GetOptions(
 	my $ret = $self->{total};
 	if(@_ == 2) {
 	    $self->{total} = $val;
-	    $self->done(0);
+	    $self->{done} = 0;
 	    $self->starttime(Time::HiRes::time);
 	    $self->percen(0);
 	    $self->mb(0);
@@ -1896,10 +2007,10 @@ GetOptions(
 	if(@_ == 2) {
 	    $ret = $self->SUPER::total($val);
 	    $self->display('');
+	    $self->newLine('');
 	} else {
 	    $ret = $self->SUPER::total;
 	}
-	$self->newLine('');
 	return $ret;
     }
 
@@ -1910,12 +2021,12 @@ GetOptions(
 	my ($self, $val) = @_;
 	my $ret = $self->SUPER::done;
 	if(@_ == 2) {
-	    my $percen = $self->percen;
+	    my $oldPercen = $self->percen;
 	    my $mb = $self->mb;
 
 	    $ret = $self->SUPER::done($val);
 
-	    if($percen != $self->percen
+	    if($self->percen != $oldPercen
 	    || $mb != $self->mb
 	    || $self->display eq '') {
 		my $donechars = int($self->percen / 2 + 0.5);
@@ -1931,7 +2042,7 @@ GetOptions(
 		my $dispstr = sprintf "\r|%s%s|%4.1fMB/s %3d%% %.0f/%.0fMB",
 		    $donestr, $leftstr,
 		    $self->rate,
-		    $percen,
+		    $self->percen,
 		    $self->mb, $self->totMb;
 		print $dispstr;
 		$self->display($dispstr);
@@ -1965,6 +2076,32 @@ sub mergeHash($$) {
     while(my ($k, $v) = each %$from) {
 	$to->{$k} = $v;
     }
+}
+
+sub processTimeOpt($$$) {
+    my ($name, $dtStr, $dt) = @_;
+
+    return if(!defined $dtStr);
+
+    $parseDT = DateTime::Format::Natural->new(
+		    lang          => 'en',
+		    format        => 'd/m/y',
+		    prefer_future => 0,
+		    time_zone     => 'local',
+		    daytime       => {
+					morning   => 06,
+					afternoon => 13,
+					evening   => 19
+				    }
+		)
+	if(!defined $parseDT);
+    die "$0: Can't construct date/time parser can't be constructed\n"
+	if(!defined $parseDT);
+    my $newDT = $parseDT->parse_datetime($dtStr);
+    die "$0: Error in '--$name=$dtStr' - ",  $parseDT->error, "\n"
+	if(!$parseDT->success);
+    $newDT->set_time_zone('floating');
+    $$dt = $newDT;
 }
 
 sub processDebug($) {
@@ -2145,6 +2282,8 @@ sub processOpts() {
 	warn "Reconstruct scan minimum > scan maximum\n"
 	    if($reconMinScan > $reconMaxScan);
     }
+    processTimeOpt('before', $before, \$beforeDT);
+    processTimeOpt('since', $since, \$sinceDT);
     processDebug($debugStr);
 }
 
@@ -2296,7 +2435,7 @@ sub testString($) {
     my ($hdr) = @_;
     return join('#', $hdr->service,
 			$hdr->longTitle,
-			scalar(gmtime($hdr->starttime)));
+			POSIX::strftime($dateFormat, gmtime $hdr->starttime));
 }
 
 sub matchFolder($) {
@@ -2308,6 +2447,24 @@ sub matchFolder($) {
     return 0;
 }
 
+# Make a DateTime object from a Unix time, in the UTC time zone
+
+sub constructDT($) {
+    my ($uTime) = @_;
+    my ($second,$minute,$hour,$day,$month,$year) = gmtime($uTime);
+    my $newDT = DateTime->new(
+		    year      => $year + 1900,
+		    month     => $month + 1,
+		    day       => $day,
+		    hour      => $hour,
+		    minute    => $minute,
+		    second    => $second,
+		    time_zone => 'UTC',
+		);
+    $newDT->set_time_zone('floating');
+    return $newDT;
+}
+
 # Return true if the mode is MODE_LIST and the argument list is empty,
 # or the header matches the user pattern argument,
 # and the recording isn't active, and the mode is not MODE_LIST
@@ -2315,7 +2472,9 @@ sub matchFolder($) {
 sub matchRecording($$$) {
     my ($ie, $hdr, $mode) = @_;
     return 0 unless(matchFolder($ie->sortFolder));
-    return 1 if($mode == MODE_LIST && @ARGV == 0);
+
+    return 0 if($mode != MODE_LIST && $hdr->inRec
+	     && !defined($beforeDT) && !defined($sinceDT));
 
     # Force lazy fetch if it hasn't already happened
     # and test for a valid header
@@ -2323,6 +2482,16 @@ sub matchRecording($$$) {
     return 0 if(!$hdr->validMain);
 
     return 0 if($mode != MODE_LIST && $hdr->inRec);
+
+    # Check that the recording start time is in the time range
+    return 0
+	if(defined($beforeDT)
+	&& DateTime->compare($beforeDT, constructDT($hdr->starttime)) <= 0);
+    return 0
+	if(defined($sinceDT)
+	&& DateTime->compare($sinceDT, constructDT($hdr->starttime)) > 0);
+
+    return 1 if($mode == MODE_LIST && @ARGV == 0);
 
     # Construct the match string and
     # use $_ for the benefit of the eval() below
@@ -2346,7 +2515,7 @@ sub newIndex($$)
     return Beyonwiz::Recording::Index->new($accessor, \&makeSortTitle);
 }
 
-# Create a new recording object for he recording source, either local or HTTP.
+# Create a new recording object for the recording source, either local or HTTP.
 
 sub newRecording($$$$$$$) {
     my ($inDir, $device, $join, $nameFormat, $dateFormat,
@@ -2665,10 +2834,11 @@ sub doRecordingOperation($$$$$$) {
 		warn $ie->name,
 		     " can't load or reconstruct stat file\n";
 	    }
-	    my $progressBar = $verbose >= 1
+	    my ($progressBar, $status);
+	    $progressBar = $verbose >= 1
 				? TextProgressBar->new
 				: ProgressBar->new;
-	    my $status = $rec->getRecording(
+	    $status = $rec->getRecording(
 					$hdr, $trunc, $stat,
 					$ie->name,
 					$ie->path,
@@ -2676,12 +2846,35 @@ sub doRecordingOperation($$$$$$) {
 					$useStdout,
 					$progressBar
 				    );
+	    print $progressBar->newLine;
+	    if($useStdout == 0) {
+		my $retries = 0;
+		while(!is_success($status) && $retryCodes{$status}
+		   && $retries < $retry) {
+		    warn "Copy failed: ",
+			status_message($status), " - retrying\n";
+		    sleep(2);
+		    $progressBar = $verbose >= 1
+					? TextProgressBar->new
+					: ProgressBar->new;
+		    $rec->resume(1);
+		    $status = $rec->getRecording(
+						$hdr, $trunc, $stat,
+						$ie->name,
+						$ie->path,
+						$outDir,
+						$useStdout,
+						$progressBar
+					    );
+		    print $progressBar->newLine;
+		    $retries++;
+		}
+	    }
 	    if(!is_success($status)) {
 		warn "Copy failed: ",
 			status_message($status), "\n";
 		return;
 	    }
-	    print $progressBar->newLine;
 	}
 	if($mode == MODE_DELETE || $mode == MODE_MOVE) {
 	    $trunc = getTrunc($trunc, $inDir, $device, $ie, $hdr);

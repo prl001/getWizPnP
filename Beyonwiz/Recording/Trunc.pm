@@ -315,9 +315,10 @@ sub valid() {
 sub truncStart($$) {
     my ($self, $recOffset) = @_;
     my $startFileOff = 0;
-    for(my $i = 0; $i < $self->nentries; $i++) {
+    foreach my $i (0..$self->nentries-1) {
 	my $endFileOff = $startFileOff + ${$self->entries}[$i]->size;
-	return ($i, $recOffset - $startFileOff) if($endFileOff > $recOffset);
+	return ($i, $recOffset - $startFileOff)
+	    if($endFileOff > $recOffset);
 	$startFileOff = $endFileOff;
     }
     return ($self->nentries, $recOffset - $startFileOff);
@@ -326,7 +327,9 @@ sub truncStart($$) {
 sub makeFileTrunc($) {
     my ($self) = @_;
 
-    my $fileTrunc = Beyonwiz::Recording::Trunc->new($self->name, $self->path);
+    my $fileTrunc = Beyonwiz::Recording::Trunc->new(
+				$self->accessor, $self->name, $self->path
+			    );
     my $lastfile = -1;
     $fileTrunc->size($self->size);
     $fileTrunc->fileName($self->fileName);
@@ -360,7 +363,8 @@ sub fileTruncFromDir($) {
     my ($self) = @_;
 
     my $fileTrunc = Beyonwiz::Recording::Trunc->new(
-                                $self->name, $self->path);
+                                $self->accessor, $self->name, $self->path
+			    );
     my $lastfile = -1;
     $fileTrunc->size($self->size);
     $fileTrunc->fileName($self->fileName);

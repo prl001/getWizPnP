@@ -4,7 +4,7 @@
 <head>
 <title>getWizPnP</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rev="made" href="mailto:_mdnsresponder@doublemagnum.apple.com" />
+<link rev="made" href="mailto:_mdnsresponder@b1026.apple.com" />
 </head>
 
 <body style="background-color: white">
@@ -23,7 +23,6 @@
 
 	<li><a href="#name">NAME</a></li>
 	<li><a href="#synopsis">SYNOPSIS</a></li>
-	<li><a href="#description">DESCRIPTION</a></li>
 	<li><a href="#beyonwiz_names">BEYONWIZ NAMES</a></li>
 	<li><a href="#arguments">ARGUMENTS</a></li>
 	<li><a href="#files">FILES</a></li>
@@ -57,19 +56,19 @@
               [--regexp|-r] [--expression|-e] [-BWName|-B]
               [--sort=sortcode|-s sortcode]
               [--dictionarySort=ignoretype|-i ignoretype]
-              [--dictStoplist=words|-S word]
-              [--episode|-E] [--date|-d] [--dateLast]
-              [--ts|-t] [--join|-j] [--stdout]
-              [--resume|-R] [--force|-F]
+              [--dictStoplist=words|-S words]
+              [--date|-d] [--episode|-E] [--ts|-t] [--join|-j]
+              [--before=datetime] [--since=datetime]
+              [--reconstruct[=[maxscan],[frac],[fixed]]]
+              [--resume|-R] [--force|-F][--retry=n]
+              [--delay=time]
               [--outDir=dir|-O dir] [--inDir=dir|-I dir]
               [--verbose|-v] [--Verbose=level|-V level] [--quiet|-q]
               [--debug=debugcode] [--index|-x]
               [--discover] [--wizpnpPoll=npoll] [--wizpnpTimeout=timeout]
-              [ recording match patterns... ]</pre>
-<p>
-</p>
-<hr />
-<h1><a name="description">DESCRIPTION</a></h1>
+              [ recording match patterns... ]\n&quot;;
+ 
+=head1 DESCRIPTION</pre>
 <p>List, check, fetch, move or delete the recordings on a Beyonwiz DP series
 PVR over the network using the <em>WizPnP</em> interface.
 If <strong>--<a href="#indir">inDir</a></strong> is specified, perform the same operations on
@@ -92,13 +91,21 @@ respectively).</p>
 if it is a substring of the string <em>servicename</em><strong>#</strong><em>longtitle</em>#<em>date</em>,
 case insensitive.
 The <em>longtitle</em> is just the title if the header has no episode information,
-otherwise it is <em>title</em><strong>/</strong><em>episodename</em>.</p>
+otherwise it is <em>title</em><strong>/</strong><em>episodename</em>.
+The format of <em>date</em> defaults to
+<em>yyyy</em><code>-</code><em>mm</em><code>-</code><em>dd</em> <em>HH</em><code>-</code><em>MM</em>, but it is changed by the
+<strong>--<a href="#dateformat">dateFormat</a></strong>
+option.
+The default is
+<code>dateFormat=default</code>,
+which itself is equivalent to
+<code>dateFormat=isoLike</code>.</p>
 <p>For example:</p>
 <pre>
-    SC10 Canberra#MOVIE: Pride &amp; Prejudice#Fri Feb 15 20:28:00 2008</pre>
+    SC10 Canberra#MOVIE: Pride &amp; Prejudice#2008-02-15 20-28</pre>
 <p>or</p>
 <pre>
-    WIN TV Canberra#Underbelly/Team Purana#Wed May  7 20:28:00 2008</pre>
+    WIN TV Canberra#Underbelly/Team Purana#2012-05-25 19-30</pre>
 <p>To download all recordings, an empty string will match everything:</p>
 <pre>
     wizGetPnP.pl ''</pre>
@@ -316,7 +323,7 @@ The default set can also be specified in the <strong><a href="#files">configurat
 are also recognised if they have no filename extension on their
 folder.
 This is to allow recognition of recordings copied using old versions
-of getWizPnP which did not add a .tvwiz/.radwiz extension to the folder name.
+of <em>getWizPnP</em> which did not add a .tvwiz/.radwiz extension to the folder name.
 This feature may be removed in future versions.</p>
 <p>Recognition of these beyonwiz-format recordings cannot be controlled by
 <a href="#media"><code>--media</code></a>.</p>
@@ -385,7 +392,7 @@ Will not be set for media that are not Beyonwiz recordings.</p>
 The most recently modified time for media files stored on computer
 file systems.
 The format of the date defaults to an ISO-likeformat <code>YYYY-MM-DD HH-MM</code>
-(e.g. 2009-02-22 20:30).
+(e.g. 2009-02-22 20-30).
 The format of the date can be set using <strong>--<a href="#dateformat">dateFormat</a></strong>.</p>
 <p>Codes from <strong>--<a href="#dateformat">dateFormat</a></strong> are also interpreted if they are present
 in <em>fmt</em>, but it is probably cleaner to change the date format using
@@ -420,6 +427,7 @@ on Windows, even if you specify it explicitly.</p>
 <strong><a href="#files">configuration file</a></strong> and the list of canned formats
 can be modified or extended (user definitions override program definitions
 where both are specified).</p>
+<p>Also see <strong>--<a href="#episode">episode</a></strong>,  <strong>--<a href="#date">date</a></strong> and <strong>--<a href="#datelast">dateLast</a></strong>.</p>
 </dd>
 <dt><strong><a name="dateformat" class="item">dateFormat</a></strong></dt>
 
@@ -692,8 +700,11 @@ if <strong>case</strong> is set in <strong>--<a href="#dictionarysort">dictionar
   -E
   --noepisode
   --noE</pre>
-<p>Add the recording episode name (if there is one) to the name of the
-recording when it's downloaded.
+<p>Add the recording episode name (if there is one) to a recording when
+it's downloaded.
+Adds the episode name to the end of the <strong>--<a href="#nameformat">nameFormat</a></strong> string
+after the date if it's set by <strong>--<a href="#date">date</a></strong> or before the date
+it it's set by <strong>--<a href="#datelast">dateLast</a></strong>.
 Useful for downloading series.</p>
 </dd>
 <dt><strong><a name="date" class="item">date</a></strong></dt>
@@ -724,6 +735,36 @@ to the name of the recording when it's downloaded.
 Useful for downloading series.
 Adds the date to the end of the <strong>--<a href="#nameformat">nameFormat</a></strong> string
 after the episode name if it's set by <strong>--<a href="#episode">episode</a></strong>.</p>
+</dd>
+<dt><strong><a name="since" class="item">since</a></strong></dt>
+
+<dd>
+<pre>
+  --since=timeString</pre>
+<p>Restricts <em>getWizPnP</em> to operate on recordings made since the time given in
+the time string. If the time string specifies only the day,
+it is recordings since 00:00 in the morning of the day concerned, so
+<code>--since today</code>
+will operate on anything recorded today.</p>
+<p>The format of <em>timeString</em> is intended to allow for relatively free-form
+conversational dates and times, as well as more formal dates, but some
+uses may find them unintuitive.
+For example, &quot;1 day before yesterday&quot; is not recognised, but
+&quot;yesterday 1 day ago&quot; is recognised (as the same thing).</p>
+<p>More documentation of the formats allowed is on CPAN
+<a href="http://search.cpan.org/~schubiger/DateTime-Format-Natural-0.99/lib/DateTime/Format/Natural/Lang/EN.pm">http://search.cpan.org/~schubiger/DateTime-Format-Natural-0.99/lib/DateTime/Format/Natural/Lang/EN.pm</a>. Dates with '/' are in the form d/m/y, not m/d/y.</p>
+</dd>
+<dt><strong>since</strong></dt>
+
+<dd>
+<pre>
+  --before=timeString</pre>
+<p>Restricts <em>getWizPnP</em> to operate on recordings made before the time given in
+the time string. If the time string specifies only the day,
+it is recordings before 00:00 in the morning of the day concerned, so
+<code>--before today</code>
+will operate on anything recorded before (the start of) today.</p>
+<p>See <strong>--<a href="#since">since</a></strong> for the format of <em>timeString</em>.</p>
 </dd>
 <dt><strong><a name="ts" class="item">ts</a></strong></dt>
 
@@ -880,6 +921,38 @@ Empty fields leave the corresponding default unchanged, so:</p>
 If <strong>--<a href="#reconstruct">reconstruct</a></strong> is also set, then also force reconstruction of the
 <code>stat</code> and <code>trunc</code> header files even if they can be found.
 The interaction with <strong>--<a href="#reconstruct">reconstruct</a></strong> is mainly intended for debugging use.</p>
+</dd>
+<dt><strong><a name="retry" class="item">retry</a></strong></dt>
+
+<dd>
+<pre>
+  --retry=n</pre>
+<p>Automatically try to resume recording downloads (<strong>--<a href="#copy">copy</a></strong> or <strong>--<a href="#copy">copy</a></strong>)
+up to &lt;n&gt; times on particular kinds of HTTP error.
+The <em>n</em> retries are in addition to the initial download request.
+There is a short pause (2 sec) before each attempted retry.
+These retries resume recording downloads even if the original
+download did not have <strong>--<a href="#resume">resume</a></strong> set.</p>
+<p>At the moment, retries are only attempted for HTTP <code>BAD_REQUEST</code> errors.</p>
+<p>The main intention of this option is to help overcome a problem
+with downloads from Windows systems, which occasionally fail with
+<code>BAD_REQUEST</code> for an unknown reason.</p>
+<p><em>This option may be removed at some future time if the underlying problem
+is fixed</em>.</p>
+</dd>
+<dt><strong><a name="delay" class="item">delay</a></strong></dt>
+
+<dd>
+<pre>
+  --delay=time</pre>
+<p>Delay <em>time</em> seconds between HTTP requests when downloading a
+recording from a Beyonwiz. <em>Time</em> may be given in floating point,
+so using, say, <code>--time=0.5</code> should work as expected.</p>
+<p>The main intention of this option is to try to help overcome a
+problem with downloads from Windows systems, which occasionally
+fail with <code>BAD_REQUEST</code> for an unknown reason.</p>
+<p><em>This option may be removed at some future time if the underlying problem
+is fixed</em>.</p>
 </dd>
 <dt><strong><a name="verbose" class="item">verbose</a></strong></dt>
 
@@ -1097,7 +1170,7 @@ and will take about 2.1 sec/GB on systems with more ports available.</p>
 <p>It is possible to increase the fraction of the available ephemeral ports that
 <em>getWizPnP</em> uses by setting
 <code>$Beyonwiz::Recording::HTTPAccessor::ephemPortsFrac</code>
-in the getWizPnP <strong><a href="#files">configuration file</a></strong>.
+in the <em>getWizPnP</em> <strong><a href="#files">configuration file</a></strong>.
 It is probably inadvisable to set this value greater than 0.5 (50%).</p>
 <p>It is possible to increase the number of ephemeral ports
 available in Windows XP by modifications to the Registry
@@ -1109,7 +1182,7 @@ at <a href="http://support.microsoft.com/default.aspx?scid=kb;en-us;196271">http
 If you do this, you need to correspondingly set the number of
 available ephemeral ports by setting
 <code>$Beyonwiz::Recording::HTTPAccessor::numEphemPorts</code>
-in the getWizPnP <strong><a href="#files">configuration file</a></strong>.
+in the <em>getWizPnP</em> <strong><a href="#files">configuration file</a></strong>.
 <em>getWizPnP</em> otherwise has no way of discovering the number
 of available ephemeral ports.
 Make a backup of your Registry before modifying it
@@ -1195,8 +1268,17 @@ command-line options are set, so it over-rides program defaults,
 but not command-line options.</p>
 <p>It is probably most useful for setting the default <strong>--<a href="#device">device</a></strong>
 or <strong>--<a href="#host">host</a></strong> option, or making <strong>--<a href="#episode">episode</a></strong> set by default.</p>
-<p>An example <code>.getwizpnp</code> file is included with <em>getWizPnP</em>, in
-the file <code>getwizpnp.conf</code>.</p>
+<p>An example <em>getWizPnP</em> configuration file file is included with the
+<em>getWizPnP</em> distribution, in the file <code>getwizpnp.conf</code>.</p>
+<p>The <em>getWizPnP</em> configuration file can be specified explicitly by setting
+the <code>GETWIZPNPCONF</code> environment variable.
+For example (on Unix Bourne-like shells like <em>bash</em>):</p>
+<pre>
+    export GETWIZPNPCONF=~/mygetwizpnp.conf</pre>
+<p>If <code>GETWIZPNPCONF</code> is set to the empty string, then no configuration
+file is executed:</p>
+<pre>
+    export GETWIZPNPCONF=</pre>
 <p>
 </p>
 <hr />
@@ -1214,7 +1296,10 @@ the file <code>getwizpnp.conf</code>.</p>
 <code>File::Spec::Functions</code>,
 <code>File::Path</code>,
 <code>HTTP::Status</code>,
-<code>Getopt::Long</code>.</p>
+<code>Getopt::Long</code>,
+<code>POSIX</code>,
+<code>DateTime</code>,
+<code>DateTime::Format::Natural</code>.</p>
 <p>
 </p>
 <hr />

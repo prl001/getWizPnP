@@ -176,6 +176,7 @@ my $uaDone;
 
 our $numEphemPorts;
 our $ephemPortsFrac;
+our $reqDelay;
 
 sub new() {
     my ($class, $base) = @_;
@@ -283,27 +284,31 @@ sub getRecordingFileChunk($$$$$$$$$$) {
 
     $data_url->path(_uriPathEscape($file ne '' ? $path . '/' . $file : $path));
 
-    # Avoid trying to seek on pipes and FIFOs
-    if(!(-s $self->outFileHandle || -p $self->outFileHandle)
+    # Avoid trying to seek on sockets, pipes and FIFOs
+    if(!(-S $self->outFileHandle || -p $self->outFileHandle)
     && !sysseek $self->outFileHandle, $outOff, SEEK_SET) {
 	warn( $progressBar->newLine,
 	     'Seek error on ', $self->outFileName, ": $!\n" );
 	$self->closeRecordingFileOut;
-	return HTTP_BAD_REQUEST;
+	return HTTP_FORBIDDEN;
     }
 
     my $request = HTTP::Request->new(GET => $data_url);
     $request->header(range => "bytes=$off-" . ($off+$size-1));
-
     my $progressCount = 0;
+
+    warn "Request: $off $size\n";
+    my $httpCode;
+    my $httpMess;
     my $response = $ua->request($request,
 			sub($$$) {
 			    # Use $_[0] for $content, to avoid copying
 			    # the data...
-			    syswrite $self->outFileHandle, $_[0]
-				or die ( $progressBar->newLine,
-					'Write error on ',
-					$self->outFileName, ": $!\n" );
+			    if(!defined(syswrite $self->outFileHandle, $_[0])) {
+				$httpCode = HTTP_FORBIDDEN;
+				$httpMess = "$!";
+				die $httpMess . "\n";
+			    }
 			    $progressCount += length $_[0];
 			    if($progressCount > 256 * 1024) {
 				$progressBar->done(
@@ -315,6 +320,10 @@ sub getRecordingFileChunk($$$$$$$$$$) {
 			}
 		    );
 
+    if(defined $httpCode) {
+	$response->code($httpCode);
+	$response->message($httpMess);
+    }
     my $status = $response->code;
 
     $progressBar->done($progressBar->done + $progressCount);
@@ -375,6 +384,7 @@ sub deleteRecordingFile($$$$;$) {
     use LWP::UserAgent;
     use Beyonwiz::Utils;
     use HTTP::Status qw(:constants);
+    use Time::HiRes qw(sleep); #ZZ
 
     our @ISA = qw(LWP::UserAgent);
 
@@ -475,7 +485,9 @@ sub deleteRecordingFile($$$$;$) {
 
 	my $now = time;
 
-
+	if(defined($reqDelay) && $reqDelay > 0) {
+	    sleep($reqDelay);
+	}
 
 	$self->_dequeuePorts($now) if($portUse > 0);
 

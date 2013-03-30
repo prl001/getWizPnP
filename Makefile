@@ -18,6 +18,9 @@ VERSION:=$(shell perl ./$(NAME).pl --version 2>&1)
 
 CP=cp
 
+PP=pp
+PPEXTRAMODULES=--module="Beyonwiz::PPModules"
+
 ifeq ($(OSNAME),Cygwin)
     EXEEXT=.exe
 else ifeq ($(OSNAME),Windows)
@@ -34,6 +37,8 @@ RECMODULEDIR=$(BWMODULEDIR)/Recording
 
 SCRIPTS=$(NAME).pl
 EXE=$(NAME)$(EXEEXT)
+
+PPMODULES=$(BWMODULEDIR)/PPModules.pm
 
 BWMODULES=$(BWMODULEDIR)/Utils.pm $(BWMODULEDIR)/WizPnP.pm \
 	$(BWMODULEDIR)/WizPnPDevice.pm
@@ -110,7 +115,8 @@ clean:
 	rm -rf $(COMPILED)
 
 $(EXEDIR)/$(EXE): $(SCRIPTS)
-	pp -o "$(EXEDIR)/$(EXE)" $(SCRIPTS)
+	$(PP) $(PPEXTRAMODULES) \
+	    -o "$(EXEDIR)/$(EXE)" $(SCRIPTS)
 
 $(EXEDIR):
 	$(MKDIR) "$(EXEDIR)"

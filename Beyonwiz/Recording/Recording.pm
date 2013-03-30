@@ -166,7 +166,7 @@ use bignum;
 use Beyonwiz::Recording::Trunc qw(TRUNC WMMETA);
 use Beyonwiz::Recording::Header qw(TVHDR RADHDR);
 use Beyonwiz::Utils;
-use HTTP::Status qw(:constants :is);
+use HTTP::Status qw(:constants :is status_message);
 use File::Spec::Functions;
 use File::Basename;
 use POSIX;
@@ -281,7 +281,7 @@ sub putFile($$$$$$) {
     }
     if(!defined syswrite TO, $data, length $data) {
 	warn "Write error on $name: $!\n";
-	return HTTP_BAD_REQUEST;
+	return HTTP_FORBIDDEN;
     }
     close TO;
     return HTTP_OK;
@@ -326,9 +326,10 @@ sub getRecording($$$$$$$$$) {
     my $outStartOff = 0;
     $self->join(1) if($hdr->isMediaFile);
 
-    my $size = $trunc->recordingSize;
+    my $size;
 
     if($self->join) {
+	$size = $trunc->recordingSize;
 	my $fullname = addDir($outdir, $name);
 	$size = $hdr->endOffset - $hdr->startOffset
 	    if($hdr->endOffset - $hdr->startOffset < $size);
@@ -344,7 +345,7 @@ sub getRecording($$$$$$$$$) {
 		    ($startTrunc, $inStartOff) = $trunc->truncStart($recSize);
 		    $outStartOff = $trunc->recordingSize($startTrunc)
 					+ $inStartOff;
-		    $size -= $outStartOff;
+		    $done += $outStartOff;
 		} else {
 		    warn "Recording $name already exists, but is incomplete\n";
 		    warn "Use --resume to resume fetching it\n";
@@ -364,6 +365,7 @@ sub getRecording($$$$$$$$$) {
 
     } else {
 	$trunc = $trunc->makeFileTrunc;
+	$size = $trunc->recordingSize;
 
 	my $dirname = addDir($outdir, $name);
 	if(-d $dirname) {
@@ -374,18 +376,20 @@ sub getRecording($$$$$$$$$) {
 		my $fileAccessor =
 			Beyonwiz::Recording::FileAccessor->new($outdir);
 		my $fileTrunc =
-			Beyonwiz::Recording::Trunc->new($fileAccessor, $name, $dirname);
+			Beyonwiz::Recording::Trunc->new(
+				    $fileAccessor, $name, $dirname
+				);
 		$fileTrunc->load;
 		if($fileTrunc->valid) {
+		    $fileTrunc = $fileTrunc->makeFileTrunc;
 		    $fileTrunc = $fileTrunc->fileTruncFromDir;
 		    my $recSize = $fileTrunc->recordingSize;
 		    if($recSize < $size) {
 			if($self->resume) {
 			    $resume = 1;
 			    ($startTrunc, $inStartOff) =
-					$fileTrunc->truncStart($recSize);
-			    $size -= $trunc->recordingSize($startTrunc);
-			    $size -= $inStartOff;
+					$trunc->truncStart($recSize);
+			    $done += $recSize;
 			    $outStartOff = $inStartOff;
 			} else {
 			    warn "Recording $name already exists,",
@@ -413,7 +417,7 @@ sub getRecording($$$$$$$$$) {
 		return HTTP_FORBIDDEN;
 	    }
 	}
-	$size = $hdr->size + $trunc->size + STATSIZE + $trunc->recordingSize;
+	$size += $hdr->size + $trunc->size + STATSIZE;
 
 	$progressBar->total($size);
 	$progressBar->done($done);
@@ -492,7 +496,7 @@ sub getRecording($$$$$$$$$) {
 	my $offset = $tr->offset;
 	my $size   = $tr->size;
 	if($i == $startTrunc && $resume) {
-	    $offset = $inStartOff;
+	    $offset += $inStartOff;
 	    $size  -= $inStartOff;
 	}
 	my $trimSize = $self->join && $tr->wizOffset + $size > $hdr->endOffset;
