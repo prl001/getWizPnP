@@ -1,6 +1,9 @@
 #!/usr/bin/perl
 #!/opt/perlbrew/perls/perl-5.12.3/bin/perl
 
+my $Copyright = 'Copyright 2008-2018 Peter Lamb.
+See accompanying LICENSE file for redistribution conditions.';
+
 use strict;
 use warnings;
 

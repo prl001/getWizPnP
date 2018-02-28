@@ -1,5 +1,8 @@
 package Beyonwiz::Recording::TruncEntry;
 
+my $Copyright = 'Copyright 2008-2018 Peter Lamb.
+See accompanying LICENSE file for redistribution conditions.';
+
 =head1 NAME
 
     use Beyonwiz::Recording::TruncEntry;

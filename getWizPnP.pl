@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+my $Copyright = 'Copyright 2008-2018 Peter Lamb.
+See accompanying LICENSE file for redistribution conditions.';
+
 =head1 NAME
 
 getWizPnP - list and fetch recordings from a Beyonwiz DP series over the network using the WizPnP interface
@@ -1506,7 +1509,7 @@ Instant recordings will not sort in their correct alphabetic sequence
 use strict;
 use warnings;
 
-my $VERSION = '0.5.4';
+my $VERSION = '0.5.4a';
 
 use Beyonwiz::WizPnP;
 use Beyonwiz::Recording::HTTPAccessor;

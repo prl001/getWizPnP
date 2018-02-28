@@ -1,5 +1,8 @@
 package Beyonwiz::Recording::Accessor;
 
+my $Copyright = 'Copyright 2008-2018 Peter Lamb.
+See accompanying LICENSE file for redistribution conditions.';
+
 use warnings;
 use strict;
 use bignum;

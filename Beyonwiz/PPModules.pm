@@ -1,5 +1,8 @@
 package Beyonwiz::PPModules;
 
+my $Copyright = 'Copyright 2008-2018 Peter Lamb.
+See accompanying LICENSE file for redistribution conditions.';
+
 # Dummy module to force dynamically loaded modules used by
 # DateTime and its submodules to be included when compiling using pp.
 # Referenced when compiling using pp (in make compile).

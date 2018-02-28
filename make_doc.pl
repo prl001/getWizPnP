@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+my $Copyright = 'Copyright 2008-2018 Peter Lamb.
+See accompanying LICENSE file for redistribution conditions.';
+
 use strict;
 use warnings;
 use File::Basename;
